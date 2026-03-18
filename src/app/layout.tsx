@@ -26,21 +26,19 @@ export default function RootLayout({
   const { theme } = tenantConfig;
 
   const cssVars = {
-    "--color-primary":              theme.primaryColor,
-    "--color-primary-foreground":   theme.primaryForeground,
+    "--color-primary":              theme.primary,
+    "--color-primary-foreground":   theme.textInverse,
     "--color-primary-light":        theme.primaryLight,
     "--color-primary-dark":         theme.primaryDark,
-    "--color-secondary":            theme.secondaryColor,
-    "--color-secondary-foreground": theme.secondaryForeground,
-    "--color-accent":               theme.accentColor,
-    "--color-accent-foreground":    theme.accentForeground,
+    "--color-secondary":            theme.secondary,
+    "--color-secondary-foreground": theme.textInverse,
     "--color-background":           theme.background,
-    "--color-foreground":           theme.foreground,
-    "--color-muted":                theme.muted,
-    "--color-muted-foreground":     theme.mutedForeground,
+    "--color-foreground":           theme.textPrimary,
+    "--color-muted":                theme.background,
+    "--color-muted-foreground":     theme.textSecondary,
     "--color-border":               theme.border,
-    "--radius":                     theme.radius,
-    "--radius-card":                `calc(${theme.radius} + 0.25rem)`,
+    "--radius":                     theme.radiusMd,
+    "--radius-card":                theme.radiusLg,
   } as React.CSSProperties;
 
   return (
