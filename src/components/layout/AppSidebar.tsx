@@ -66,14 +66,14 @@ export function AppSidebar({ user }: Props) {
         <div className="flex items-center gap-3">
           <div
             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-white font-bold text-sm shadow"
-            style={{ background: tenantConfig.theme.primaryColor }}
+            style={{ background: tenantConfig.theme.primary }}
           >
             {tenantConfig.shortName}
           </div>
           <div className="flex flex-col overflow-hidden group-data-[collapsible=icon]:hidden">
             <span
               className="truncate text-sm font-bold leading-tight"
-              style={{ color: tenantConfig.theme.primaryColor }}
+              style={{ color: tenantConfig.theme.primary }}
             >
               {tenantConfig.name}
             </span>
@@ -115,7 +115,7 @@ export function AppSidebar({ user }: Props) {
                           className="flex items-center gap-3 px-3 py-2.5"
                           style={isActive ? {
                             background: "#E6FAF8",
-                            color: tenantConfig.theme.primaryColor,
+                            color: tenantConfig.theme.primary,
                           } : {
                             color: "#6B7280",
                           }}
@@ -127,7 +127,7 @@ export function AppSidebar({ user }: Props) {
                           {isActive && (
                             <ChevronRight
                               className="h-3 w-3 shrink-0 group-data-[collapsible=icon]:hidden"
-                              style={{ color: tenantConfig.theme.primaryColor }}
+                              style={{ color: tenantConfig.theme.primary }}
                             />
                           )}
                         </Link>
@@ -157,7 +157,7 @@ export function AppSidebar({ user }: Props) {
             <AvatarImage src={user.image ?? undefined} />
             <AvatarFallback
               className="text-xs font-bold text-white"
-              style={{ background: tenantConfig.theme.primaryColor }}
+              style={{ background: tenantConfig.theme.primary }}
             >
               {initials}
             </AvatarFallback>
