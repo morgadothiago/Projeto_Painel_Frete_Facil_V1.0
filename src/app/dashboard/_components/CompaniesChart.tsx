@@ -70,7 +70,7 @@ const DATA = {
     color:    t.success,
     stat:     { value: "R$ 16.6k", label: "faturamento total", new: "+R$ 3.8k este mês" },
   },
-} as const;
+};
 
 type Tab = keyof typeof DATA;
 
