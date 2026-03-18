@@ -1,0 +1,245 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  // Dev: SQLite (arquivo local, zero configuracao)
+  // Prod: troque provider para "postgresql" e DATABASE_URL no .env
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Users ────────────────────────────────────────────────────────────────────
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  phone     String?
+  role      String   @default("COMPANY") // ADMIN | COMPANY | DRIVER
+  status    String   @default("ACTIVE")
+  photo     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  company Company?
+  driver  Driver?
+
+  @@map("users")
+}
+
+model Company {
+  id        String  @id @default(cuid())
+  userId    String  @unique
+  cnpj      String  @unique
+  tradeName String?
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  address    Address?
+  deliveries Delivery[]
+
+  @@map("companies")
+}
+
+model Driver {
+  id              String    @id @default(cuid())
+  userId          String    @unique
+  cpf             String    @unique
+  dateOfBirth     DateTime?
+  isOnline        Boolean   @default(false)
+  rating          Float     @default(0)
+  totalDeliveries Int       @default(0)
+  balance         Decimal   @default(0)
+
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  address     Address?
+  vehicle     Vehicle?
+  bankAccount BankAccount?
+  deliveries  Delivery[]
+  billings    Billing[]
+  locations   GpsLocation[]
+
+  @@map("drivers")
+}
+
+// ─── Address ──────────────────────────────────────────────────────────────────
+
+model Address {
+  id           String  @id @default(cuid())
+  street       String
+  number       String
+  complement   String?
+  neighborhood String
+  city         String
+  state        String
+  zipCode      String
+  lat          Float?
+  lng          Float?
+  companyId    String? @unique
+  driverId     String? @unique
+
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  driver  Driver?  @relation(fields: [driverId], references: [id], onDelete: Cascade)
+
+  @@map("addresses")
+}
+
+// ─── Vehicles ─────────────────────────────────────────────────────────────────
+
+model VehicleType {
+  id                  String  @id @default(cuid())
+  name                String  @unique
+  icon                String
+  description         String?
+  maxWeight           Float
+  isActive            Boolean @default(true)
+  basePrice           Decimal @default(0)
+  pricePerKm          Decimal @default(0)
+  helperPrice         Decimal @default(0)
+  additionalStopPrice Decimal @default(0)
+
+  vehicles   Vehicle[]
+  deliveries Delivery[]
+
+  @@map("vehicle_types")
+}
+
+model Vehicle {
+  id            String @id @default(cuid())
+  driverId      String @unique
+  vehicleTypeId String
+  plate         String @unique
+  model         String
+  year          Int
+  color         String
+
+  driver      Driver      @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  vehicleType VehicleType @relation(fields: [vehicleTypeId], references: [id])
+
+  @@map("vehicles")
+}
+
+model BankAccount {
+  id         String @id @default(cuid())
+  driverId   String @unique
+  bank       String
+  agency     String
+  account    String
+  pixKey     String
+  pixKeyType String // EMAIL | CPF | PHONE | CNPJ | RANDOM
+
+  driver Driver @relation(fields: [driverId], references: [id], onDelete: Cascade)
+
+  @@map("bank_accounts")
+}
+
+// ─── Deliveries ───────────────────────────────────────────────────────────────
+
+model Delivery {
+  id            String    @id @default(cuid())
+  publicId      String    @unique
+  companyId     String
+  driverId      String?
+  vehicleTypeId String
+  status        String    @default("PENDING")
+  // PENDING | ACCEPTED | COLLECTING | IN_TRANSIT | DELIVERED | CANCELLED | FAILED
+
+  originStreet       String
+  originNumber       String
+  originNeighborhood String
+  originCity         String
+  originState        String
+  originZipCode      String
+  originLat          Float?
+  originLng          Float?
+
+  destinationStreet       String
+  destinationNumber       String
+  destinationNeighborhood String
+  destinationCity         String
+  destinationState        String
+  destinationZipCode      String
+  destinationLat          Float?
+  destinationLng          Float?
+
+  cargoDescription  String?
+  weight            Float?
+  needsHelper       Boolean   @default(false)
+  additionalStops   Int       @default(0)
+  notes             String?
+  scheduledAt       DateTime?
+  estimatedPrice    Decimal?
+  finalPrice        Decimal?
+  estimatedDistance Float?
+  estimatedDuration Int?
+  rating            Int?
+  comment           String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  company     Company     @relation(fields: [companyId], references: [id])
+  driver      Driver?     @relation(fields: [driverId], references: [id])
+  vehicleType VehicleType @relation(fields: [vehicleTypeId], references: [id])
+  billing     Billing?
+  locations   GpsLocation[]
+
+  @@map("deliveries")
+}
+
+// ─── Billing ──────────────────────────────────────────────────────────────────
+
+model Billing {
+  id          String    @id @default(cuid())
+  accessKey   String    @unique
+  driverId    String
+  deliveryId  String    @unique
+  type        String    // CREDIT | DEBIT | WITHDRAWAL
+  amount      Decimal
+  platformFee Decimal   @default(0)
+  netAmount   Decimal
+  description String?
+  status      String    @default("PENDING") // PENDING | COMPLETED | REJECTED
+  paidAt      DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  driver   Driver   @relation(fields: [driverId], references: [id])
+  delivery Delivery @relation(fields: [deliveryId], references: [id])
+
+  @@map("billings")
+}
+
+// ─── GPS ──────────────────────────────────────────────────────────────────────
+
+model GpsLocation {
+  id         String   @id @default(cuid())
+  driverId   String
+  deliveryId String?
+  lat        Float
+  lng        Float
+  heading    Float?
+  speed      Float?
+  createdAt  DateTime @default(now())
+
+  driver   Driver    @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  delivery Delivery? @relation(fields: [deliveryId], references: [id], onDelete: SetNull)
+
+  @@map("gps_locations")
+}
+
+// ─── Notifications ────────────────────────────────────────────────────────────
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  body      String
+  type      String
+  read      Boolean  @default(false)
+  data      String?  // JSON serializado
+  createdAt DateTime @default(now())
+
+  @@map("notifications")
+}
