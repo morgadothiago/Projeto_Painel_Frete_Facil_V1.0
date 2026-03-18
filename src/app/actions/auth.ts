@@ -1,6 +1,6 @@
 "use server";
 
-import { signIn } from "@/auth";
+import { signIn, signOut } from "@/auth";
 import { AuthError } from "next-auth";
 
 export type LoginState = {
@@ -12,7 +12,7 @@ export async function loginAction(_prev: LoginState, formData: FormData): Promis
     await signIn("credentials", {
       email:      formData.get("email"),
       password:   formData.get("password"),
-      redirectTo: "/dashboard",
+      redirectTo: "/loading-screen",
     });
   } catch (error) {
     // signIn lança um redirect interno — precisamos re-lançar para funcionar
@@ -27,4 +27,8 @@ export async function loginAction(_prev: LoginState, formData: FormData): Promis
     throw error; // re-lança o redirect do NextAuth
   }
   return null;
+}
+
+export async function signoutAction() {
+  await signOut({ redirectTo: "/" });
 }
