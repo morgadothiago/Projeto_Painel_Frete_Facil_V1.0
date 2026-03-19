@@ -1,8 +1,8 @@
-import { redirect }       from "next/navigation";
-import { auth }           from "@/auth";
+import { redirect }        from "next/navigation";
+import { auth }            from "@/auth";
 import { Building2, Plus } from "lucide-react";
-import { getCompanies }   from "@/app/actions/companies";
-import { CompaniesTable } from "./_components/CompaniesTable";
+import { getCompanies }    from "@/app/actions/companies";
+import { CompaniesTable }  from "./_components/CompaniesTable";
 
 export default async function EmpresasPage() {
   const session = await auth();
@@ -11,16 +11,16 @@ export default async function EmpresasPage() {
   const companies = await getCompanies();
 
   return (
-    <div className="flex flex-col gap-5 h-full min-h-0">
+    <div className="flex h-full min-h-0 flex-col gap-5">
 
-      {/* ── Cabeçalho ──────────────────────────────────────── */}
-      <div className="flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-[14px]">
-          <div className="w-[44px] h-[44px] rounded-[14px] bg-[linear-gradient(135deg,#0C6B64,#2EC4B6)] flex items-center justify-center shadow-[0_4px_16px_#2EC4B635]">
-            <Building2 className="w-[21px] h-[21px] text-white" />
+      {/* Header */}
+      <div className="flex shrink-0 flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] bg-[linear-gradient(135deg,#0C6B64,#2EC4B6)] shadow-[0_4px_16px_rgba(46,196,182,0.35)]">
+            <Building2 className="h-[20px] w-[20px] text-white" />
           </div>
           <div>
-            <h1 className="m-0 text-[22px] font-extrabold text-foreground leading-[1.15] tracking-[-0.4px]">
+            <h1 className="m-0 text-[22px] font-extrabold leading-tight tracking-[-0.4px] text-slate-900">
               Empresas
             </h1>
             <p className="m-0 mt-0.5 text-[13px] text-muted-foreground">
@@ -28,19 +28,16 @@ export default async function EmpresasPage() {
             </p>
           </div>
         </div>
-
         <a
           href="/signup"
-          className="btn-nova-empresa inline-flex items-center gap-[7px] px-5 py-[10px] rounded-xl bg-[linear-gradient(135deg,#0C6B64,#2EC4B6)] text-white text-[13.5px] font-bold no-underline shadow-[0_4px_16px_#2EC4B635] transition-opacity duration-150 tracking-[0.01em]"
+          className="inline-flex items-center gap-[7px] rounded-xl bg-[linear-gradient(135deg,#0C6B64,#2EC4B6)] px-5 py-[10px] text-[13.5px] font-bold text-white no-underline shadow-[0_4px_16px_rgba(46,196,182,0.35)] transition-opacity hover:opacity-90"
         >
-          <Plus className="w-[15px] h-[15px]" />
+          <Plus className="h-[15px] w-[15px]" />
           Nova empresa
         </a>
       </div>
 
-      {/* ── Conteúdo ───────────────────────────────────────── */}
       <CompaniesTable initialData={companies} />
-
     </div>
   );
 }

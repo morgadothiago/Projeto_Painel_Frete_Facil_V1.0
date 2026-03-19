@@ -1,8 +1,6 @@
 "use client";
 
-import { useState } from "react";
 import { ChevronRight } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 export function QuickAction({ icon, label, sub, href, color }: {
   icon: React.ReactNode;
@@ -11,38 +9,22 @@ export function QuickAction({ icon, label, sub, href, color }: {
   href: string;
   color: string;
 }) {
-  const [hovered, setHovered] = useState(false);
-
   return (
     <a
       href={href}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      className={cn(
-        "flex items-center gap-[13px] rounded-xl px-3 py-[11px] no-underline transition-colors duration-150",
-        hovered ? "bg-background" : "bg-transparent"
-      )}
+      className="group flex items-center gap-[13px] rounded-xl px-3 py-[11px] no-underline transition-colors duration-150 hover:bg-background"
     >
       <div
-        className="w-[38px] h-[38px] rounded-[10px] flex items-center justify-center shrink-0 transition-colors duration-150"
-        style={{
-          background: hovered ? `${color}22` : `${color}14`,
-          color,
-        }}
+        className="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-[10px] transition-colors duration-150"
+        style={{ background: `${color}14`, color }}
       >
-        <span className="w-[17px] h-[17px] flex">{icon}</span>
+        <span className="flex h-[17px] w-[17px]">{icon}</span>
       </div>
-
-      <div className="flex-1">
-        <p className="text-[13.5px] font-bold text-foreground m-0">{label}</p>
-        <p className="text-xs text-muted-foreground m-0 mt-0.5">{sub}</p>
+      <div className="min-w-0 flex-1">
+        <p className="m-0 truncate text-[13.5px] font-bold text-slate-900">{label}</p>
+        <p className="m-0 mt-0.5 truncate text-xs text-muted-foreground">{sub}</p>
       </div>
-
-      <ChevronRight
-        className="shrink-0 w-[15px] h-[15px] transition-colors duration-150"
-        style={{ color: hovered ? color : undefined }}
-        color={hovered ? color : undefined}
-      />
+      <ChevronRight className="h-[15px] w-[15px] shrink-0 text-muted-foreground/40 transition-colors duration-150 group-hover:text-primary" />
     </a>
   );
 }
