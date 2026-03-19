@@ -126,7 +126,7 @@ export function DashboardShell({ user, initials, children }: Props) {
 
         {/* ── Conteúdo ─────────────────────────────────── */}
         <main style={{
-          flex: 1, overflow: "hidden",
+          flex: 1, overflowY: "auto",
           padding: "20px 24px",
           display: "flex", flexDirection: "column",
         }}>
