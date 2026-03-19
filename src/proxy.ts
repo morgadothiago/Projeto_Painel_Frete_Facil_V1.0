@@ -11,7 +11,7 @@ function isPublic(pathname: string) {
 
 // Lê o token JWT diretamente do cookie — sem chamar auth() internamente,
 // evitando o loop de redirect em /api/auth/session
-export async function proxy(req: NextRequest) {
+export default async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // Rotas do NextAuth e assets nunca precisam de verificação
