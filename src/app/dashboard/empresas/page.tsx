@@ -30,10 +30,28 @@ export default async function EmpresasPage() {
         </div>
         <a
           href="/signup"
-          className="inline-flex items-center gap-2 rounded-[10px] bg-[#0C6B64] px-4 py-[9px] text-[13px] font-semibold text-white no-underline transition-all hover:bg-[#0a5e58] active:scale-[0.98]"
-          style={{ boxShadow: "0 1px 2px rgba(0,0,0,0.10), 0 0 0 1px rgba(12,107,100,0.15)" }}
+          className="inline-flex items-center gap-[10px] no-underline transition-all active:scale-[0.97]"
+          style={{
+            background: "#0C6B64",
+            color: "#fff",
+            fontSize: 13,
+            fontWeight: 600,
+            padding: "9px 16px 9px 12px",
+            borderRadius: 10,
+            boxShadow: "0 1px 3px rgba(12,107,100,0.25), 0 1px 2px rgba(0,0,0,0.08)",
+            letterSpacing: "0.01em",
+          }}
+          onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "#0a5e58"; }}
+          onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "#0C6B64"; }}
         >
-          <Plus className="h-[14px] w-[14px]" strokeWidth={2.5} />
+          <span style={{
+            width: 20, height: 20, borderRadius: 6,
+            background: "rgba(255,255,255,0.18)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            flexShrink: 0,
+          }}>
+            <Plus className="h-[12px] w-[12px]" strokeWidth={2.5} />
+          </span>
           Nova empresa
         </a>
       </div>
