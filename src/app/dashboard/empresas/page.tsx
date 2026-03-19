@@ -30,9 +30,10 @@ export default async function EmpresasPage() {
         </div>
         <a
           href="/signup"
-          className="inline-flex items-center gap-[7px] rounded-xl bg-[linear-gradient(135deg,#0C6B64,#2EC4B6)] px-5 py-[10px] text-[13.5px] font-bold text-white no-underline shadow-[0_4px_16px_rgba(46,196,182,0.35)] transition-opacity hover:opacity-90"
+          className="inline-flex items-center gap-2 rounded-[10px] bg-[#0C6B64] px-4 py-[9px] text-[13px] font-semibold text-white no-underline transition-all hover:bg-[#0a5e58] active:scale-[0.98]"
+          style={{ boxShadow: "0 1px 2px rgba(0,0,0,0.10), 0 0 0 1px rgba(12,107,100,0.15)" }}
         >
-          <Plus className="h-[15px] w-[15px]" />
+          <Plus className="h-[14px] w-[14px]" strokeWidth={2.5} />
           Nova empresa
         </a>
       </div>
