@@ -1,19 +1,31 @@
+"use client";
+
 import {
   Building2, Truck, TrendingUp,
-  Settings, UserCircle, BarChart3, CheckCircle2,
+  Settings, UserCircle, BarChart3,
+  CheckCircle2,
 } from "lucide-react";
+
+import { useIsMobile } from "@/hooks/use-mobile";
 import { PageHeader }  from "@/components/dashboard/page-header";
 import { StatCard }    from "@/components/dashboard/stat-card";
 import { Card }        from "@/components/dashboard/card";
 import { InfoCard }    from "@/components/dashboard/info-card";
 import { QuickAction } from "../_components/QuickAction";
 import { AdminChart }  from "../_components/CompaniesChart";
+import { tenantConfig } from "@/config/tenant";
+
+const { theme: t } = tenantConfig;
 
 type Props = { userName: string };
 
 export function AdminDashboard({ userName }: Props) {
+  const isMobile = useIsMobile();
+
   return (
-    <div className="flex flex-1 flex-col gap-4 min-h-0">
+    <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 16, overflow: "hidden", minHeight: 0 }}>
+
+      {/* ── Banner ───────────────────────────────────────── */}
       <PageHeader
         label="Painel Administrativo"
         title={`Olá, ${userName} 👋`}
@@ -22,34 +34,78 @@ export function AdminDashboard({ userName }: Props) {
         actionHref="/dashboard/relatorios"
       />
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 shrink-0">
-        <StatCard icon={<Building2 />} label="Empresas"  value="21"   sub="cadastradas"   accent="#8B5CF6" />
-        <StatCard icon={<Truck />}     label="Fretes"    value="0"    sub="na plataforma"  accent="#2EC4B6" />
-        <StatCard icon={<TrendingUp />} label="Receita"  value="R$ 0" sub="este mês"       accent="#10B981" />
+      {/* ── Métricas ─────────────────────────────────────── */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: 12, flexShrink: 0 }}>
+        <StatCard icon={<Building2 />}  label="Empresas"  value="21"     sub="cadastradas"    accent="#8B5CF6" />
+        <StatCard icon={<Truck />}      label="Fretes"    value="0"      sub="na plataforma"  accent={t.primary} />
+        <StatCard icon={<TrendingUp />} label="Receita"   value="R$ 0"   sub="este mês"       accent={t.success} />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-4 flex-1 min-h-0">
-        <AdminChart />
+      {/* ── Corpo ────────────────────────────────────────── */}
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: isMobile ? "1fr" : "1fr 280px",
+        gap: 14,
+        flex: isMobile ? "none" : 1,
+        minHeight: 0,
+        overflow: isMobile ? "visible" : "hidden",
+      }}>
 
-        <div className="flex flex-col gap-3">
+        {/* Coluna principal: gráfico com tabs */}
+        <div style={{
+          display: "flex", flexDirection: "column", gap: 14,
+          overflow: "hidden", minHeight: isMobile ? 320 : 0,
+        }}>
+          <AdminChart />
+        </div>
+
+        {/* Coluna direita */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 12, minHeight: 0 }}>
+
           <Card title="Gestão">
-            <div className="p-2">
-              <QuickAction icon={<Building2 />}  label="Empresas"      sub="Gerenciar cadastros"    href="/dashboard/empresas"       color="#8B5CF6" />
-              <QuickAction icon={<UserCircle />}  label="Usuários"      sub="Controle de acesso"    href="/dashboard/usuarios"       color="#2EC4B6" />
-              <QuickAction icon={<BarChart3 />}   label="Relatórios"    sub="Faturamento e métricas" href="/dashboard/relatorios"    color="#10B981" />
-              <QuickAction icon={<Settings />}    label="Configurações" sub="Parâmetros do sistema" href="/dashboard/configuracoes"  color="#64748B" />
+            <div style={{ padding: "8px" }}>
+              <QuickAction
+                icon={<Building2 />}
+                label="Empresas"
+                sub="Gerenciar cadastros"
+                href="/dashboard/empresas"
+                color="#8B5CF6"
+              />
+              <QuickAction
+                icon={<UserCircle />}
+                label="Usuários"
+                sub="Controle de acesso"
+                href="/dashboard/usuarios"
+                color={t.primary}
+              />
+              <QuickAction
+                icon={<BarChart3 />}
+                label="Relatórios"
+                sub="Faturamento e métricas"
+                href="/dashboard/relatorios"
+                color={t.success}
+              />
+              <QuickAction
+                icon={<Settings />}
+                label="Configurações"
+                sub="Parâmetros do sistema"
+                href="/dashboard/configuracoes"
+                color={t.textSecondary}
+              />
             </div>
           </Card>
 
           <InfoCard
-            icon={<CheckCircle2 className="w-[15px] h-[15px]" />}
+            icon={<CheckCircle2 style={{ width: 15, height: 15 }} />}
             title="Sistema operacional"
             description="Todos os serviços estão online e funcionando normalmente."
             linkLabel="Ver logs"
             linkHref="/dashboard/configuracoes"
           />
+
         </div>
       </div>
+
     </div>
   );
 }

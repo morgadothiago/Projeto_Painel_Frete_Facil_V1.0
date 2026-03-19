@@ -1,4 +1,7 @@
 import { Plus } from "lucide-react";
+import { tenantConfig } from "@/config/tenant";
+
+const { theme: t } = tenantConfig;
 
 type EmptyStateProps = {
   icon: React.ReactNode;
@@ -10,19 +13,46 @@ type EmptyStateProps = {
 
 export function EmptyState({ icon, title, subtitle, actionLabel, actionHref }: EmptyStateProps) {
   return (
-    <div className="flex flex-1 flex-col items-center justify-center px-6 py-9 text-center">
-      <div className="mb-[18px] flex h-[72px] w-[72px] items-center justify-center rounded-full bg-primary-light">
+    <div style={{
+      flex: 1,
+      display: "flex", alignItems: "center", justifyContent: "center",
+      flexDirection: "column", padding: "36px 24px",
+    }}>
+
+      {/* Ícone */}
+      <div style={{
+        width: 72, height: 72, borderRadius: "50%",
+        background: t.primaryLight,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        marginBottom: 18,
+      }}>
         {icon}
       </div>
-      <p className="m-0 mb-1.5 text-[15px] font-bold tracking-[-0.2px] text-slate-900">{title}</p>
-      <p className="m-0 mb-6 text-[13px] leading-[1.6] text-muted-foreground">{subtitle}</p>
-      <a
-        href={actionHref}
-        className="inline-flex items-center gap-[7px] rounded-full bg-[linear-gradient(135deg,#0C6B64,#2EC4B6)] px-[26px] py-[11px] text-[13.5px] font-bold text-white no-underline shadow-[0_6px_18px_rgba(46,196,182,0.35)] transition-opacity hover:opacity-90"
-      >
-        <Plus className="h-[14px] w-[14px]" />
-        {actionLabel}
+
+      <p style={{
+        fontSize: 15, fontWeight: 700, color: t.textPrimary,
+        margin: "0 0 6px", textAlign: "center",
+        letterSpacing: "-0.2px",
+      }}>
+        {title}
+      </p>
+      <p style={{
+        fontSize: 13, color: t.textSecondary,
+        margin: "0 0 24px", textAlign: "center", lineHeight: 1.6,
+      }}>
+        {subtitle}
+      </p>
+
+      <a href={actionHref} style={{
+        display: "inline-flex", alignItems: "center", gap: 7,
+        padding: "11px 26px", borderRadius: t.radiusXl,
+        background: t.gradientPrimary, color: "#fff",
+        fontWeight: 700, fontSize: 13.5, textDecoration: "none",
+        boxShadow: `0 6px 18px ${t.primary}35`,
+      }}>
+        <Plus style={{ width: 14, height: 14 }} /> {actionLabel}
       </a>
+
     </div>
   );
 }

@@ -1,5 +1,7 @@
 import { ArrowUpRight } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { tenantConfig } from "@/config/tenant";
+
+const { theme: t } = tenantConfig;
 
 type CardProps = {
   children: React.ReactNode;
@@ -12,29 +14,46 @@ type CardProps = {
 
 export function Card({ children, title, icon, href, hrefLabel = "Ver todos", fill }: CardProps) {
   return (
-    <div
-      className={cn(
-        "flex flex-col overflow-hidden rounded-2xl border border-border/60 bg-white shadow-[0_2px_12px_rgba(0,0,0,0.05),0_1px_3px_rgba(0,0,0,0.03)]",
-        fill && "min-h-0 flex-1"
-      )}
-    >
+    <div style={{
+      background: t.surface,
+      borderRadius: t.radiusLg,
+      boxShadow: "0 2px 12px rgba(0,0,0,0.055), 0 1px 3px rgba(0,0,0,0.03)",
+      display: "flex",
+      flexDirection: "column",
+      overflow: "hidden",
+      ...(fill ? { flex: 1, minHeight: 0 } : {}),
+    }}>
+
       {title && (
-        <div className="flex shrink-0 items-center justify-between border-b border-background px-[22px] py-[18px]">
-          <div className="flex items-center gap-[9px]">
-            {icon && <span className="flex text-primary">{icon}</span>}
-            <span className="text-[14.5px] font-bold tracking-[-0.2px] text-slate-900">{title}</span>
+        <div style={{
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          padding: "18px 22px 16px",
+          borderBottom: `1px solid ${t.background}`,
+          flexShrink: 0,
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+            {icon && (
+              <span style={{ color: t.primary, display: "flex" }}>{icon}</span>
+            )}
+            <span style={{
+              fontSize: 14.5, fontWeight: 700, color: t.textPrimary,
+              letterSpacing: "-0.2px",
+            }}>
+              {title}
+            </span>
           </div>
           {href && (
-            <a
-              href={href}
-              className="flex items-center gap-1 text-[12.5px] font-semibold text-primary no-underline opacity-80 transition-opacity hover:opacity-100"
-            >
-              {hrefLabel}
-              <ArrowUpRight className="h-[13px] w-[13px]" />
+            <a href={href} style={{
+              display: "flex", alignItems: "center", gap: 4,
+              fontSize: 12.5, fontWeight: 600, color: t.primary,
+              textDecoration: "none", opacity: 0.85,
+            }}>
+              {hrefLabel} <ArrowUpRight style={{ width: 13, height: 13 }} />
             </a>
           )}
         </div>
       )}
+
       {children}
     </div>
   );

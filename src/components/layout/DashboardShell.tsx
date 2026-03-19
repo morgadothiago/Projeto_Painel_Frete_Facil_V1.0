@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { PanelLeft, Search } from "lucide-react";
 import { Sidebar } from "./Sidebar";
 import { NotificationBell } from "./NotificationBell";
-import { cn } from "@/lib/utils";
+import { tenantConfig } from "@/config/tenant";
+
+const { theme: t } = tenantConfig;
 
 type User = {
   name?:  string | null;
@@ -20,93 +22,159 @@ type Props = {
 };
 
 export function DashboardShell({ user, initials, children }: Props) {
-  const [collapsed,    setCollapsed]    = useState(false);
-  const [mobileOpen,  setMobileOpen]   = useState(false);
+  const [collapsed,  setCollapsed]  = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [isMobile,   setIsMobile]   = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 1023px)");
+    setIsMobile(mq.matches);
+    const handler = (e: MediaQueryListEvent) => {
+      setIsMobile(e.matches);
+      if (!e.matches) setMobileOpen(false);
+    };
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
+    <div style={{
+      display: "flex", height: "100vh", overflow: "hidden",
+      background: t.background,
+    }}>
 
       {/* ── Overlay mobile ──────────────────────────────── */}
-      {mobileOpen && (
+      {isMobile && mobileOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/40 lg:hidden"
           onClick={() => setMobileOpen(false)}
+          style={{
+            position: "fixed", inset: 0, zIndex: 90,
+            background: "rgba(0,0,0,0.45)",
+          }}
         />
       )}
 
       {/* ── Sidebar ─────────────────────────────────────── */}
-      {/* Desktop: relative (normal flow). Mobile: fixed drawer */}
-      <div className={cn(
-        /* desktop */
-        "hidden lg:flex shrink-0",
-        /* mobile drawer */
-        "lg:relative fixed inset-y-0 left-0 z-50 flex transition-transform duration-[240ms] ease-in-out",
-        mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
-      )}>
-        <Sidebar user={user} collapsed={collapsed} onClose={() => setMobileOpen(false)} />
+      <div style={isMobile ? {
+        position: "fixed", top: 0, left: 0, bottom: 0, zIndex: 100,
+        transform: mobileOpen ? "translateX(0)" : "translateX(-100%)",
+        transition: "transform 0.24s cubic-bezier(0.4,0,0.2,1)",
+      } : {}}>
+        <Sidebar
+          user={user}
+          collapsed={collapsed}
+          onClose={() => setMobileOpen(false)}
+        />
       </div>
 
-      <div className="flex flex-1 flex-col overflow-hidden min-w-0">
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", minWidth: 0 }}>
 
         {/* ── Header ──────────────────────────────────────── */}
-        <header className="flex h-[60px] shrink-0 items-center gap-2 bg-white px-4 shadow-[0_1px_0_rgba(0,0,0,0.04)]">
+        <header style={{
+          height: 60,
+          background: t.surface,
+          display: "flex", alignItems: "center",
+          padding: "0 16px",
+          gap: 10, flexShrink: 0,
+          boxShadow: "0 1px 0 rgba(0,0,0,0.04)",
+        }}>
 
           {/* Toggle sidebar */}
           <button
             type="button"
             onClick={() => {
-              if (window.innerWidth < 1024) setMobileOpen((v) => !v);
+              if (isMobile) setMobileOpen((v) => !v);
               else setCollapsed((c) => !c);
             }}
             title="Menu"
-            className={cn(
-              "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border-none bg-transparent",
-              "cursor-pointer text-muted-foreground transition-[background,color] duration-150",
-              "hover:bg-background hover:text-primary"
-            )}
+            style={{
+              width: 36, height: 36, borderRadius: t.radiusMd,
+              background: "transparent", border: "none",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              cursor: "pointer", color: t.textSecondary, flexShrink: 0,
+              transition: "background 0.15s, color 0.15s",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = t.background;
+              e.currentTarget.style.color = t.primary;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "transparent";
+              e.currentTarget.style.color = t.textSecondary;
+            }}
           >
-            <PanelLeft className="h-[18px] w-[18px]" />
+            <PanelLeft style={{ width: 18, height: 18 }} />
           </button>
 
-          {/* Busca — some em mobile muito pequeno */}
-          <div className="hidden sm:flex max-w-[300px] flex-1 cursor-text items-center gap-2 rounded-xl bg-background px-[14px] py-[7px]">
-            <Search className="h-[13px] w-[13px] shrink-0 text-muted-foreground" />
-            <span className="text-[13px] text-muted-foreground">Buscar…</span>
-          </div>
+          {/* Busca — some em mobile */}
+          {!isMobile && (
+            <div style={{
+              display: "flex", alignItems: "center", gap: 8,
+              padding: "7px 14px", borderRadius: t.radiusMd,
+              background: t.background,
+              flex: 1, maxWidth: 300, cursor: "text",
+            }}>
+              <Search style={{ width: 13, height: 13, color: t.textSecondary, flexShrink: 0 }} />
+              <span style={{ fontSize: 13, color: t.textSecondary }}>Buscar…</span>
+            </div>
+          )}
 
-          <div className="flex-1" />
+          <div style={{ flex: 1 }} />
 
-          {/* Status online — some em telas muito pequenas */}
-          <div className="hidden sm:flex items-center gap-[6px] text-xs font-medium text-muted-foreground">
-            <span className="inline-block h-[7px] w-[7px] rounded-full bg-green-500 shadow-[0_0_0_2px_rgba(76,175,80,0.145)]" />
-            Online
-          </div>
+          {/* Status online — some em mobile */}
+          {!isMobile && (
+            <div style={{
+              display: "flex", alignItems: "center", gap: 6,
+              fontSize: 12, fontWeight: 500, color: t.textSecondary,
+            }}>
+              <span style={{
+                width: 7, height: 7, borderRadius: "50%",
+                background: t.success, display: "inline-block",
+                boxShadow: `0 0 0 2px ${t.success}25`,
+              }} />
+              Online
+            </div>
+          )}
 
           {/* Notificações */}
           <NotificationBell />
 
           {/* Divisor */}
-          <div className="h-5 w-px shrink-0 bg-border" />
+          <div style={{ width: 1, height: 20, background: t.border, flexShrink: 0 }} />
 
           {/* Avatar + nome */}
           <div
-            className={cn(
-              "flex cursor-pointer items-center gap-[9px] rounded-xl px-[6px] py-1",
-              "transition-[background] duration-150 hover:bg-background"
-            )}
+            style={{
+              display: "flex", alignItems: "center", gap: 9,
+              cursor: "pointer", padding: "4px 6px", borderRadius: t.radiusMd,
+              transition: "background 0.15s",
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = t.background; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
           >
-            <div className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-full bg-[linear-gradient(135deg,#2EC4B6,#A8E6CF)] text-[11px] font-bold text-white">
+            <div style={{
+              width: 30, height: 30, borderRadius: "50%",
+              background: t.gradientPrimary,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              color: "#fff", fontSize: 11, fontWeight: 700, flexShrink: 0,
+            }}>
               {initials}
             </div>
-            <span className="hidden md:block whitespace-nowrap text-[13px] font-semibold text-foreground">
-              {user.name?.split(" ")[0] ?? user.email}
-            </span>
+            {!isMobile && (
+              <span style={{ fontSize: 13, fontWeight: 600, color: t.textPrimary, whiteSpace: "nowrap" }}>
+                {user.name?.split(" ")[0] ?? user.email}
+              </span>
+            )}
           </div>
 
         </header>
 
         {/* ── Conteúdo ─────────────────────────────────── */}
-        <main className="flex flex-1 flex-col overflow-y-auto p-4 sm:p-5 sm:px-6">
+        <main style={{
+          flex: 1, overflowY: "auto",
+          padding: isMobile ? "14px" : "20px 24px",
+          display: "flex", flexDirection: "column",
+        }}>
           {children}
         </main>
 

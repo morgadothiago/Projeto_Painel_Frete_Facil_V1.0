@@ -1,6 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import { ChevronRight } from "lucide-react";
+import { tenantConfig } from "@/config/tenant";
+
+const { theme: t } = tenantConfig;
 
 export function QuickAction({ icon, label, sub, href, color }: {
   icon: React.ReactNode;
@@ -9,22 +13,44 @@ export function QuickAction({ icon, label, sub, href, color }: {
   href: string;
   color: string;
 }) {
+  const [hovered, setHovered] = useState(false);
+
   return (
     <a
       href={href}
-      className="group flex items-center gap-[13px] rounded-xl px-3 py-[11px] no-underline transition-colors duration-150 hover:bg-background"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        display: "flex", alignItems: "center", gap: 13,
+        background: hovered ? t.background : "transparent",
+        borderRadius: t.radiusMd, padding: "11px 12px",
+        textDecoration: "none",
+        transition: "background 0.15s",
+      }}
     >
-      <div
-        className="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-[10px] transition-colors duration-150"
-        style={{ background: `${color}14`, color }}
-      >
-        <span className="flex h-[17px] w-[17px]">{icon}</span>
+      <div style={{
+        width: 38, height: 38, borderRadius: 10,
+        background: `${color}14`,
+        color,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        flexShrink: 0,
+        transition: "background 0.15s",
+        ...(hovered ? { background: `${color}22` } : {}),
+      }}>
+        <span style={{ width: 17, height: 17, display: "flex" }}>{icon}</span>
       </div>
-      <div className="min-w-0 flex-1">
-        <p className="m-0 truncate text-[13.5px] font-bold text-slate-900">{label}</p>
-        <p className="m-0 mt-0.5 truncate text-xs text-muted-foreground">{sub}</p>
+
+      <div style={{ flex: 1 }}>
+        <p style={{ fontSize: 13.5, fontWeight: 700, color: t.textPrimary, margin: 0 }}>{label}</p>
+        <p style={{ fontSize: 12, color: t.textSecondary, margin: "2px 0 0" }}>{sub}</p>
       </div>
-      <ChevronRight className="h-[15px] w-[15px] shrink-0 text-muted-foreground/40 transition-colors duration-150 group-hover:text-primary" />
+
+      <ChevronRight style={{
+        width: 15, height: 15,
+        color: hovered ? color : t.textSecondary,
+        transition: "color 0.15s",
+        flexShrink: 0,
+      }} />
     </a>
   );
 }

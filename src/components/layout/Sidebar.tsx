@@ -6,7 +6,6 @@ import { LogOut } from "lucide-react";
 import { NAV_BY_ROLE } from "./nav-items";
 import { tenantConfig } from "@/config/tenant";
 import { signoutAction } from "@/app/actions/auth";
-import { cn } from "@/lib/utils";
 
 type Props = {
   user: {
@@ -27,73 +26,97 @@ const ROLE_LABEL: Record<string, string> = {
 
 export function Sidebar({ user, collapsed, onClose }: Props) {
   const pathname = usePathname();
+  const { theme: t } = tenantConfig;
   const role   = user.role ?? "COMPANY";
   const groups = NAV_BY_ROLE[role] ?? NAV_BY_ROLE.COMPANY;
 
   const initials = (user.name ?? user.email ?? "?")
     .split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
 
+  const W = collapsed ? 68 : 232;
+
   return (
-    <aside
-      className={cn(
-        "relative flex h-screen shrink-0 flex-col overflow-hidden",
-        "bg-[linear-gradient(135deg,#2EC4B6,#A8E6CF)]",
-        "transition-[width] duration-[240ms] [transition-timing-function:cubic-bezier(0.4,0,0.2,1)]",
-        collapsed ? "w-[68px]" : "w-[232px]"
-      )}
-    >
+    <aside style={{
+      width: W,
+      height: "100vh",
+      background: t.gradientPrimary,
+      display: "flex",
+      flexDirection: "column",
+      flexShrink: 0,
+      overflow: "hidden",
+      transition: "width 0.24s cubic-bezier(0.4,0,0.2,1)",
+      position: "relative",
+    }}>
 
       {/* Círculos decorativos */}
-      <div className="pointer-events-none absolute -top-[70px] -right-[70px] h-[220px] w-[220px] rounded-full bg-white/[0.07]" />
-      <div className="pointer-events-none absolute bottom-20 -left-[50px] h-[180px] w-[180px] rounded-full bg-white/[0.05]" />
+      <div style={{
+        position: "absolute", top: -70, right: -70,
+        width: 220, height: 220, borderRadius: "50%",
+        background: "rgba(255,255,255,0.07)", pointerEvents: "none",
+      }} />
+      <div style={{
+        position: "absolute", bottom: 80, left: -50,
+        width: 180, height: 180, borderRadius: "50%",
+        background: "rgba(255,255,255,0.05)", pointerEvents: "none",
+      }} />
 
       {/* ── Logo ────────────────────────────────────────── */}
-      <div
-        className={cn(
-          "relative z-[1] flex h-[60px] shrink-0 items-center gap-[10px]",
-          "border-b border-white/[0.12]",
-          "transition-[padding] duration-[240ms] ease-in-out",
-          collapsed ? "justify-center px-0" : "justify-start px-[18px]"
-        )}
-      >
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/[0.22] text-[12.5px] font-extrabold text-white backdrop-blur-[8px]">
+      <div style={{
+        height: 60, display: "flex", alignItems: "center",
+        padding: collapsed ? "0" : "0 18px",
+        justifyContent: collapsed ? "center" : "flex-start",
+        gap: 10, flexShrink: 0,
+        borderBottom: "1px solid rgba(255,255,255,0.12)",
+        position: "relative", zIndex: 1,
+        transition: "padding 0.24s ease",
+      }}>
+        <div style={{
+          width: 36, height: 36, borderRadius: t.radiusMd,
+          background: "rgba(255,255,255,0.22)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          color: "#fff", fontWeight: 800, fontSize: 12.5,
+          flexShrink: 0, backdropFilter: "blur(8px)",
+        }}>
           {tenantConfig.shortName}
         </div>
 
         {/* Texto — some com opacity quando colapsado */}
-        <div
-          className={cn(
-            "overflow-hidden whitespace-nowrap transition-opacity duration-150 ease-in-out",
-            collapsed ? "opacity-0" : "opacity-100"
-          )}
-        >
-          <div className="text-sm font-extrabold leading-[1.2] text-white">
+        <div style={{
+          opacity: collapsed ? 0 : 1,
+          transition: "opacity 0.15s ease",
+          overflow: "hidden", whiteSpace: "nowrap",
+        }}>
+          <div style={{ fontSize: 14, fontWeight: 800, color: "#fff", lineHeight: 1.2 }}>
             {tenantConfig.name}
           </div>
-          <div className="mt-0.5 text-[10.5px] text-white/65">
+          <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.65)", marginTop: 2 }}>
             Painel de controle
           </div>
         </div>
       </div>
 
       {/* ── Navegação ───────────────────────────────────── */}
-      <nav
-        className={cn(
-          "relative z-[1] flex-1 overflow-y-auto overflow-x-hidden",
-          "transition-[padding] duration-[240ms] ease-in-out",
-          collapsed ? "px-2 py-[10px]" : "px-[10px] py-[10px]"
-        )}
-      >
+      <nav style={{
+        flex: 1,
+        padding: collapsed ? "10px 8px" : "10px 10px",
+        overflowY: "auto", overflowX: "hidden",
+        position: "relative", zIndex: 1,
+        transition: "padding 0.24s ease",
+      }}>
         {groups.map((group, gi) => (
-          <div key={gi} className="mb-0.5">
+          <div key={gi} style={{ marginBottom: 2 }}>
 
             {/* Label de grupo — some quando colapsado */}
             {group.label && !collapsed && (
-              <div className="whitespace-nowrap px-3 pb-[5px] pt-[10px] text-[10px] font-bold uppercase tracking-[0.1em] text-white/50">
+              <div style={{
+                fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.5)",
+                textTransform: "uppercase", letterSpacing: "0.1em",
+                padding: "10px 12px 5px", whiteSpace: "nowrap",
+              }}>
                 {group.label}
               </div>
             )}
-            {group.label && collapsed && <div className="h-[14px]" />}
+            {group.label && collapsed && <div style={{ height: 14 }} />}
 
             {group.items.map((item) => {
               const isActive = item.href === "/dashboard"
@@ -106,79 +129,115 @@ export function Sidebar({ user, collapsed, onClose }: Props) {
                   href={item.href}
                   onClick={onClose}
                   title={collapsed ? item.title : undefined}
-                  className={cn(
-                    "mb-0.5 flex items-center rounded-xl no-underline transition-all duration-150",
-                    "text-[13.5px] whitespace-nowrap",
-                    collapsed ? "justify-center gap-0 px-0 py-[10px]" : "justify-start gap-[10px] px-3 py-[9px]",
-                    isActive
-                      ? "bg-white/[0.22] font-bold text-white"
-                      : "bg-transparent font-medium text-white/[0.72]"
-                  )}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: collapsed ? "center" : "flex-start",
+                    gap: collapsed ? 0 : 10,
+                    padding: collapsed ? "10px 0" : "9px 12px",
+                    borderRadius: t.radiusMd, marginBottom: 2,
+                    textDecoration: "none", transition: "all 0.15s",
+                    background: isActive ? "rgba(255,255,255,0.22)" : "transparent",
+                    color: isActive ? "#fff" : "rgba(255,255,255,0.72)",
+                    fontWeight: isActive ? 700 : 500,
+                    fontSize: 13.5,
+                    whiteSpace: "nowrap",
+                  }}
                 >
-                  <item.icon className="h-[18px] w-[18px] shrink-0" />
+                  <item.icon style={{ width: 18, height: 18, flexShrink: 0 }} />
 
-                  <span
-                    className={cn(
-                      "overflow-hidden transition-opacity duration-150 ease-in-out",
-                      collapsed ? "max-w-0 flex-[0] opacity-0" : "max-w-[200px] flex-[1] opacity-100"
-                    )}
-                  >
+                  <span style={{
+                    opacity: collapsed ? 0 : 1,
+                    flex: collapsed ? 0 : 1,
+                    overflow: "hidden",
+                    transition: "opacity 0.15s ease",
+                    maxWidth: collapsed ? 0 : 200,
+                  }}>
                     {item.title}
                   </span>
 
                   {isActive && !collapsed && (
-                    <span className="h-[5px] w-[5px] shrink-0 rounded-full bg-white/[0.85]" />
+                    <span style={{
+                      width: 5, height: 5, borderRadius: "50%",
+                      background: "rgba(255,255,255,0.85)", flexShrink: 0,
+                    }} />
                   )}
                 </Link>
               );
             })}
 
             {gi < groups.length - 1 && (
-              <div className="mx-1 my-[6px] h-px bg-white/[0.12]" />
+              <div style={{ height: 1, background: "rgba(255,255,255,0.12)", margin: "6px 4px" }} />
             )}
           </div>
         ))}
       </nav>
 
       {/* ── Footer ──────────────────────────────────────── */}
-      <div
-        className={cn(
-          "relative z-[1] border-t border-white/[0.15]",
-          "transition-[padding] duration-[240ms] ease-in-out",
-          collapsed ? "px-2 py-3" : "px-[10px] py-3"
-        )}
-      >
+      <div style={{
+        padding: collapsed ? "12px 8px" : "12px 10px",
+        borderTop: "1px solid rgba(255,255,255,0.15)",
+        position: "relative", zIndex: 1,
+        transition: "padding 0.24s ease",
+      }}>
         {collapsed ? (
           /* Modo colapsado: avatar + logout empilhados */
-          <div className="flex flex-col items-center gap-2">
-            <div className="flex h-[34px] w-[34px] items-center justify-center rounded-full bg-white/25 text-[11px] font-bold text-white">
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+            <div style={{
+              width: 34, height: 34, borderRadius: "50%",
+              background: "rgba(255,255,255,0.25)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              color: "#fff", fontSize: 11, fontWeight: 700,
+            }}>
               {initials}
             </div>
             <form action={signoutAction}>
               <button
                 type="submit"
                 title="Sair"
-                className={cn(
-                  "flex h-[30px] w-[30px] cursor-pointer items-center justify-center rounded-md border-none",
-                  "bg-transparent text-white/65 transition-all duration-150",
-                  "hover:bg-white/15 hover:text-white"
-                )}
+                style={{
+                  background: "none", border: "none", cursor: "pointer",
+                  width: 30, height: 30, borderRadius: t.radiusSm,
+                  color: "rgba(255,255,255,0.65)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  transition: "all 0.15s",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = "#fff";
+                  e.currentTarget.style.background = "rgba(255,255,255,0.15)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = "rgba(255,255,255,0.65)";
+                  e.currentTarget.style.background = "none";
+                }}
               >
-                <LogOut className="h-[14px] w-[14px]" />
+                <LogOut style={{ width: 14, height: 14 }} />
               </button>
             </form>
           </div>
         ) : (
           /* Modo expandido: avatar + info + logout */
-          <div className="flex items-center gap-[10px] rounded-xl bg-black/[0.14] px-3 py-[10px]">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/25 text-[11.5px] font-bold text-white">
+          <div style={{
+            display: "flex", alignItems: "center", gap: 10,
+            background: "rgba(0,0,0,0.14)", borderRadius: t.radiusMd,
+            padding: "10px 12px",
+          }}>
+            <div style={{
+              width: 32, height: 32, borderRadius: "50%",
+              background: "rgba(255,255,255,0.25)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              color: "#fff", fontSize: 11.5, fontWeight: 700, flexShrink: 0,
+            }}>
               {initials}
             </div>
-            <div className="min-w-0 flex-1">
-              <div className="overflow-hidden text-ellipsis whitespace-nowrap text-[12.5px] font-semibold text-white">
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{
+                fontSize: 12.5, fontWeight: 600, color: "#fff",
+                overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+              }}>
                 {user.name ?? user.email}
               </div>
-              <div className="mt-[1px] text-[11px] text-white/60">
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", marginTop: 1 }}>
                 {ROLE_LABEL[role] ?? role}
               </div>
             </div>
@@ -186,13 +245,23 @@ export function Sidebar({ user, collapsed, onClose }: Props) {
               <button
                 type="submit"
                 title="Sair"
-                className={cn(
-                  "flex shrink-0 cursor-pointer items-center rounded-md border-none p-[6px]",
-                  "bg-transparent text-white/65 transition-all duration-150",
-                  "hover:bg-white/15 hover:text-white"
-                )}
+                style={{
+                  background: "none", border: "none", cursor: "pointer",
+                  padding: 6, borderRadius: t.radiusSm,
+                  color: "rgba(255,255,255,0.65)",
+                  display: "flex", alignItems: "center", flexShrink: 0,
+                  transition: "all 0.15s",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = "#fff";
+                  e.currentTarget.style.background = "rgba(255,255,255,0.15)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = "rgba(255,255,255,0.65)";
+                  e.currentTarget.style.background = "none";
+                }}
               >
-                <LogOut className="h-[14px] w-[14px]" />
+                <LogOut style={{ width: 14, height: 14 }} />
               </button>
             </form>
           </div>
