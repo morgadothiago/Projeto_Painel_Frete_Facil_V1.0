@@ -11,35 +11,32 @@ import { Truck, Package, RefreshCw, Users, MapPin, FlaskConical } from "lucide-r
 
 // ── Ícones personalizados ──────────────────────────────────────────────────────
 
-function createCarIcon(heading: number): L.DivIcon {
-  return L.divIcon({
-    className: "",
-    html: `
+const driverIcon = L.divIcon({
+  className: "",
+  html: `
+    <div style="display:flex;flex-direction:column;align-items:center;">
       <div style="
-        transform: rotate(${heading}deg);
-        transform-origin: 50% 50%;
-        transition: transform 0.6s ease;
-        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.35));
-        line-height: 1;
-      ">
-        <svg viewBox="0 0 24 40" xmlns="http://www.w3.org/2000/svg" width="24" height="40">
-          <!-- Rodas -->
-          <rect x="0" y="6"  width="5" height="8" rx="2" fill="#374151"/>
-          <rect x="19" y="6" width="5" height="8" rx="2" fill="#374151"/>
-          <rect x="0" y="26" width="5" height="8" rx="2" fill="#374151"/>
-          <rect x="19" y="26" width="5" height="8" rx="2" fill="#374151"/>
-          <!-- Corpo -->
-          <rect x="3" y="2" width="18" height="36" rx="6" fill="#2EC4B6"/>
-          <!-- Teto -->
-          <rect x="5" y="11" width="14" height="18" rx="3" fill="#0C6B64"/>
-          <!-- Para-brisa -->
-          <rect x="5" y="11" width="14" height="8" rx="2" fill="rgba(220,248,255,0.7)"/>
-        </svg>
-      </div>`,
-    iconSize:   [24, 40],
-    iconAnchor: [12, 20],
-    popupAnchor:[0, -22],
-  });
+        width:40px;height:40px;border-radius:50%;
+        background:linear-gradient(135deg,#0C6B64,#2EC4B6);
+        border:3px solid #fff;
+        box-shadow:0 3px 10px rgba(12,107,100,0.45);
+        display:flex;align-items:center;justify-content:center;
+        font-size:20px;
+      ">🚗</div>
+      <div style="
+        width:0;height:0;
+        border-left:6px solid transparent;
+        border-right:6px solid transparent;
+        border-top:8px solid #0C6B64;
+      "></div>
+    </div>`,
+  iconSize:   [40, 52],
+  iconAnchor: [20, 52],
+  popupAnchor:[0, -54],
+});
+
+function createCarIcon(_heading: number): L.DivIcon {
+  return driverIcon;
 }
 
 const deliveryIcon = L.divIcon({
