@@ -90,23 +90,28 @@ function FlyToLocation({ location }: { location: MyLocation }) {
   return null;
 }
 
-// ── Auto-fit bounds ────────────────────────────────────────────────────────────
+// ── Auto-fit bounds — só roda UMA vez no primeiro carregamento ────────────────
 
-function FitBounds({ data }: { data: MapData }) {
-  const map = useMap();
+function FitBounds({ data, locked }: { data: MapData; locked: boolean }) {
+  const map    = useMap();
+  const didFit = useRef(false);
 
   useEffect(() => {
+    if (locked || didFit.current) return;
+
     const points: [number, number][] = [
-      ...data.drivers.map((d)   => [d.lat, d.lng]   as [number, number]),
+      ...data.drivers.map((d)    => [d.lat, d.lng]            as [number, number]),
       ...data.deliveries.map((d) => [d.originLat, d.originLng] as [number, number]),
     ];
     if (points.length === 0) return;
+
+    didFit.current = true;
     if (points.length === 1) {
       map.setView(points[0], 13);
     } else {
       map.fitBounds(points, { padding: [50, 50] });
     }
-  }, [data, map]);
+  }, [data, locked, map]);
 
   return null;
 }
@@ -288,7 +293,7 @@ export function MapView() {
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
 
-            <FitBounds data={data} />
+            <FitBounds data={data} locked={!!myLocation} />
             <FlyToLocation location={myLocation} />
 
             {/* Minha localização */}
