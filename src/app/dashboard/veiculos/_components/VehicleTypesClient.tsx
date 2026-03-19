@@ -398,7 +398,7 @@ export function VehicleTypesClient({ initialData }: { initialData: VehicleTypeRo
           "grid gap-4 transition-opacity duration-200",
           isPending ? "opacity-60" : "opacity-100"
         )}
-        style={{ gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))" }}
+        style={{ gridTemplateColumns: "repeat(auto-fill, minmax(min(300px, 100%), 1fr))" }}
       >
         {rows.map((row) => (
           <div

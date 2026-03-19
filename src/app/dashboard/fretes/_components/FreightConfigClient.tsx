@@ -172,15 +172,14 @@ export function FreightConfigClient({
   }
 
   return (
-    // gridTemplateColumns uses a mixed template (1fr + fixed px), kept as inline style per spec
-    <div className="grid gap-6 items-start" style={{ gridTemplateColumns: "1fr 340px" }}>
+    <div className="grid grid-cols-1 xl:grid-cols-[1fr_340px] gap-6 items-start">
 
       {/* ── Coluna esquerda: configurações ──────────────────────────────── */}
       <div className="flex flex-col gap-5">
 
         {/* Taxas globais */}
         <Card title="Taxas Globais" icon={<Percent className="w-4 h-4 text-primary-dark" />}>
-          <div className="grid grid-cols-2 gap-[14px]">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-[14px]">
             <NumField
               label="Comissão da plataforma (%)"
               hint="% cobrada sobre o valor do frete"
@@ -313,7 +312,7 @@ export function FreightConfigClient({
                     </div>
 
                     {/* Campos de preço */}
-                    <div className="grid grid-cols-4 gap-[10px]">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-[10px]">
                       <MiniNumField label="Base (R$)"     value={cur.basePrice}           onChange={(v) => { startEditVt(vt); setVtField(vt.id, "basePrice", v); }} />
                       <MiniNumField label="Por km (R$)"   value={cur.pricePerKm}          onChange={(v) => { startEditVt(vt); setVtField(vt.id, "pricePerKm", v); }} />
                       <MiniNumField label="Ajudante (R$)" value={cur.helperPrice}         onChange={(v) => { startEditVt(vt); setVtField(vt.id, "helperPrice", v); }} />
@@ -406,9 +405,9 @@ function NumField({ label, hint, value, onChange, suffix, prefix }: {
     <div className="flex flex-col gap-1">
       <label className="text-[12.5px] font-semibold text-slate-600">{label}</label>
       {hint && <p className="m-0 text-[11px] text-slate-400">{hint}</p>}
-      <div className="relative">
+      <div className="flex items-center rounded-[10px] border-[1.5px] border-border bg-slate-50 focus-within:border-primary transition-colors overflow-hidden">
         {prefix && (
-          <span className="absolute left-[10px] top-1/2 -translate-y-1/2 text-[12.5px] text-muted-foreground font-semibold">
+          <span className="pl-3 pr-1 text-[12.5px] text-muted-foreground font-semibold shrink-0 select-none">
             {prefix}
           </span>
         )}
@@ -418,14 +417,11 @@ function NumField({ label, hint, value, onChange, suffix, prefix }: {
           min={0}
           step={0.1}
           onChange={(e) => onChange(Number(e.target.value))}
-          className={cn(
-            inputClass,
-            prefix ? "pl-8" : "pl-3",
-            suffix ? "pr-[30px]" : "pr-3"
-          )}
+          className="flex-1 min-w-0 py-[9px] text-[13.5px] text-foreground bg-transparent outline-none border-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+          style={{ paddingLeft: prefix ? 4 : 12, paddingRight: suffix ? 4 : 12 }}
         />
         {suffix && (
-          <span className="absolute right-[10px] top-1/2 -translate-y-1/2 text-[12.5px] text-muted-foreground font-semibold">
+          <span className="pr-3 pl-1 text-[12.5px] text-muted-foreground font-semibold shrink-0 select-none">
             {suffix}
           </span>
         )}

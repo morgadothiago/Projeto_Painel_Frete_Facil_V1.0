@@ -16,6 +16,7 @@ type Props = {
     role?:  string;
   };
   collapsed: boolean;
+  onClose?: () => void;
 };
 
 const ROLE_LABEL: Record<string, string> = {
@@ -24,7 +25,7 @@ const ROLE_LABEL: Record<string, string> = {
   DRIVER:  "Motorista",
 };
 
-export function Sidebar({ user, collapsed }: Props) {
+export function Sidebar({ user, collapsed, onClose }: Props) {
   const pathname = usePathname();
   const role   = user.role ?? "COMPANY";
   const groups = NAV_BY_ROLE[role] ?? NAV_BY_ROLE.COMPANY;
@@ -103,6 +104,7 @@ export function Sidebar({ user, collapsed }: Props) {
                 <Link
                   key={item.href}
                   href={item.href}
+                  onClick={onClose}
                   title={collapsed ? item.title : undefined}
                   className={cn(
                     "mb-0.5 flex items-center rounded-xl no-underline transition-all duration-150",

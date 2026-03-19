@@ -205,7 +205,7 @@ export function CompaniesTable({ initialData }: { initialData: CompanyRow[] }) {
     <div className="flex flex-col gap-4 h-full min-h-0">
 
       {/* ── Stats ── */}
-      <div className="grid grid-cols-4 gap-3 shrink-0">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 shrink-0">
         {[
           {
             label: "Total", value: counts.total,
@@ -259,7 +259,7 @@ export function CompaniesTable({ initialData }: { initialData: CompanyRow[] }) {
       )}>
 
         {/* Toolbar */}
-        <div className="px-5 py-[14px] border-b border-border flex items-center gap-3 shrink-0 flex-wrap">
+        <div className="px-4 py-3 border-b border-border flex items-center gap-2 shrink-0 flex-wrap">
           {/* Search */}
           <div className="flex items-center gap-[9px] bg-background rounded-[10px] px-[14px] py-2 flex-1 min-w-[220px] border-[1.5px] border-border">
             <Search className="w-[14px] h-[14px] text-muted-foreground shrink-0" />
@@ -300,8 +300,8 @@ export function CompaniesTable({ initialData }: { initialData: CompanyRow[] }) {
         </div>
 
         {/* Table */}
-        <div className="overflow-y-auto flex-1">
-          <table className="w-full border-collapse">
+        <div className="overflow-auto flex-1">
+          <table className="w-full border-collapse min-w-[640px]">
             <thead className="sticky top-0 z-[1]">
               <tr className="bg-background border-b border-border">
                 <Th label="Empresa"  sortKey="name"      current={sortKey} dir={sortDir} onSort={handleSort} />
