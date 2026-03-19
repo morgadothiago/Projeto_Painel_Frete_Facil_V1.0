@@ -234,6 +234,21 @@ model GpsLocation {
   @@map("gps_locations")
 }
 
+// ─── Freight Config ───────────────────────────────────────────────────────────
+
+model FreightConfig {
+  id              String   @id @default("singleton")
+  platformFeePct  Float    @default(15)   // % comissão da plataforma
+  insuranceFeePct Float    @default(0)    // % seguro
+  minimumPrice    Float    @default(0)    // valor mínimo do frete (R$)
+  tollReimburse   Boolean  @default(false)// reembolso de pedágio
+  nightSurcharge  Float    @default(0)    // % adicional noturno
+  weekendSurcharge Float   @default(0)    // % adicional fim de semana
+  updatedAt       DateTime @updatedAt
+
+  @@map("freight_config")
+}
+
 // ─── Notifications ────────────────────────────────────────────────────────────
 
 model Notification {
