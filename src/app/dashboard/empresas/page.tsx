@@ -1,8 +1,9 @@
-import { redirect }        from "next/navigation";
-import { auth }            from "@/auth";
-import { Building2, Plus } from "lucide-react";
-import { getCompanies }    from "@/app/actions/companies";
-import { CompaniesTable }  from "./_components/CompaniesTable";
+import { redirect }           from "next/navigation";
+import { auth }               from "@/auth";
+import { Building2 }          from "lucide-react";
+import { getCompanies }       from "@/app/actions/companies";
+import { CompaniesTable }     from "./_components/CompaniesTable";
+import { NewCompanyButton }   from "./_components/NewCompanyButton";
 
 export default async function EmpresasPage() {
   const session = await auth();
@@ -28,15 +29,7 @@ export default async function EmpresasPage() {
             </p>
           </div>
         </div>
-        <a
-          href="/signup"
-          className="inline-flex items-center gap-[10px] rounded-[10px] bg-[#0C6B64] py-[9px] pl-3 pr-4 text-[13px] font-semibold tracking-[0.01em] text-white no-underline shadow-[0_1px_3px_rgba(12,107,100,0.25),0_1px_2px_rgba(0,0,0,0.08)] transition-all hover:bg-[#0a5e58] active:scale-[0.97]"
-        >
-          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-[6px] bg-white/20">
-            <Plus className="h-3 w-3" strokeWidth={2.5} />
-          </span>
-          Nova empresa
-        </a>
+        <NewCompanyButton />
       </div>
 
       <CompaniesTable initialData={companies} />
