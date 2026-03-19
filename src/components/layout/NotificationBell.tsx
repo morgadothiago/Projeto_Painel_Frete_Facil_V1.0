@@ -191,8 +191,16 @@ export function NotificationBell() {
 
   useEffect(() => {
     fetchNotifs();
-    const id = setInterval(fetchNotifs, 30_000);
-    return () => clearInterval(id);
+    const id = setInterval(fetchNotifs, 10_000);
+
+    // Poll imediato ao voltar para a aba
+    const onFocus = () => fetchNotifs();
+    window.addEventListener("focus", onFocus);
+
+    return () => {
+      clearInterval(id);
+      window.removeEventListener("focus", onFocus);
+    };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleMarkAll() {
