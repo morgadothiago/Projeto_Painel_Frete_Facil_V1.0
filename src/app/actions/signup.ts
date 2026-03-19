@@ -1,8 +1,9 @@
 "use server";
 
-import { redirect } from "next/navigation";
-import bcrypt       from "bcryptjs";
-import { db }       from "@/lib/db";
+import { redirect }                from "next/navigation";
+import bcrypt                       from "bcryptjs";
+import { db }                      from "@/lib/db";
+import { rateLimit, isValidEmail } from "@/lib/rate-limit";
 
 export type SignupState = {
   error?: string;
@@ -32,6 +33,17 @@ export async function signupAction(
   const companyName = (formData.get("companyName") as string).trim();
   const cnpj        = (formData.get("cnpj")        as string).replace(/\D/g, "");
   const phone       = (formData.get("phone")       as string).trim();
+
+  // ── Validações básicas ────────────────────────────────────────────────────
+  if (!isValidEmail(email))       return { error: "E-mail inválido." };
+  if (password.length < 8)        return { error: "A senha deve ter ao menos 8 caracteres." };
+  if (!/^\d{14}$/.test(cnpj))     return { error: "CNPJ inválido." };
+  if (!fullName || !companyName)  return { error: "Preencha todos os campos obrigatórios." };
+
+  // Rate limit: máx 3 cadastros por hora por e-mail
+  if (!rateLimit(`signup:${email}`, 3, 60 * 60 * 1000)) {
+    return { error: "Muitas tentativas. Aguarde antes de tentar novamente." };
+  }
 
   // ── Mock ──────────────────────────────────────────────────────────────────
   const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === "true";

@@ -23,7 +23,9 @@ export type CompanyRow = {
 
 export async function getCompanies(): Promise<CompanyRow[]> {
   const session = await auth();
-  if (!session || session.user.role !== "ADMIN") return [];
+  if (!session || session.user.role !== "ADMIN") {
+    throw new Error("Sem permissão");
+  }
 
   const companies = await db.company.findMany({
     include: { user: true },
@@ -72,10 +74,18 @@ export async function updateCompanyStatus(
     return { ok: false, error: "Sem permissão" };
   }
 
-  const user = await db.user.update({
+  // Valida que o alvo existe e tem role COMPANY (impede alterar status de admins)
+  const targetUser = await db.user.findUnique({
+    where:  { id: userId },
+    select: { role: true, email: true, name: true },
+  });
+  if (!targetUser || targetUser.role !== "COMPANY") {
+    return { ok: false, error: "Usuário inválido." };
+  }
+
+  await db.user.update({
     where: { id: userId },
     data:  { status },
-    select: { email: true, name: true },
   });
 
   const notif = STATUS_NOTIFICATION[status];
@@ -89,12 +99,21 @@ export async function updateCompanyStatus(
     },
   });
 
-  // Enviar e-mail em background (não bloqueia a resposta)
+  // Log de auditoria
+  console.log(JSON.stringify({
+    timestamp: new Date().toISOString(),
+    event:     "company_status_changed",
+    adminId:   session.user.id,
+    targetId:  userId,
+    newStatus: status,
+  }));
+
+  // Enviar e-mail em background
   void (async () => {
     try {
-      if (status === "INACTIVE") await sendAccountBlockedEmail(user.email, user.name);
-      if (status === "PENDING")  await sendAccountPendingEmail(user.email, user.name);
-      if (status === "ACTIVE")   await sendAccountActivatedEmail(user.email, user.name);
+      if (status === "INACTIVE") await sendAccountBlockedEmail(targetUser.email, targetUser.name);
+      if (status === "PENDING")  await sendAccountPendingEmail(targetUser.email, targetUser.name);
+      if (status === "ACTIVE")   await sendAccountActivatedEmail(targetUser.email, targetUser.name);
     } catch (err) {
       console.error("[mailer] Erro ao enviar e-mail de status:", err);
     }

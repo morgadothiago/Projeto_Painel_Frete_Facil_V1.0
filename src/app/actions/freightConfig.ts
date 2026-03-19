@@ -54,11 +54,22 @@ export async function getFreightConfig(): Promise<FreightConfigData> {
   };
 }
 
+function validateFreightConfig(data: FreightConfigData): string | null {
+  if (data.platformFeePct  < 0 || data.platformFeePct  > 100) return "Comissão da plataforma deve ser entre 0% e 100%.";
+  if (data.insuranceFeePct < 0 || data.insuranceFeePct > 100) return "Taxa de seguro deve ser entre 0% e 100%.";
+  if (data.nightSurcharge  < 0 || data.nightSurcharge  > 100) return "Adicional noturno deve ser entre 0% e 100%.";
+  if (data.weekendSurcharge < 0 || data.weekendSurcharge > 100) return "Adicional de fim de semana deve ser entre 0% e 100%.";
+  if (data.minimumPrice < 0)                                   return "Preço mínimo não pode ser negativo.";
+  return null;
+}
+
 export async function saveFreightConfig(
   data: FreightConfigData,
 ): Promise<{ ok: boolean; error?: string }> {
   try {
     await assertAdmin();
+    const err = validateFreightConfig(data);
+    if (err) return { ok: false, error: err };
     await db.freightConfig.upsert({
       where:  { id: "singleton" },
       update: data,
@@ -95,6 +106,9 @@ export async function saveVehicleTypePricing(
 ): Promise<{ ok: boolean }> {
   try {
     await assertAdmin();
+    if (pricing.basePrice < 0 || pricing.pricePerKm < 0 || pricing.helperPrice < 0 || pricing.additionalStopPrice < 0) {
+      return { ok: false };
+    }
     await db.vehicleType.update({ where: { id }, data: pricing });
     revalidatePath("/dashboard/fretes");
     return { ok: true };

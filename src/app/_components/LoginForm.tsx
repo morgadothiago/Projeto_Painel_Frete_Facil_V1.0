@@ -26,6 +26,11 @@ export function LoginForm() {
         description: "Regularize seu pagamento para acessar a plataforma.",
       });
     }
+    if (state?.code === "RATE_LIMIT") {
+      toast.error("Muitas tentativas", {
+        description: "Aguarde alguns minutos antes de tentar novamente.",
+      });
+    }
   }, [state]);
 
   return (

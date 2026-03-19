@@ -1,26 +1,34 @@
 "use server";
 
-import { signIn, signOut } from "@/auth";
-import { AuthError }       from "next-auth";
-import { db }              from "@/lib/db";
+import { signIn, signOut }         from "@/auth";
+import { AuthError }               from "next-auth";
+import { db }                      from "@/lib/db";
+import { rateLimit, isValidEmail } from "@/lib/rate-limit";
 
 export type LoginState = {
   error?: string;
-  code?:  "BLOCKED" | "PENDING" | "INVALID";
+  code?:  "BLOCKED" | "PENDING" | "INVALID" | "RATE_LIMIT";
 } | null;
 
 export async function loginAction(_prev: LoginState, formData: FormData): Promise<LoginState> {
   const email = (formData.get("email") as string)?.trim().toLowerCase();
 
-  // Verifica status antes de tentar autenticar — para mensagem de erro correta
-  if (email) {
-    const found = await db.user.findUnique({
-      where:  { email },
-      select: { status: true },
-    });
-    if (found?.status === "INACTIVE") return { error: "BLOCKED", code: "BLOCKED" };
-    if (found?.status === "PENDING")  return { error: "PENDING", code: "PENDING" };
+  if (!email || !isValidEmail(email)) {
+    return { error: "E-mail inválido.", code: "INVALID" };
   }
+
+  // Rate limit: máx 5 tentativas de login por e-mail por hora
+  if (!rateLimit(`login:${email}`, 5, 60 * 60 * 1000)) {
+    return { error: "Muitas tentativas. Aguarde antes de tentar novamente.", code: "RATE_LIMIT" };
+  }
+
+  // Verifica status antes de tentar autenticar — para mensagem de erro correta
+  const found = await db.user.findUnique({
+    where:  { email },
+    select: { status: true },
+  });
+  if (found?.status === "INACTIVE") return { error: "BLOCKED", code: "BLOCKED" };
+  if (found?.status === "PENDING")  return { error: "PENDING", code: "PENDING" };
 
   try {
     await signIn("credentials", {

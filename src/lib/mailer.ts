@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import { escapeHtml } from "@/lib/rate-limit";
 
 const transporter = nodemailer.createTransport({
   host:   process.env.SMTP_HOST,
@@ -69,13 +70,14 @@ function baseLayout(content: string) {
 // ── Envio de e-mails específicos ──────────────────────────────
 
 export async function sendAccountBlockedEmail(to: string, name: string) {
+  const safeName = escapeHtml(name);
   const content = `
     <div style="text-align:center;margin-bottom:28px;">
       <div style="display:inline-flex;align-items:center;justify-content:center;width:64px;height:64px;border-radius:18px;background:#FFF1F2;margin-bottom:16px;">
         <span style="font-size:32px;">🚫</span>
       </div>
       <h2 style="margin:0;font-size:22px;font-weight:800;color:#0F172A;letter-spacing:-0.3px;">Conta bloqueada</h2>
-      <p style="margin:8px 0 0;font-size:14px;color:#64748B;">Olá, <strong>${name}</strong></p>
+      <p style="margin:8px 0 0;font-size:14px;color:#64748B;">Olá, <strong>${safeName}</strong></p>
     </div>
 
     <p style="margin:0 0 16px;font-size:15px;color:#334155;line-height:1.7;">
@@ -111,13 +113,14 @@ export async function sendAccountBlockedEmail(to: string, name: string) {
 }
 
 export async function sendAccountPendingEmail(to: string, name: string) {
+  const safeName = escapeHtml(name);
   const content = `
     <div style="text-align:center;margin-bottom:28px;">
       <div style="display:inline-flex;align-items:center;justify-content:center;width:64px;height:64px;border-radius:18px;background:#FFFBEB;margin-bottom:16px;">
         <span style="font-size:32px;">⚠️</span>
       </div>
       <h2 style="margin:0;font-size:22px;font-weight:800;color:#0F172A;letter-spacing:-0.3px;">Pagamento pendente</h2>
-      <p style="margin:8px 0 0;font-size:14px;color:#64748B;">Olá, <strong>${name}</strong></p>
+      <p style="margin:8px 0 0;font-size:14px;color:#64748B;">Olá, <strong>${safeName}</strong></p>
     </div>
 
     <p style="margin:0 0 16px;font-size:15px;color:#334155;line-height:1.7;">
@@ -147,13 +150,14 @@ export async function sendAccountPendingEmail(to: string, name: string) {
 }
 
 export async function sendPasswordResetEmail(to: string, name: string, code: string) {
+  const safeName = escapeHtml(name);
   const content = `
     <div style="text-align:center;margin-bottom:28px;">
       <div style="display:inline-flex;align-items:center;justify-content:center;width:64px;height:64px;border-radius:18px;background:#EFF6FF;margin-bottom:16px;">
         <span style="font-size:32px;">🔑</span>
       </div>
       <h2 style="margin:0;font-size:22px;font-weight:800;color:#0F172A;letter-spacing:-0.3px;">Redefinição de senha</h2>
-      <p style="margin:8px 0 0;font-size:14px;color:#64748B;">Olá, <strong>${name}</strong></p>
+      <p style="margin:8px 0 0;font-size:14px;color:#64748B;">Olá, <strong>${safeName}</strong></p>
     </div>
 
     <p style="margin:0 0 16px;font-size:15px;color:#334155;line-height:1.7;">
@@ -183,13 +187,17 @@ export async function sendPasswordResetEmail(to: string, name: string, code: str
 }
 
 export async function sendAccountActivatedEmail(to: string, name: string) {
+  const safeName  = escapeHtml(name);
+  const dashboardUrl = process.env.NEXTAUTH_URL
+    ? `${process.env.NEXTAUTH_URL}/dashboard`
+    : null;
   const content = `
     <div style="text-align:center;margin-bottom:28px;">
       <div style="display:inline-flex;align-items:center;justify-content:center;width:64px;height:64px;border-radius:18px;background:#F0FDF4;margin-bottom:16px;">
         <span style="font-size:32px;">✅</span>
       </div>
       <h2 style="margin:0;font-size:22px;font-weight:800;color:#0F172A;letter-spacing:-0.3px;">Conta reativada!</h2>
-      <p style="margin:8px 0 0;font-size:14px;color:#64748B;">Olá, <strong>${name}</strong></p>
+      <p style="margin:8px 0 0;font-size:14px;color:#64748B;">Olá, <strong>${safeName}</strong></p>
     </div>
 
     <p style="margin:0 0 16px;font-size:15px;color:#334155;line-height:1.7;">
@@ -202,12 +210,13 @@ export async function sendAccountActivatedEmail(to: string, name: string) {
       </p>
     </div>
 
+    ${dashboardUrl ? `
     <div style="text-align:center;margin:24px 0;">
-      <a href="${process.env.NEXTAUTH_URL ?? "https://fretefacil.com"}/dashboard"
+      <a href="${dashboardUrl}"
         style="display:inline-block;padding:13px 32px;background:linear-gradient(135deg,#0C6B64,#2EC4B6);color:#fff;text-decoration:none;border-radius:12px;font-size:14px;font-weight:700;letter-spacing:0.01em;box-shadow:0 4px 14px rgba(12,107,100,0.30);">
         Acessar a plataforma
       </a>
-    </div>`;
+    </div>` : ""}`;
 
   await transporter.sendMail({
     from:    FROM,

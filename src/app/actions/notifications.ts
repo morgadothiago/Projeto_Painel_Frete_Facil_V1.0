@@ -49,12 +49,28 @@ export async function activateCompany(
     return { ok: false, error: "Sem permissão" };
   }
 
+  // Valida que a notificação existe e pertence ao companyUserId (evita IDOR)
+  const notification = await db.notification.findUnique({
+    where: { id: notificationId },
+  });
+  if (!notification || notification.userId !== companyUserId) {
+    return { ok: false, error: "Notificação inválida." };
+  }
+
+  // Valida que o usuário alvo tem role COMPANY
+  const targetUser = await db.user.findUnique({
+    where:  { id: companyUserId },
+    select: { role: true },
+  });
+  if (!targetUser || targetUser.role !== "COMPANY") {
+    return { ok: false, error: "Usuário não é uma empresa." };
+  }
+
   await db.user.update({
     where: { id: companyUserId },
     data:  { status: "ACTIVE" },
   });
 
-  // Mark this notification as read
   await db.notification.update({
     where: { id: notificationId },
     data:  { read: true },

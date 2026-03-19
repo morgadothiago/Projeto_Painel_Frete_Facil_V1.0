@@ -20,6 +20,17 @@ export async function pushGpsLocation(
     });
     if (!driver) return { ok: false };
 
+    // Valida que o deliveryId pertence a este motorista (evita IDOR)
+    if (deliveryId) {
+      const delivery = await db.delivery.findUnique({
+        where:  { id: deliveryId },
+        select: { driverId: true },
+      });
+      if (!delivery || delivery.driverId !== driver.id) {
+        return { ok: false };
+      }
+    }
+
     await db.gpsLocation.create({
       data: {
         driverId:   driver.id,
