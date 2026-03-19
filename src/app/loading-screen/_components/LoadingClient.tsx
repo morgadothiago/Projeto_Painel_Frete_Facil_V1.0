@@ -18,7 +18,7 @@ export function LoadingClient({ role }: { role: Role }) {
   const router = useRouter();
 
   useEffect(() => {
-    const timer = setTimeout(() => router.push("/dashboard"), 2800);
+    const timer = setTimeout(() => router.push("/dashboard?welcome=1"), 2800);
     return () => clearTimeout(timer);
   }, [router]);
 

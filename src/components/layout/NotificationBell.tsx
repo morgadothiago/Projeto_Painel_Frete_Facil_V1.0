@@ -1,14 +1,10 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
-import { Bell, Building2, CheckCheck, Loader2, BellOff, Sparkles } from "lucide-react";
-import { tenantConfig } from "@/config/tenant";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+import { useEffect, useRef, useState, useTransition } from "react";
+import { Bell, Building2, CheckCheck, Loader2, BellOff, Sparkles, X } from "lucide-react";
+import { toast }          from "sonner";
+import { tenantConfig }   from "@/config/tenant";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 import {
   getNotifications,
   markAllAsRead,
@@ -22,19 +18,16 @@ function timeAgo(date: Date): string {
   const diff = Date.now() - new Date(date).getTime();
   const mins = Math.floor(diff / 60000);
   if (mins < 1)  return "agora";
-  if (mins < 60) return `${mins}min atrás`;
+  if (mins < 60) return `${mins}min`;
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24)  return `${hrs}h atrás`;
-  return `${Math.floor(hrs / 24)}d atrás`;
+  if (hrs < 24)  return `${hrs}h`;
+  return `${Math.floor(hrs / 24)}d`;
 }
 
 // ── Item ─────────────────────────────────────────────────────────────────────
 
 function NotificationItem({
-  notification,
-  activated,
-  activatingId,
-  onActivate,
+  notification, activated, activatingId, onActivate,
 }: {
   notification: AppNotification;
   activated:    Set<string>;
@@ -49,18 +42,18 @@ function NotificationItem({
 
   return (
     <div style={{
-      padding: "16px 20px",
-      borderBottom: `1px solid ${t.border}`,
-      background: isUnread ? `${t.primary}06` : "transparent",
-      transition: "background 0.2s",
+      padding: "14px 20px",
+      borderBottom: `1px solid #F1F5F9`,
+      background: isUnread ? "#F8FFFE" : "#fff",
       position: "relative",
+      transition: "background 0.15s",
     }}>
-      {/* Linha de destaque lateral para não-lidas */}
+      {/* Barra lateral colorida */}
       {isUnread && (
         <div style={{
-          position: "absolute", left: 0, top: 12, bottom: 12,
+          position: "absolute", left: 0, top: 14, bottom: 14,
           width: 3, borderRadius: "0 3px 3px 0",
-          background: t.primary,
+          background: `linear-gradient(to bottom, #0C6B64, ${t.primary})`,
         }} />
       )}
 
@@ -72,44 +65,35 @@ function NotificationItem({
           background: isDone
             ? "linear-gradient(135deg, #DCFCE7, #BBF7D0)"
             : isPending
-            ? "linear-gradient(135deg, #EDE9FE, #DDD6FE)"
-            : t.background,
-          boxShadow: isDone
-            ? "0 2px 8px #16A34A18"
-            : isPending
-            ? "0 2px 8px #7C3AED18"
-            : "none",
+            ? "linear-gradient(135deg, #EDE9FE, #C4B5FD)"
+            : "#F1F5F9",
         }}>
           {isDone
-            ? <CheckCheck style={{ width: 18, height: 18, color: "#16A34A" }} />
-            : <Building2  style={{ width: 17, height: 17, color: isPending ? "#7C3AED" : t.textSecondary }} />
+            ? <CheckCheck style={{ width: 17, height: 17, color: "#16A34A" }} />
+            : <Building2  style={{ width: 17, height: 17, color: isPending ? "#7C3AED" : "#94A3B8" }} />
           }
         </div>
 
+        {/* Conteúdo */}
         <div style={{ flex: 1, minWidth: 0 }}>
-          {/* Título + badge não-lido */}
-          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8 }}>
-            <span style={{
-              fontSize: 13.5, fontWeight: isUnread ? 700 : 600,
-              color: t.textPrimary, lineHeight: 1.35,
+          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 6 }}>
+            <p style={{
+              margin: 0, fontSize: 13, lineHeight: 1.4,
+              fontWeight: isUnread ? 700 : 600,
+              color: isDone ? "#16A34A" : "#0F172A",
             }}>
-              {isDone ? "Empresa ativada com sucesso" : notification.title}
-            </span>
-            <span
-              suppressHydrationWarning
-              style={{
-                fontSize: 11, color: "#9CA3AF", whiteSpace: "nowrap", flexShrink: 0,
-                marginTop: 1,
-              }}
-            >
+              {isDone ? "Empresa ativada!" : notification.title}
+            </p>
+            <span suppressHydrationWarning style={{
+              fontSize: 11, color: "#94A3B8", whiteSpace: "nowrap",
+              flexShrink: 0, marginTop: 1,
+            }}>
               {timeAgo(notification.createdAt)}
             </span>
           </div>
 
-          {/* Corpo */}
           <p style={{
-            margin: "4px 0 0",
-            fontSize: 12.5, color: t.textSecondary, lineHeight: 1.55,
+            margin: "3px 0 0", fontSize: 12.5, color: "#64748B", lineHeight: 1.55,
           }}>
             {isDone
               ? `${data.companyName ?? "A empresa"} já pode acessar a plataforma.`
@@ -117,19 +101,17 @@ function NotificationItem({
             }
           </p>
 
-          {/* Chip de empresa */}
+          {/* Chip empresa */}
           {isPending && data.companyName && !isDone && (
-            <div style={{
-              display: "inline-flex", alignItems: "center", gap: 5,
-              marginTop: 8,
-              padding: "3px 10px",
-              borderRadius: 20,
-              background: "#EDE9FE",
-              fontSize: 11.5, fontWeight: 600, color: "#7C3AED",
+            <span style={{
+              display: "inline-flex", alignItems: "center", gap: 4,
+              marginTop: 7, padding: "2px 9px", borderRadius: 20,
+              background: "#F3F0FF", color: "#7C3AED",
+              fontSize: 11.5, fontWeight: 600,
             }}>
-              <Building2 style={{ width: 11, height: 11 }} />
+              <Building2 style={{ width: 10, height: 10 }} />
               {data.companyName}
-            </div>
+            </span>
           )}
 
           {/* Botão ativar */}
@@ -140,25 +122,19 @@ function NotificationItem({
               onClick={() => onActivate(data.companyUserId, notification.id)}
               style={{
                 marginTop: 10,
-                display: "flex", alignItems: "center", gap: 6,
-                padding: "7px 14px",
-                borderRadius: 9,
-                border: "none",
-                background: isLoading
-                  ? t.border
-                  : `linear-gradient(135deg, #0C6B64, ${t.primary})`,
-                color: "#fff",
-                fontSize: 12.5, fontWeight: 700,
+                display: "inline-flex", alignItems: "center", gap: 6,
+                padding: "6px 14px", borderRadius: 8, border: "none",
+                background: isLoading ? "#E2E8F0" : `linear-gradient(135deg, #0C6B64, ${t.primary})`,
+                color: isLoading ? "#94A3B8" : "#fff",
+                fontSize: 12, fontWeight: 700,
                 cursor: isLoading ? "not-allowed" : "pointer",
-                boxShadow: isLoading ? "none" : `0 3px 12px ${t.primary}35`,
+                boxShadow: isLoading ? "none" : `0 3px 10px ${t.primary}40`,
                 transition: "all 0.2s",
               }}
-              onMouseEnter={(e) => { if (!isLoading) e.currentTarget.style.opacity = "0.88"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.opacity = "1"; }}
             >
               {isLoading
-                ? <><Loader2 style={{ width: 12, height: 12, animation: "spin 0.9s linear infinite" }} /> Ativando…</>
-                : <><Sparkles style={{ width: 12, height: 12 }} /> Ativar empresa</>
+                ? <><Loader2 style={{ width: 11, height: 11, animation: "spin 0.9s linear infinite" }} />Ativando…</>
+                : <><Sparkles style={{ width: 11, height: 11 }} />Ativar empresa</>
               }
             </button>
           )}
@@ -170,221 +146,219 @@ function NotificationItem({
 
 // ── Componente principal ──────────────────────────────────────────────────────
 
+const FILTERS = [
+  { value: "all",    label: "Todas"     },
+  { value: "unread", label: "Não lidas" },
+] as const;
+
 export function NotificationBell() {
-  const [open,          setOpen]          = useState(false);
-  const [filter,        setFilter]        = useState<"all" | "unread">("all");
-  const [notifications, setNotifications] = useState<AppNotification[]>([]);
-  const [activatingId,  setActivatingId]  = useState<string | null>(null);
-  const [activated,     setActivated]     = useState<Set<string>>(new Set());
-  const [isPending,     startTransition]  = useTransition();
+  const [open,         setOpen]        = useState(false);
+  const [filter,       setFilter]      = useState<"all" | "unread">("all");
+  const [notifs,       setNotifs]      = useState<AppNotification[]>([]);
+  const [activatingId, setActivating]  = useState<string | null>(null);
+  const [activated,    setActivated]   = useState<Set<string>>(new Set());
+  const [isPending,    startTransition] = useTransition();
+  const knownIds = useRef<Set<string>>(new Set());
+  const isFirst  = useRef(true);
 
-  const unread = notifications.filter((n) => !n.read && !activated.has(n.id)).length;
-
+  const unread = notifs.filter((n) => !n.read && !activated.has(n.id)).length;
   const filtered = filter === "unread"
-    ? notifications.filter((n) => !n.read && !activated.has(n.id))
-    : notifications;
+    ? notifs.filter((n) => !n.read && !activated.has(n.id))
+    : notifs;
 
-  function fetchNotifications() {
+  function fetchNotifs() {
     startTransition(async () => {
       const data = await getNotifications();
-      setNotifications(data);
+      setNotifs(data);
+
+      // Detecta notificações novas após o primeiro carregamento
+      if (isFirst.current) {
+        data.forEach((n) => knownIds.current.add(n.id));
+        isFirst.current = false;
+      } else {
+        const news = data.filter((n) => !knownIds.current.has(n.id) && !n.read);
+        news.forEach((n) => {
+          knownIds.current.add(n.id);
+          toast(n.title, {
+            description: n.body,
+            icon: "🔔",
+            duration: 6000,
+          });
+        });
+      }
     });
   }
 
   useEffect(() => {
-    fetchNotifications();
-    const id = setInterval(fetchNotifications, 30_000);
+    fetchNotifs();
+    const id = setInterval(fetchNotifs, 30_000);
     return () => clearInterval(id);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleMarkAll() {
     startTransition(async () => {
       await markAllAsRead();
-      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+      setNotifs((prev) => prev.map((n) => ({ ...n, read: true })));
+      toast.success("Notificações marcadas como lidas.");
     });
   }
 
   function handleActivate(companyUserId: string, notificationId: string) {
-    setActivatingId(notificationId);
+    setActivating(notificationId);
     startTransition(async () => {
-      const result = await activateCompany(companyUserId, notificationId);
-      if (result.ok) {
+      const res = await activateCompany(companyUserId, notificationId);
+      if (res.ok) {
         setActivated((prev) => new Set(prev).add(notificationId));
-        setNotifications((prev) =>
-          prev.map((n) => n.id === notificationId ? { ...n, read: true } : n)
-        );
+        setNotifs((prev) => prev.map((n) =>
+          n.id === notificationId ? { ...n, read: true } : n
+        ));
+        toast.success("Empresa ativada com sucesso!", {
+          description: "A empresa já pode acessar a plataforma.",
+        });
+      } else {
+        toast.error("Erro ao ativar empresa.", {
+          description: res.error ?? "Tente novamente.",
+        });
       }
-      setActivatingId(null);
+      setActivating(null);
     });
   }
 
   return (
     <>
-      {/* ── Bell button ──────────────────────────────────────── */}
+      {/* ── Bell ─────────────────────────────────────────── */}
       <button
         type="button"
         onClick={() => setOpen(true)}
         style={{
           position: "relative",
           width: 36, height: 36, borderRadius: 10,
-          background: "transparent", border: "none",
+          border: "none", background: "transparent",
           display: "flex", alignItems: "center", justifyContent: "center",
           color: t.textSecondary, cursor: "pointer",
           transition: "background 0.15s, color 0.15s",
         }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.background = t.background;
-          e.currentTarget.style.color = t.primary;
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.background = "transparent";
-          e.currentTarget.style.color = t.textSecondary;
-        }}
+        onMouseEnter={(e) => { e.currentTarget.style.background = t.background; e.currentTarget.style.color = t.primary; }}
+        onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = t.textSecondary; }}
       >
         <Bell style={{ width: 17, height: 17 }} />
         {unread > 0 && (
           <span style={{
             position: "absolute", top: 6, right: 6,
             width: 8, height: 8, borderRadius: "50%",
-            background: "#EF4444",
-            border: `2px solid ${t.surface}`,
+            background: "#EF4444", border: `2px solid ${t.surface}`,
             animation: "pulseRed 2s infinite",
           }} />
         )}
       </button>
 
-      {/* ── Sheet ────────────────────────────────────────────── */}
+      {/* ── Sheet ─────────────────────────────────────────── */}
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent
           side="right"
           showCloseButton={false}
           className="flex flex-col p-0"
-          style={{
-            width: 400,
-            maxWidth: "100vw",
-            background: t.background,
-            borderLeft: `1px solid ${t.border}`,
-          }}
+          style={{ width: 390, maxWidth: "100vw", border: "none", padding: 0 }}
         >
 
-          {/* ── Cabeçalho ──────────────────────────────────── */}
-          <SheetHeader
-            className="shrink-0"
-            style={{
-              padding: "20px 20px 0",
-              background: t.surface,
-              borderBottom: `1px solid ${t.border}`,
-            }}
-          >
+          {/* ── Header com gradiente ─────────────────────── */}
+          <div style={{
+            background: "linear-gradient(135deg, #0C6B64 0%, #2EC4B6 100%)",
+            padding: "24px 22px 0",
+            flexShrink: 0,
+          }}>
             {/* Linha superior */}
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                {/* Ícone decorativo */}
+            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 18 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                {/* Ícone */}
                 <div style={{
-                  width: 36, height: 36, borderRadius: 10,
-                  background: `linear-gradient(135deg, #0C6B64, ${t.primary})`,
+                  width: 42, height: 42, borderRadius: 13,
+                  background: "rgba(255,255,255,0.18)",
+                  border: "1px solid rgba(255,255,255,0.28)",
+                  backdropFilter: "blur(8px)",
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  boxShadow: `0 4px 12px ${t.primary}30`,
                 }}>
-                  <Bell style={{ width: 16, height: 16, color: "#fff" }} />
+                  <Bell style={{ width: 18, height: 18, color: "#fff" }} />
                 </div>
                 <div>
-                  <SheetTitle style={{ fontSize: 15, fontWeight: 700, color: t.textPrimary, margin: 0 }}>
+                  <h2 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: "#fff", letterSpacing: "-0.3px" }}>
                     Notificações
-                  </SheetTitle>
-                  <p style={{ margin: 0, fontSize: 11.5, color: t.textSecondary }}>
+                  </h2>
+                  <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.7)", marginTop: 1 }}>
                     {unread > 0 ? `${unread} não lida${unread > 1 ? "s" : ""}` : "Tudo em dia"}
                   </p>
                 </div>
               </div>
 
-              <div style={{ display: "flex", gap: 6 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                {/* Marcar todas */}
                 {unread > 0 && (
                   <button
                     type="button"
                     onClick={handleMarkAll}
-                    title="Marcar todas como lidas"
                     style={{
                       display: "flex", alignItems: "center", gap: 5,
                       padding: "6px 11px", borderRadius: 8,
-                      border: `1px solid ${t.border}`,
-                      background: t.background,
-                      fontSize: 12, fontWeight: 600, color: t.textSecondary,
-                      cursor: "pointer", transition: "all 0.15s",
+                      border: "1px solid rgba(255,255,255,0.3)",
+                      background: "rgba(255,255,255,0.15)",
+                      color: "#fff", fontSize: 12, fontWeight: 600,
+                      cursor: "pointer", backdropFilter: "blur(4px)",
+                      transition: "background 0.15s",
                     }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = t.primary;
-                      e.currentTarget.style.color = t.primary;
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = t.border;
-                      e.currentTarget.style.color = t.textSecondary;
-                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.25)"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.15)"; }}
                   >
-                    <CheckCheck style={{ width: 13, height: 13 }} />
+                    <CheckCheck style={{ width: 12, height: 12 }} />
                     Lidas
                   </button>
                 )}
+                {/* Fechar */}
                 <button
                   type="button"
                   onClick={() => setOpen(false)}
                   style={{
-                    width: 32, height: 32,
+                    width: 32, height: 32, borderRadius: 9,
+                    border: "1px solid rgba(255,255,255,0.3)",
+                    background: "rgba(255,255,255,0.15)",
                     display: "flex", alignItems: "center", justifyContent: "center",
-                    borderRadius: 8,
-                    border: `1px solid ${t.border}`,
-                    background: t.background,
-                    cursor: "pointer", color: t.textSecondary,
-                    fontSize: 16, lineHeight: 1,
-                    transition: "all 0.15s",
+                    color: "#fff", cursor: "pointer", backdropFilter: "blur(4px)",
+                    transition: "background 0.15s",
                   }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "#FEE2E2";
-                    e.currentTarget.style.color = "#DC2626";
-                    e.currentTarget.style.borderColor = "#FECACA";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = t.background;
-                    e.currentTarget.style.color = t.textSecondary;
-                    e.currentTarget.style.borderColor = t.border;
-                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.28)"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.15)"; }}
                 >
-                  ✕
+                  <X style={{ width: 14, height: 14 }} />
                 </button>
               </div>
             </div>
 
-            {/* Tabs filtro */}
+            {/* Tabs dentro do header */}
             <div style={{ display: "flex", gap: 0 }}>
-              {(["all", "unread"] as const).map((tab) => {
-                const label = tab === "all" ? "Todas" : "Não lidas";
-                const count = tab === "unread" ? unread : notifications.length;
-                const isActive = filter === tab;
+              {FILTERS.map((f) => {
+                const active = filter === f.value;
+                const count  = f.value === "unread" ? unread : notifs.length;
                 return (
                   <button
-                    key={tab}
+                    key={f.value}
                     type="button"
-                    onClick={() => setFilter(tab)}
+                    onClick={() => setFilter(f.value)}
                     style={{
-                      padding: "8px 16px",
+                      padding: "9px 16px",
                       border: "none", background: "transparent",
-                      fontSize: 13, fontWeight: isActive ? 700 : 500,
-                      color: isActive ? t.primary : t.textSecondary,
+                      fontSize: 13, fontWeight: active ? 700 : 500,
+                      color: active ? "#fff" : "rgba(255,255,255,0.6)",
                       cursor: "pointer",
-                      borderBottom: isActive ? `2px solid ${t.primary}` : "2px solid transparent",
+                      borderBottom: active ? "2.5px solid #fff" : "2.5px solid transparent",
                       transition: "all 0.15s",
                     }}
                   >
-                    {label}
+                    {f.label}
                     {count > 0 && (
                       <span style={{
-                        marginLeft: 6,
-                        padding: "1px 6px",
-                        borderRadius: 20,
-                        fontSize: 10.5, fontWeight: 700,
-                        background: isActive ? t.primary : t.border,
-                        color: isActive ? "#fff" : t.textSecondary,
-                        transition: "all 0.15s",
+                        marginLeft: 6, padding: "1px 6px",
+                        borderRadius: 20, fontSize: 10.5, fontWeight: 700,
+                        background: active ? "rgba(255,255,255,0.25)" : "rgba(255,255,255,0.12)",
+                        color: "#fff",
                       }}>
                         {count}
                       </span>
@@ -393,52 +367,59 @@ export function NotificationBell() {
                 );
               })}
             </div>
-          </SheetHeader>
+          </div>
 
-          {/* ── Lista ──────────────────────────────────────── */}
-          <div style={{ flex: 1, overflowY: "auto" }}>
-            {isPending && notifications.length === 0 ? (
+          {/* ── Lista ────────────────────────────────────── */}
+          <div style={{ flex: 1, overflowY: "auto", background: "#F8FAFC" }}>
+
+            {/* Loading inicial */}
+            {isPending && notifs.length === 0 ? (
               <div style={{
                 display: "flex", flexDirection: "column",
                 alignItems: "center", justifyContent: "center",
-                gap: 10, padding: "60px 24px",
+                gap: 12, height: 260,
               }}>
-                <Loader2 style={{
-                  width: 24, height: 24, color: t.primary,
-                  animation: "spin 0.9s linear infinite",
-                }} />
-                <span style={{ fontSize: 13, color: t.textSecondary }}>
-                  Carregando notificações…
-                </span>
+                <div style={{
+                  width: 48, height: 48, borderRadius: 16,
+                  background: "#fff",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  boxShadow: "0 2px 12px rgba(0,0,0,0.08)",
+                }}>
+                  <Loader2 style={{ width: 20, height: 20, color: t.primary, animation: "spin 0.9s linear infinite" }} />
+                </div>
+                <p style={{ margin: 0, fontSize: 13, color: "#64748B" }}>Carregando…</p>
               </div>
+
+            /* Empty state */
             ) : filtered.length === 0 ? (
               <div style={{
                 display: "flex", flexDirection: "column",
                 alignItems: "center", justifyContent: "center",
-                gap: 12, padding: "60px 32px", textAlign: "center",
+                gap: 14, padding: "60px 32px", textAlign: "center",
               }}>
                 <div style={{
                   width: 64, height: 64, borderRadius: 20,
-                  background: t.surface,
+                  background: "#fff",
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  boxShadow: "0 2px 12px rgba(0,0,0,0.05)",
+                  boxShadow: "0 2px 16px rgba(0,0,0,0.07)",
                 }}>
                   <BellOff style={{ width: 26, height: 26, color: "#CBD5E1" }} />
                 </div>
                 <div>
-                  <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: t.textPrimary }}>
+                  <p style={{ margin: 0, fontSize: 15, fontWeight: 700, color: "#0F172A" }}>
                     {filter === "unread" ? "Nenhuma não lida" : "Tudo em dia!"}
                   </p>
-                  <p style={{ margin: "5px 0 0", fontSize: 12.5, color: t.textSecondary, lineHeight: 1.55 }}>
+                  <p style={{ margin: "6px 0 0", fontSize: 13, color: "#64748B", lineHeight: 1.55 }}>
                     {filter === "unread"
-                      ? "Você leu todas as notificações."
-                      : "Novas notificações aparecerão aqui quando houver atividade na plataforma."
-                    }
+                      ? "Você já leu todas as notificações."
+                      : "Novas notificações aparecerão aqui."}
                   </p>
                 </div>
               </div>
+
+            /* Lista */
             ) : (
-              <div style={{ background: t.surface }}>
+              <div style={{ background: "#fff" }}>
                 {filtered.map((n) => (
                   <NotificationItem
                     key={n.id}
@@ -452,23 +433,23 @@ export function NotificationBell() {
             )}
           </div>
 
-          {/* ── Rodapé ─────────────────────────────────────── */}
-          {notifications.length > 0 && (
+          {/* ── Footer ───────────────────────────────────── */}
+          {notifs.length > 0 && (
             <div style={{
               padding: "12px 20px",
-              borderTop: `1px solid ${t.border}`,
-              background: t.surface,
+              background: "#fff",
+              borderTop: "1px solid #F1F5F9",
               flexShrink: 0,
+              textAlign: "center",
             }}>
-              <p style={{ margin: 0, fontSize: 11.5, color: t.textSecondary, textAlign: "center" }}>
-                Mostrando as últimas {notifications.length} notificações
-              </p>
+              <span style={{ fontSize: 12, color: "#94A3B8" }}>
+                {notifs.length} notificaç{notifs.length !== 1 ? "ões" : "ão"} no total
+              </span>
             </div>
           )}
 
         </SheetContent>
       </Sheet>
-
     </>
   );
 }
