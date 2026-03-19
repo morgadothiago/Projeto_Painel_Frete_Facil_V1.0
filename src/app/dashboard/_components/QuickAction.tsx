@@ -1,16 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { ChevronRight } from "lucide-react";
-import { tenantConfig } from "@/config/tenant";
-
-const { theme: t } = tenantConfig;
+import { useState }      from "react";
+import { ChevronRight }  from "lucide-react";
 
 export function QuickAction({ icon, label, sub, href, color }: {
-  icon: React.ReactNode;
+  icon:  React.ReactNode;
   label: string;
-  sub: string;
-  href: string;
+  sub:   string;
+  href:  string;
   color: string;
 }) {
   const [hovered, setHovered] = useState(false);
@@ -21,34 +18,34 @@ export function QuickAction({ icon, label, sub, href, color }: {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        display: "flex", alignItems: "center", gap: 13,
-        background: hovered ? t.background : "transparent",
-        borderRadius: t.radiusMd, padding: "11px 12px",
+        display: "flex", alignItems: "center", gap: 12,
+        padding: "10px 12px",
+        borderRadius: 10,
+        background: hovered ? "#F8FAFC" : "transparent",
         textDecoration: "none",
-        transition: "background 0.15s",
+        transition: "background 0.12s",
       }}
     >
       <div style={{
-        width: 38, height: 38, borderRadius: 10,
-        background: `${color}14`,
+        width: 34, height: 34, borderRadius: 9,
+        background: hovered ? `${color}20` : `${color}12`,
         color,
         display: "flex", alignItems: "center", justifyContent: "center",
         flexShrink: 0,
-        transition: "background 0.15s",
-        ...(hovered ? { background: `${color}22` } : {}),
+        transition: "background 0.12s",
       }}>
-        <span style={{ width: 17, height: 17, display: "flex" }}>{icon}</span>
+        <span style={{ width: 16, height: 16, display: "flex" }}>{icon}</span>
       </div>
 
       <div style={{ flex: 1 }}>
-        <p style={{ fontSize: 13.5, fontWeight: 700, color: t.textPrimary, margin: 0 }}>{label}</p>
-        <p style={{ fontSize: 12, color: t.textSecondary, margin: "2px 0 0" }}>{sub}</p>
+        <p style={{ fontSize: 13, fontWeight: 600, color: "#0F172A", margin: 0 }}>{label}</p>
+        <p style={{ fontSize: 11.5, color: "#94A3B8", margin: "1px 0 0" }}>{sub}</p>
       </div>
 
       <ChevronRight style={{
-        width: 15, height: 15,
-        color: hovered ? color : t.textSecondary,
-        transition: "color 0.15s",
+        width: 14, height: 14,
+        color: hovered ? color : "#CBD5E1",
+        transition: "color 0.12s",
         flexShrink: 0,
       }} />
     </a>

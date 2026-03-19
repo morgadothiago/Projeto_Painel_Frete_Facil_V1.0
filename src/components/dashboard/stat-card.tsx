@@ -1,64 +1,51 @@
-import { tenantConfig } from "@/config/tenant";
-
-const { theme: t } = tenantConfig;
-
 type StatCardProps = {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-  sub: string;
+  icon:   React.ReactNode;
+  label:  string;
+  value:  string;
+  sub:    string;
   accent: string;
 };
 
 export function StatCard({ icon, label, value, sub, accent }: StatCardProps) {
   return (
     <div style={{
-      background: t.surface,
-      borderRadius: t.radiusLg,
-      padding: "22px 20px 20px",
-      boxShadow: "0 2px 12px rgba(0,0,0,0.055), 0 1px 3px rgba(0,0,0,0.03)",
-      display: "flex",
-      flexDirection: "column",
-      gap: 18,
+      background: "#fff",
+      borderRadius: 14,
+      padding: "18px 20px",
+      display: "flex", alignItems: "center", gap: 14,
+      border: "1px solid #F1F5F9",
+      boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
     }}>
-
       {/* Ícone */}
       <div style={{
-        width: 42, height: 42,
-        borderRadius: 12,
-        background: `linear-gradient(135deg, ${accent}EE, ${accent}99)`,
+        width: 40, height: 40, borderRadius: 11, flexShrink: 0,
+        background: `${accent}14`,
         display: "flex", alignItems: "center", justifyContent: "center",
-        color: "#fff",
-        boxShadow: `0 6px 16px ${accent}38`,
+        color: accent,
       }}>
-        <span style={{ width: 20, height: 20, display: "flex" }}>{icon}</span>
+        <span style={{ width: 18, height: 18, display: "flex" }}>{icon}</span>
       </div>
 
-      {/* Valor + label */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-        <p style={{
-          fontSize: 30, fontWeight: 800, color: t.textPrimary,
-          lineHeight: 1, margin: 0, letterSpacing: "-1px",
-        }}>
-          {value}
-        </p>
-        <p style={{
-          fontSize: 13, fontWeight: 500,
-          color: t.textSecondary, margin: 0,
-        }}>
+      {/* Conteúdo */}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <p style={{ margin: 0, fontSize: 11, fontWeight: 600, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.07em" }}>
           {label}
         </p>
+        <p style={{ margin: "2px 0 0", fontSize: 24, fontWeight: 800, color: "#0F172A", lineHeight: 1.1, letterSpacing: "-0.5px" }}>
+          {value}
+        </p>
       </div>
 
-      {/* Sub — texto colorido simples */}
-      <p style={{
-        fontSize: 11.5, fontWeight: 600,
-        color: accent, margin: 0,
-        letterSpacing: "0.02em",
+      {/* Sub badge */}
+      <span style={{
+        fontSize: 11, fontWeight: 600,
+        color: accent,
+        background: `${accent}12`,
+        padding: "3px 8px", borderRadius: 6,
+        whiteSpace: "nowrap", flexShrink: 0,
       }}>
         {sub}
-      </p>
-
+      </span>
     </div>
   );
 }
