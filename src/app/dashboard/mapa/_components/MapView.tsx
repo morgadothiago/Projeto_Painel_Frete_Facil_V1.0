@@ -63,6 +63,19 @@ const myLocationIcon = L.divIcon({
   popupAnchor:[0, -14],
 });
 
+type MyLocation = { lat: number; lng: number } | null;
+
+// ── Fly to my location ────────────────────────────────────────────────────────
+
+function FlyToLocation({ location }: { location: MyLocation }) {
+  const map = useMap();
+  useEffect(() => {
+    if (!location) return;
+    map.flyTo([location.lat, location.lng], 16, { duration: 1.4 });
+  }, [location, map]);
+  return null;
+}
+
 // ── Auto-fit bounds ────────────────────────────────────────────────────────────
 
 function FitBounds({ data }: { data: MapData }) {
@@ -85,8 +98,6 @@ function FitBounds({ data }: { data: MapData }) {
 }
 
 // ── Componente principal ───────────────────────────────────────────────────────
-
-type MyLocation = { lat: number; lng: number } | null;
 
 export function MapView() {
   const [data,       setData]      = useState<MapData>({ drivers: [], deliveries: [] });
@@ -233,6 +244,7 @@ export function MapView() {
             />
 
             <FitBounds data={data} />
+            <FlyToLocation location={myLocation} />
 
             {/* Minha localização */}
             {myLocation && (
