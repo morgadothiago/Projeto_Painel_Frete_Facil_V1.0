@@ -108,7 +108,7 @@ export function LoginForm() {
         ) : (
           "Entrar na plataforma"
         )}
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        
       </button>
 
     </form>

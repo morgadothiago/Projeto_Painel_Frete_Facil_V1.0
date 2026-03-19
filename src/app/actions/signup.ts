@@ -1,6 +1,8 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import bcrypt       from "bcryptjs";
+import { db }       from "@/lib/db";
 
 export type SignupState = {
   error?: string;
@@ -24,9 +26,14 @@ export async function signupAction(
   _prev: SignupState,
   formData: FormData,
 ): Promise<SignupState> {
-  const email = formData.get("email") as string;
+  const email       = (formData.get("email")       as string).trim().toLowerCase();
+  const password    = formData.get("password")    as string;
+  const fullName    = (formData.get("fullName")    as string).trim();
+  const companyName = (formData.get("companyName") as string).trim();
+  const cnpj        = (formData.get("cnpj")        as string).replace(/\D/g, "");
+  const phone       = (formData.get("phone")       as string).trim();
 
-  // ── Mock: simula latência e verifica se e-mail já existe ──────────────────
+  // ── Mock ──────────────────────────────────────────────────────────────────
   const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === "true";
 
   if (USE_MOCK) {
@@ -42,11 +49,57 @@ export async function signupAction(
       return { error: "Este e-mail já está cadastrado." };
     }
 
-    // Sucesso → redireciona para login com flag de cadastro realizado
     redirect("/?cadastro=sucesso");
   }
 
   // ── Banco real (Prisma) ───────────────────────────────────────────────────
-  // TODO: implementar com Prisma quando backend estiver pronto
+  let existing;
+  try {
+    existing = await db.user.findUnique({ where: { email } });
+  } catch (err) {
+    console.error("[signup] DB error:", err);
+    return { error: "Erro ao verificar cadastro. Tente novamente." };
+  }
+  if (existing) {
+    return { error: "Este e-mail já está cadastrado." };
+  }
+
+  const hashed = await bcrypt.hash(password, 12);
+
+  const user = await db.user.create({
+    data: {
+      name:     fullName,
+      email,
+      password: hashed,
+      phone,
+      role:     "COMPANY",
+      status:   "PENDING",
+      company: {
+        create: {
+          cnpj,
+          tradeName: companyName,
+        },
+      },
+    },
+  });
+
+  // Notifica todos os admins
+  const admins = await db.user.findMany({
+    where: { role: "ADMIN" },
+    select: { id: true },
+  });
+
+  if (admins.length > 0) {
+    await db.notification.createMany({
+      data: admins.map((admin) => ({
+        userId: admin.id,
+        title:  "Nova empresa aguardando ativação",
+        body:   `${companyName} solicitou acesso à plataforma e está aguardando aprovação.`,
+        type:   "COMPANY_PENDING",
+        data:   JSON.stringify({ companyUserId: user.id, companyName }),
+      })),
+    });
+  }
+
   redirect("/?cadastro=sucesso");
 }

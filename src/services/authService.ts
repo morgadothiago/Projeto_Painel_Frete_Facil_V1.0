@@ -30,19 +30,24 @@ export async function loginRequest(
   }
 
   // Login direto no banco via Prisma
-  const user = await db.user.findUnique({ where: { email } });
-  if (!user || user.status !== "ACTIVE") return null;
+  try {
+    const user = await db.user.findUnique({ where: { email } });
+    if (!user || user.status !== "ACTIVE") return null;
 
-  const valid = await bcrypt.compare(password, user.password);
-  if (!valid) return null;
+    const valid = await bcrypt.compare(password, user.password);
+    if (!valid) return null;
 
-  return {
-    access_token: "db-session", // NextAuth gerencia o token JWT internamente
-    user: {
-      id:    user.id,
-      name:  user.name,
-      email: user.email,
-      role:  user.role,
-    },
-  };
+    return {
+      access_token: "db-session",
+      user: {
+        id:    user.id,
+        name:  user.name,
+        email: user.email,
+        role:  user.role,
+      },
+    };
+  } catch (err) {
+    console.error("[authService] loginRequest error:", err);
+    return null;
+  }
 }

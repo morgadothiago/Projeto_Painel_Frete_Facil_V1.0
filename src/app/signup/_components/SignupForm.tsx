@@ -476,7 +476,6 @@ export function SignupForm() {
           ) : (
             <>Próximo <ChevronRight style={{ width: 16, height: 16 }} /></>
           )}
-          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
         </button>
 
         {/* Botão Voltar */}

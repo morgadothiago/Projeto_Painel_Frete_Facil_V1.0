@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { PanelLeft, Bell, Search } from "lucide-react";
+import { PanelLeft, Search } from "lucide-react";
 import { Sidebar } from "./Sidebar";
+import { NotificationBell } from "./NotificationBell";
 import { tenantConfig } from "@/config/tenant";
 
 const { theme: t } = tenantConfig;
@@ -94,21 +95,7 @@ export function DashboardShell({ user, initials, children }: Props) {
           </div>
 
           {/* Notificações */}
-          <button
-            type="button"
-            style={{
-              width: 36, height: 36, borderRadius: t.radiusMd,
-              background: "transparent", border: "none",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              cursor: "pointer", color: t.textSecondary, flexShrink: 0,
-              transition: "background 0.15s",
-              position: "relative",
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = t.background; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
-          >
-            <Bell style={{ width: 16, height: 16 }} />
-          </button>
+          <NotificationBell />
 
           {/* Divisor */}
           <div style={{ width: 1, height: 20, background: t.border, flexShrink: 0 }} />
