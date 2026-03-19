@@ -4,25 +4,26 @@
 export type LoginResponse = {
   access_token: string;
   user: {
-    id:    string;
-    name:  string;
-    email: string;
-    role:  "ADMIN" | "COMPANY" | "DRIVER";
+    id:     string;
+    name:   string;
+    email:  string;
+    role:   "ADMIN" | "COMPANY" | "DRIVER";
+    status: string;
   };
 };
 
 const MOCK_USERS: Record<string, LoginResponse> = {
   "admin@fretefacil.com": {
     access_token: "mock-token-admin-xyz",
-    user: { id: "1", name: "Admin FreteFácil", email: "admin@fretefacil.com", role: "ADMIN" },
+    user: { id: "1", name: "Admin FreteFácil", email: "admin@fretefacil.com", role: "ADMIN",   status: "ACTIVE" },
   },
   "empresa@fretefacil.com": {
     access_token: "mock-token-company-xyz",
-    user: { id: "2", name: "Empresa Teste",   email: "empresa@fretefacil.com", role: "COMPANY" },
+    user: { id: "2", name: "Empresa Teste",   email: "empresa@fretefacil.com", role: "COMPANY", status: "ACTIVE" },
   },
   "motorista@fretefacil.com": {
     access_token: "mock-token-driver-xyz",
-    user: { id: "3", name: "João Motorista",  email: "motorista@fretefacil.com", role: "DRIVER" },
+    user: { id: "3", name: "João Motorista",  email: "motorista@fretefacil.com", role: "DRIVER",  status: "ACTIVE" },
   },
 };
 

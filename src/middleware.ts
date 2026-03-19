@@ -1,0 +1,70 @@
+import { NextRequest, NextResponse } from "next/server";
+import { decode } from "next-auth/jwt";
+
+const PUBLIC_PATHS = [
+  "/",
+  "/signup",
+  "/forgot-password",
+];
+
+function isPublic(pathname: string) {
+  return PUBLIC_PATHS.some((p) =>
+    pathname === p || pathname.startsWith(p + "/"),
+  );
+}
+
+export async function middleware(req: NextRequest) {
+  const { pathname } = req.nextUrl;
+
+  // Assets e rotas do NextAuth passam direto
+  if (
+    pathname.startsWith("/api/auth") ||
+    pathname.startsWith("/_next") ||
+    pathname.includes(".")
+  ) {
+    return NextResponse.next();
+  }
+
+  const cookieName =
+    process.env.NODE_ENV === "production"
+      ? "__Secure-authjs.session-token"
+      : "authjs.session-token";
+
+  const token = await decode({
+    token:  req.cookies.get(cookieName)?.value,
+    secret: process.env.AUTH_SECRET!,
+    salt:   cookieName,
+  });
+
+  const isLoggedIn  = !!token;
+  const isDashboard = pathname.startsWith("/dashboard");
+  const isAdminRoute = pathname.startsWith("/dashboard/admin");
+
+  // Usuário logado com status não-ativo → limpa cookie e redireciona pro login
+  if (isLoggedIn && token.status !== "ACTIVE") {
+    const response = NextResponse.redirect(new URL("/", req.url));
+    response.cookies.delete(cookieName);
+    return response;
+  }
+
+  // Logado tentando acessar página pública (ex: login) → dashboard
+  if (isPublic(pathname) && isLoggedIn) {
+    return NextResponse.redirect(new URL("/dashboard", req.url));
+  }
+
+  // Dashboard sem sessão → login
+  if (isDashboard && !isLoggedIn) {
+    return NextResponse.redirect(new URL("/", req.url));
+  }
+
+  // Rota admin sem role ADMIN → dashboard
+  if (isAdminRoute && token?.role !== "ADMIN") {
+    return NextResponse.redirect(new URL("/dashboard", req.url));
+  }
+
+  return NextResponse.next();
+}
+
+export const config = {
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+};

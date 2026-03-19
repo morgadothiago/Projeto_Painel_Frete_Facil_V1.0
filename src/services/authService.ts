@@ -4,10 +4,11 @@ import bcrypt from "bcryptjs";
 export type LoginResponse = {
   access_token: string;
   user: {
-    id:    string;
-    name:  string;
-    email: string;
-    role:  string;
+    id:     string;
+    name:   string;
+    email:  string;
+    role:   string;
+    status: string;
   };
 };
 
@@ -40,10 +41,11 @@ export async function loginRequest(
     return {
       access_token: "db-session",
       user: {
-        id:    user.id,
-        name:  user.name,
-        email: user.email,
-        role:  user.role,
+        id:     user.id,
+        name:   user.name,
+        email:  user.email,
+        role:   user.role,
+        status: user.status,
       },
     };
   } catch (err) {
