@@ -41,6 +41,28 @@ const deliveryIcon = L.divIcon({
   popupAnchor:[0, -20],
 });
 
+const myLocationIcon = L.divIcon({
+  className: "",
+  html: `
+    <div style="position:relative;width:20px;height:20px;">
+      <div style="
+        position:absolute;inset:0;border-radius:50%;
+        background:rgba(66,133,244,0.2);
+        animation:pulse-blue 2s infinite;
+      "></div>
+      <div style="
+        position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+        width:14px;height:14px;border-radius:50%;
+        background:#4285F4;
+        border:2.5px solid #fff;
+        box-shadow:0 2px 8px rgba(66,133,244,0.6);
+      "></div>
+    </div>`,
+  iconSize:   [20, 20],
+  iconAnchor: [10, 10],
+  popupAnchor:[0, -14],
+});
+
 // ── Auto-fit bounds ────────────────────────────────────────────────────────────
 
 function FitBounds({ data }: { data: MapData }) {
@@ -64,10 +86,14 @@ function FitBounds({ data }: { data: MapData }) {
 
 // ── Componente principal ───────────────────────────────────────────────────────
 
+type MyLocation = { lat: number; lng: number } | null;
+
 export function MapView() {
-  const [data,      setData]      = useState<MapData>({ drivers: [], deliveries: [] });
-  const [loading,   setLoading]   = useState(true);
-  const [lastSync,  setLastSync]  = useState<Date | null>(null);
+  const [data,       setData]      = useState<MapData>({ drivers: [], deliveries: [] });
+  const [loading,    setLoading]   = useState(true);
+  const [lastSync,   setLastSync]  = useState<Date | null>(null);
+  const [myLocation, setMyLocation] = useState<MyLocation>(null);
+  const [locating,   setLocating]  = useState(false);
   const knownDriverIds = useRef<Set<string>>(new Set());
 
   async function refresh() {
@@ -105,6 +131,32 @@ export function MapView() {
         />
         <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 8 }}>
           <button
+            onClick={() => {
+              if (!navigator.geolocation) return;
+              setLocating(true);
+              navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                  setMyLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+                  setLocating(false);
+                },
+                () => setLocating(false),
+                { enableHighAccuracy: true },
+              );
+            }}
+            style={{
+              display: "flex", alignItems: "center", gap: 6,
+              padding: "8px 14px", borderRadius: 10,
+              border: "1px solid #BFDBFE",
+              background: myLocation ? "#EFF6FF" : "#fff",
+              fontSize: 12.5, fontWeight: 600,
+              color: myLocation ? "#1D4ED8" : "#475569",
+              cursor: "pointer",
+            }}
+          >
+            <MapPin style={{ width: 13, height: 13 }} />
+            {locating ? "Buscando…" : myLocation ? "Minha localização" : "Me localizar"}
+          </button>
+          <button
             onClick={refresh}
             style={{
               display: "flex", alignItems: "center", gap: 6,
@@ -133,6 +185,14 @@ export function MapView() {
         <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
           <span style={{ fontSize: 16 }}>📦</span> Entrega pendente
         </span>
+        <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <span style={{
+            display: "inline-block", width: 12, height: 12, borderRadius: "50%",
+            background: "#4285F4", border: "2px solid #fff",
+            boxShadow: "0 0 0 3px rgba(66,133,244,0.3)",
+          }} />
+          Minha localização
+        </span>
       </div>
 
       {/* ── Mapa ── */}
@@ -153,7 +213,15 @@ export function MapView() {
             <p style={{ margin: 0, fontSize: 14, color: "#94A3B8" }}>Carregando mapa…</p>
           </div>
         ) : (
-          <MapContainer
+          <>
+          <style>{`
+          @keyframes pulse-blue {
+            0%   { transform: scale(1);   opacity: 0.6; }
+            70%  { transform: scale(2.5); opacity: 0;   }
+            100% { transform: scale(1);   opacity: 0;   }
+          }
+        `}</style>
+        <MapContainer
             center={[-23.55, -46.63]}
             zoom={11}
             style={{ height: "100%", width: "100%" }}
@@ -165,6 +233,26 @@ export function MapView() {
             />
 
             <FitBounds data={data} />
+
+            {/* Minha localização */}
+            {myLocation && (
+              <Marker
+                position={[myLocation.lat, myLocation.lng]}
+                icon={myLocationIcon}
+                zIndexOffset={1000}
+              >
+                <Popup>
+                  <div style={{ minWidth: 140 }}>
+                    <p style={{ margin: "0 0 2px", fontWeight: 700, fontSize: 13 }}>
+                      📍 Você está aqui
+                    </p>
+                    <p style={{ margin: 0, fontSize: 11.5, color: "#555" }}>
+                      {myLocation.lat.toFixed(5)}, {myLocation.lng.toFixed(5)}
+                    </p>
+                  </div>
+                </Popup>
+              </Marker>
+            )}
 
             {data.drivers.map((driver) => (
               <Marker key={driver.id} position={[driver.lat, driver.lng]} icon={driverIcon}>
@@ -227,6 +315,7 @@ export function MapView() {
             ))}
 
           </MapContainer>
+          </>
         )}
       </div>
 
