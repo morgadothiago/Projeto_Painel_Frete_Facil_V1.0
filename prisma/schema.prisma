@@ -91,6 +91,12 @@ model VehicleType {
   name                String  @unique
   icon                String
   description         String?
+  // MOTO | CARRO | VAN | CAMINHAO_LEVE | CAMINHAO_PESADO
+  vehicleClass        String  @default("CARRO")
+  // PEQUENO | MEDIO | GRANDE
+  size                String  @default("MEDIO")
+  // EXPRESSO | PADRAO | PREMIUM | CARGA_PESADA
+  category            String  @default("PADRAO")
   maxWeight           Float
   isActive            Boolean @default(true)
   basePrice           Decimal @default(0)

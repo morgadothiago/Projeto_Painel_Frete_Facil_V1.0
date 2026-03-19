@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "vehicle_types" ADD COLUMN     "category" TEXT NOT NULL DEFAULT 'PADRAO',
+ADD COLUMN     "size" TEXT NOT NULL DEFAULT 'MEDIO',
+ADD COLUMN     "vehicleClass" TEXT NOT NULL DEFAULT 'CARRO';
