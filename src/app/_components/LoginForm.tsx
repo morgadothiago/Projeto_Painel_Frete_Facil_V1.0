@@ -1,7 +1,8 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useState, useEffect } from "react";
 import { Mail, Lock, Eye, EyeOff, AlertCircle, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 import { loginAction, type LoginState } from "@/app/actions/auth";
 import { InputField }                   from "@/components/ui/input-field";
@@ -12,6 +13,20 @@ const { theme: t } = tenantConfig;
 export function LoginForm() {
   const [state, action, pending] = useActionState<LoginState, FormData>(loginAction, null);
   const [showPass, setShowPass]  = useState(false);
+
+  // Dispara toast quando o erro for de conta bloqueada ou pendente
+  useEffect(() => {
+    if (state?.code === "BLOCKED") {
+      toast.error("Sua conta foi bloqueada", {
+        description: "Verifique seu e-mail para mais informações.",
+      });
+    }
+    if (state?.code === "PENDING") {
+      toast.warning("Pagamento pendente", {
+        description: "Regularize seu pagamento para acessar a plataforma.",
+      });
+    }
+  }, [state]);
 
   return (
     <form action={action} style={{ display: "flex", flexDirection: "column", gap: 20 }}>
@@ -66,8 +81,8 @@ export function LoginForm() {
         }
       />
 
-      {/* Erro */}
-      {state?.error && (
+      {/* Erro genérico (credenciais inválidas) */}
+      {state?.code === "INVALID" && (
         <div style={{
           display: "flex", alignItems: "flex-start", gap: 9,
           fontSize: 13, padding: "11px 14px", borderRadius: t.radiusMd,
@@ -108,7 +123,6 @@ export function LoginForm() {
         ) : (
           "Entrar na plataforma"
         )}
-        
       </button>
 
     </form>
