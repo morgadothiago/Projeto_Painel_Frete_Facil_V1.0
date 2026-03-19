@@ -11,48 +11,34 @@ import { Truck, Package, RefreshCw, Users, MapPin, FlaskConical } from "lucide-r
 
 // ── Ícones personalizados ──────────────────────────────────────────────────────
 
-const CAR_TOP_DOWN = `
-<svg viewBox="0 0 30 54" xmlns="http://www.w3.org/2000/svg" width="30" height="54">
-  <!-- Sombra -->
-  <ellipse cx="15" cy="51" rx="10" ry="2.5" fill="rgba(0,0,0,0.2)"/>
-  <!-- Rodas -->
-  <rect x="0"  y="9"  width="6" height="10" rx="2.5" fill="#1f2937"/>
-  <rect x="24" y="9"  width="6" height="10" rx="2.5" fill="#1f2937"/>
-  <rect x="0"  y="35" width="6" height="10" rx="2.5" fill="#1f2937"/>
-  <rect x="24" y="35" width="6" height="10" rx="2.5" fill="#1f2937"/>
-  <!-- Carroceria -->
-  <rect x="4" y="4" width="22" height="44" rx="7" fill="#2EC4B6"/>
-  <!-- Teto -->
-  <rect x="7" y="14" width="16" height="24" rx="4" fill="#0C6B64"/>
-  <!-- Para-brisa -->
-  <rect x="7" y="14" width="16" height="10" rx="3" fill="rgba(200,240,255,0.75)"/>
-  <!-- Vidro traseiro -->
-  <rect x="7" y="30" width="16" height="8"  rx="3" fill="rgba(200,240,255,0.55)"/>
-  <!-- Faróis -->
-  <rect x="6"  y="5"  width="6" height="4" rx="1.5" fill="#fef3c7"/>
-  <rect x="18" y="5"  width="6" height="4" rx="1.5" fill="#fef3c7"/>
-  <!-- Lanternas -->
-  <rect x="6"  y="44" width="6" height="3" rx="1.5" fill="#ef4444"/>
-  <rect x="18" y="44" width="6" height="3" rx="1.5" fill="#ef4444"/>
-</svg>`;
-
 function createCarIcon(heading: number): L.DivIcon {
   return L.divIcon({
     className: "",
     html: `
       <div style="
-        width: 30px;
-        height: 54px;
         transform: rotate(${heading}deg);
-        transform-origin: 50% 80%;
-        transition: transform 0.7s cubic-bezier(0.25,0.46,0.45,0.94);
-        filter: drop-shadow(0 3px 5px rgba(0,0,0,0.3));
+        transform-origin: 50% 50%;
+        transition: transform 0.6s ease;
+        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.35));
+        line-height: 1;
       ">
-        ${CAR_TOP_DOWN}
+        <svg viewBox="0 0 24 40" xmlns="http://www.w3.org/2000/svg" width="24" height="40">
+          <!-- Rodas -->
+          <rect x="0" y="6"  width="5" height="8" rx="2" fill="#374151"/>
+          <rect x="19" y="6" width="5" height="8" rx="2" fill="#374151"/>
+          <rect x="0" y="26" width="5" height="8" rx="2" fill="#374151"/>
+          <rect x="19" y="26" width="5" height="8" rx="2" fill="#374151"/>
+          <!-- Corpo -->
+          <rect x="3" y="2" width="18" height="36" rx="6" fill="#2EC4B6"/>
+          <!-- Teto -->
+          <rect x="5" y="11" width="14" height="18" rx="3" fill="#0C6B64"/>
+          <!-- Para-brisa -->
+          <rect x="5" y="11" width="14" height="8" rx="2" fill="rgba(220,248,255,0.7)"/>
+        </svg>
       </div>`,
-    iconSize:   [30, 54],
-    iconAnchor: [15, 45],
-    popupAnchor:[0, -48],
+    iconSize:   [24, 40],
+    iconAnchor: [12, 20],
+    popupAnchor:[0, -22],
   });
 }
 
