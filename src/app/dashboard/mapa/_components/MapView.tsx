@@ -11,30 +11,75 @@ import { Truck, Package, RefreshCw, Users, MapPin, FlaskConical } from "lucide-r
 
 // ── Ícones personalizados ──────────────────────────────────────────────────────
 
-const driverIcon = L.divIcon({
-  className: "",
-  html: `
-    <div style="position:relative;display:flex;flex-direction:column;align-items:center;">
+// SVG do carro top-down (aponta para cima = norte = heading 0°)
+function carSvg(color1: string, color2: string) {
+  return `
+  <svg viewBox="0 0 40 72" xmlns="http://www.w3.org/2000/svg" width="40" height="72">
+    <defs>
+      <linearGradient id="cg" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%"  stop-color="${color1}"/>
+        <stop offset="50%" stop-color="${color2}"/>
+        <stop offset="100%" stop-color="${color1}"/>
+      </linearGradient>
+    </defs>
+    <!-- Sombra no chão -->
+    <ellipse cx="20" cy="68" rx="13" ry="3.5" fill="rgba(0,0,0,0.18)"/>
+    <!-- Rodas traseiras -->
+    <rect x="2"  y="44" width="8" height="13" rx="3.5" fill="#111827"/>
+    <rect x="30" y="44" width="8" height="13" rx="3.5" fill="#111827"/>
+    <rect x="3.5" y="46" width="5" height="9" rx="2" fill="#374151"/>
+    <rect x="31.5" y="46" width="5" height="9" rx="2" fill="#374151"/>
+    <!-- Rodas dianteiras -->
+    <rect x="2"  y="15" width="8" height="13" rx="3.5" fill="#111827"/>
+    <rect x="30" y="15" width="8" height="13" rx="3.5" fill="#111827"/>
+    <rect x="3.5" y="17" width="5" height="9" rx="2" fill="#374151"/>
+    <rect x="31.5" y="17" width="5" height="9" rx="2" fill="#374151"/>
+    <!-- Carroceria -->
+    <path d="M8,58 Q8,64 20,64 Q32,64 32,58 L32,14 Q32,6 20,6 Q8,6 8,14 Z" fill="url(#cg)"/>
+    <!-- Cabine/teto (mais escuro) -->
+    <path d="M11,48 L11,20 Q11,15 20,15 Q29,15 29,20 L29,48 Q29,52 20,52 Q11,52 11,48 Z"
+          fill="rgba(0,0,0,0.18)"/>
+    <!-- Para-brisa dianteiro -->
+    <path d="M12,21 L12,31 Q12,33 14,33 L26,33 Q28,33 28,31 L28,21 Q24,18 16,18 Z"
+          fill="rgba(190,240,255,0.88)"/>
+    <!-- Vidro traseiro -->
+    <path d="M13,39 L13,48 L27,48 L27,39 Z"
+          fill="rgba(180,230,255,0.65)"/>
+    <!-- Reflexo no para-brisa -->
+    <path d="M14,22 L18,22 L16,32 L12,30 Z" fill="rgba(255,255,255,0.22)"/>
+    <!-- Linha de porta -->
+    <rect x="11" y="34" width="18" height="1" rx="0.5" fill="rgba(0,0,0,0.15)"/>
+    <!-- Faróis dianteiros -->
+    <rect x="10" y="7"  width="8" height="6" rx="2" fill="#FFFDE7"/>
+    <rect x="22" y="7"  width="8" height="6" rx="2" fill="#FFFDE7"/>
+    <rect x="10" y="7"  width="8" height="6" rx="2" fill="rgba(255,255,150,0.5)"/>
+    <rect x="22" y="7"  width="8" height="6" rx="2" fill="rgba(255,255,150,0.5)"/>
+    <!-- Lanternas traseiras -->
+    <rect x="10" y="58" width="8" height="5" rx="2" fill="#EF4444"/>
+    <rect x="22" y="58" width="8" height="5" rx="2" fill="#EF4444"/>
+    <!-- Brilho lateral do capô -->
+    <rect x="18" y="8"  width="4" height="28" rx="2" fill="rgba(255,255,255,0.1)"/>
+  </svg>`;
+}
+
+function createCarIcon(heading: number): L.DivIcon {
+  return L.divIcon({
+    className: "",
+    html: `
       <div style="
-        width:44px;height:44px;border-radius:14px;
-        background:linear-gradient(135deg,#0C6B64,#2EC4B6);
-        border:3px solid #fff;
-        box-shadow:0 4px 14px rgba(12,107,100,0.5);
-        display:flex;align-items:center;justify-content:center;
-        font-size:22px;line-height:1;
-      ">🚗</div>
-      <div style="
-        width:0;height:0;
-        border-left:7px solid transparent;
-        border-right:7px solid transparent;
-        border-top:8px solid #0C6B64;
-        margin-top:-1px;
-      "></div>
-    </div>`,
-  iconSize:   [44, 58],
-  iconAnchor: [22, 58],
-  popupAnchor:[0, -62],
-});
+        width:40px; height:72px;
+        transform: rotate(${heading}deg);
+        transform-origin: center 85%;
+        transition: transform 0.6s ease;
+        filter: drop-shadow(0 3px 6px rgba(0,0,0,0.35));
+      ">
+        ${carSvg("#0C6B64", "#2EC4B6")}
+      </div>`,
+    iconSize:   [40, 72],
+    iconAnchor: [20, 61],
+    popupAnchor:[0, -64],
+  });
+}
 
 const deliveryIcon = L.divIcon({
   className: "",
@@ -233,7 +278,7 @@ export function MapView() {
       {/* ── Legenda ── */}
       <div style={{ display: "flex", gap: 16, fontSize: 12.5, color: "#64748B" }}>
         <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          <span style={{ fontSize: 16 }}>🚛</span> Motorista livre
+          <span style={{ fontSize: 16 }}>🚗</span> Motorista livre
         </span>
         <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
           <span style={{ fontSize: 16 }}>📦</span> Entrega pendente
@@ -309,7 +354,7 @@ export function MapView() {
             )}
 
             {data.drivers.map((driver) => (
-              <Marker key={driver.id} position={[driver.lat, driver.lng]} icon={driverIcon}>
+              <Marker key={driver.id} position={[driver.lat, driver.lng]} icon={createCarIcon(driver.heading)}>
                 <Popup>
                   <div style={{ minWidth: 180 }}>
                     <p style={{ margin: "0 0 4px", fontWeight: 700, fontSize: 14 }}>

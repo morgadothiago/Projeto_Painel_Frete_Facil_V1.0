@@ -4,12 +4,13 @@ import { db }   from "@/lib/db";
 import { auth }  from "@/auth";
 
 export type MapDriver = {
-  id:     string;
-  name:   string;
-  phone:  string | null;
-  rating: number;
-  lat:    number;
-  lng:    number;
+  id:      string;
+  name:    string;
+  phone:   string | null;
+  rating:  number;
+  lat:     number;
+  lng:     number;
+  heading: number;
   vehicle: string | null;
   plate:   string | null;
 };
@@ -77,6 +78,7 @@ export async function getMapData(): Promise<MapData> {
           rating:  d.rating,
           lat,
           lng,
+          heading: loc?.heading ?? 0,
           vehicle: d.vehicle?.vehicleType?.name ?? null,
           plate:   d.vehicle?.plate ?? null,
         };
