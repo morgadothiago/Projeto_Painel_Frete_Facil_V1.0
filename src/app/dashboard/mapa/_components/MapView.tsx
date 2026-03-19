@@ -5,24 +5,35 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { getMapData, type MapData } from "@/app/actions/map";
-import { Truck, Package, RefreshCw, Users, MapPin } from "lucide-react";
+import { simulateDriverNear }       from "@/app/actions/dev";
+import { toast }                    from "sonner";
+import { Truck, Package, RefreshCw, Users, MapPin, FlaskConical } from "lucide-react";
 
 // ── Ícones personalizados ──────────────────────────────────────────────────────
 
 const driverIcon = L.divIcon({
   className: "",
   html: `
-    <div style="
-      width:38px;height:38px;border-radius:50%;
-      background:linear-gradient(135deg,#0C6B64,#2EC4B6);
-      border:3px solid #fff;
-      box-shadow:0 3px 10px rgba(12,107,100,0.45);
-      display:flex;align-items:center;justify-content:center;
-      font-size:17px;
-    ">🚛</div>`,
-  iconSize:   [38, 38],
-  iconAnchor: [19, 19],
-  popupAnchor:[0, -22],
+    <div style="position:relative;display:flex;flex-direction:column;align-items:center;">
+      <div style="
+        width:44px;height:44px;border-radius:14px;
+        background:linear-gradient(135deg,#0C6B64,#2EC4B6);
+        border:3px solid #fff;
+        box-shadow:0 4px 14px rgba(12,107,100,0.5);
+        display:flex;align-items:center;justify-content:center;
+        font-size:22px;line-height:1;
+      ">🚗</div>
+      <div style="
+        width:0;height:0;
+        border-left:7px solid transparent;
+        border-right:7px solid transparent;
+        border-top:8px solid #0C6B64;
+        margin-top:-1px;
+      "></div>
+    </div>`,
+  iconSize:   [44, 58],
+  iconAnchor: [22, 58],
+  popupAnchor:[0, -62],
 });
 
 const deliveryIcon = L.divIcon({
@@ -103,8 +114,9 @@ export function MapView() {
   const [data,       setData]      = useState<MapData>({ drivers: [], deliveries: [] });
   const [loading,    setLoading]   = useState(true);
   const [lastSync,   setLastSync]  = useState<Date | null>(null);
-  const [myLocation, setMyLocation] = useState<MyLocation>(null);
-  const [locating,   setLocating]  = useState(false);
+  const [myLocation,   setMyLocation]   = useState<MyLocation>(null);
+  const [locating,     setLocating]     = useState(false);
+  const [simulating,   setSimulating]   = useState(false);
   const knownDriverIds = useRef<Set<string>>(new Set());
 
   async function refresh() {
@@ -167,6 +179,36 @@ export function MapView() {
             <MapPin style={{ width: 13, height: 13 }} />
             {locating ? "Buscando…" : myLocation ? "Minha localização" : "Me localizar"}
           </button>
+          {/* Simular motorista próximo — só aparece se tiver localização */}
+          {myLocation && (
+            <button
+              onClick={async () => {
+                setSimulating(true);
+                const res = await simulateDriverNear(myLocation.lat, myLocation.lng);
+                if (res.ok) {
+                  toast.success(`Motorista simulado perto de você!`, {
+                    description: `${res.name} aparecerá no mapa em instantes.`,
+                  });
+                  await refresh();
+                } else {
+                  toast.error("Nenhum motorista encontrado no banco para simular.");
+                }
+                setSimulating(false);
+              }}
+              style={{
+                display: "flex", alignItems: "center", gap: 6,
+                padding: "8px 14px", borderRadius: 10,
+                border: "1px solid #D8B4FE",
+                background: "#FAF5FF",
+                fontSize: 12.5, fontWeight: 600, color: "#7C3AED",
+                cursor: simulating ? "not-allowed" : "pointer",
+                opacity: simulating ? 0.7 : 1,
+              }}
+            >
+              <FlaskConical style={{ width: 13, height: 13 }} />
+              {simulating ? "Simulando…" : "Simular motorista aqui"}
+            </button>
+          )}
           <button
             onClick={refresh}
             style={{
