@@ -224,6 +224,24 @@ function Pagination({ page, total, perPage, onChange }: {
   );
 }
 
+// ── Estilos base de células ───────────────────────────────────
+
+const td: React.CSSProperties = {
+  padding: "12px 14px",
+  verticalAlign: "middle",
+  whiteSpace: "nowrap",
+};
+
+const thStatic: React.CSSProperties = {
+  padding: "11px 14px",
+  fontSize: 10.5, fontWeight: 700,
+  color: "#94A3B8",
+  textTransform: "uppercase" as const,
+  letterSpacing: "0.08em",
+  textAlign: "left" as const,
+  whiteSpace: "nowrap" as const,
+};
+
 // ── Filtros ───────────────────────────────────────────────────
 
 const FILTERS = [
@@ -482,16 +500,16 @@ export function FaturamentoClient({ initialData }: { initialData: CompanyRow[] }
 
         {/* ── Table ── */}
         <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 820 }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 900 }}>
             <thead>
               <tr style={{ background: t.background, borderBottom: `1px solid ${t.border}` }}>
-                <Th label="Empresa"        sortKey="name"      current={sortKey} dir={sortDir} onSort={handleSort} />
-                <Th label="CNPJ"           sortKey="cnpj"      current={sortKey} dir={sortDir} onSort={handleSort} />
-                <th style={{ padding: "11px 16px", fontSize: 10.5, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.08em", textAlign: "left" }}>Contato</th>
-                <th style={{ padding: "11px 16px", fontSize: 10.5, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.08em", textAlign: "left", whiteSpace: "nowrap" }}>Mensalidade</th>
-                <Th label="Situação"       sortKey="status"    current={sortKey} dir={sortDir} onSort={handleSort} />
-                <Th label="Cadastro"       sortKey="createdAt" current={sortKey} dir={sortDir} onSort={handleSort} />
-                <th style={{ padding: "11px 16px", fontSize: 10.5, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.08em", textAlign: "left", whiteSpace: "nowrap" }}>Alterar situação</th>
+                <Th label="Empresa"       sortKey="name"      current={sortKey} dir={sortDir} onSort={handleSort} />
+                <Th label="CNPJ"          sortKey="cnpj"      current={sortKey} dir={sortDir} onSort={handleSort} />
+                <th style={thStatic}>Contato</th>
+                <th style={thStatic}>Mensalidade</th>
+                <Th label="Situação"      sortKey="status"    current={sortKey} dir={sortDir} onSort={handleSort} />
+                <Th label="Cadastro"      sortKey="createdAt" current={sortKey} dir={sortDir} onSort={handleSort} />
+                <th style={thStatic}>Alterar situação</th>
               </tr>
             </thead>
             <tbody>
@@ -525,95 +543,89 @@ export function FaturamentoClient({ initialData }: { initialData: CompanyRow[] }
                     </div>
                   </td>
                 </tr>
-              ) : pageRows.map((c, i) => (
+              ) : pageRows.map((c) => (
                 <tr
                   key={c.id}
-                  style={{
-                    borderBottom: i < pageRows.length - 1 ? `1px solid ${t.border}` : "none",
-                    transition: "background 0.12s",
-                  }}
-                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = `${t.primary}06`; }}
+                  style={{ transition: "background 0.12s" }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = `${t.primary}07`; }}
                   onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
                 >
-                  {/* Empresa */}
-                  <td style={{ padding: "16px 16px" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  {/* Empresa — avatar + nome em 1 linha */}
+                  <td style={td}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
                       <div style={{
-                        width: 40, height: 40, borderRadius: 12, flexShrink: 0,
+                        width: 34, height: 34, borderRadius: 10, flexShrink: 0,
                         background: avatarGradient(c.tradeName ?? c.name),
                         display: "flex", alignItems: "center", justifyContent: "center",
-                        color: "#fff", fontSize: 15, fontWeight: 900,
-                        boxShadow: "0 3px 10px rgba(0,0,0,0.15)",
-                        letterSpacing: "-0.5px",
+                        color: "#fff", fontSize: 13, fontWeight: 900,
+                        boxShadow: "0 2px 8px rgba(0,0,0,0.14)",
                       }}>
                         {(c.tradeName ?? c.name).charAt(0).toUpperCase()}
                       </div>
-                      <div>
-                        <p style={{ margin: 0, fontSize: 13.5, fontWeight: 700, color: t.textPrimary, lineHeight: 1.3 }}>
-                          {c.tradeName ?? c.name}
-                        </p>
-                        <p style={{ margin: "2px 0 0", fontSize: 11.5, color: t.textSecondary }}>{c.name}</p>
-                      </div>
+                      <span style={{
+                        fontSize: 13, fontWeight: 700, color: t.textPrimary,
+                        whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                        maxWidth: 180,
+                      }}>
+                        {c.tradeName ?? c.name}
+                      </span>
                     </div>
                   </td>
 
                   {/* CNPJ */}
-                  <td style={{ padding: "16px 16px" }}>
+                  <td style={td}>
                     <code style={{
-                      fontSize: 12, color: t.textSecondary,
+                      fontSize: 11.5, color: t.textSecondary,
                       background: t.background,
-                      padding: "4px 9px", borderRadius: 7,
+                      padding: "3px 8px", borderRadius: 6,
                       border: `1px solid ${t.border}`,
-                      letterSpacing: "0.02em",
+                      whiteSpace: "nowrap", letterSpacing: "0.01em",
                     }}>
                       {formatCNPJ(c.cnpj)}
                     </code>
                   </td>
 
-                  {/* Contato */}
-                  <td style={{ padding: "16px 16px" }}>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                      <span style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12.5, color: t.textPrimary }}>
+                  {/* Contato — e-mail + telefone inline */}
+                  <td style={td}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10, whiteSpace: "nowrap" }}>
+                      <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12.5, color: t.textPrimary }}>
                         <Mail style={{ width: 11, height: 11, color: "#94A3B8", flexShrink: 0 }} />
                         {c.email}
                       </span>
                       {c.phone && (
-                        <span style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, color: t.textSecondary }}>
-                          <Phone style={{ width: 11, height: 11, color: "#94A3B8", flexShrink: 0 }} />
-                          {c.phone}
-                        </span>
+                        <>
+                          <span style={{ color: t.border }}>·</span>
+                          <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12.5, color: t.textSecondary }}>
+                            <Phone style={{ width: 11, height: 11, color: "#94A3B8", flexShrink: 0 }} />
+                            {c.phone}
+                          </span>
+                        </>
                       )}
                     </div>
                   </td>
 
                   {/* Mensalidade */}
-                  <td style={{ padding: "16px 16px" }}>
-                    <div style={{
-                      display: "inline-flex", flexDirection: "column", alignItems: "flex-start",
-                      background: t.background, border: `1px solid ${t.border}`,
-                      borderRadius: 10, padding: "6px 12px",
-                    }}>
-                      <span style={{ fontSize: 15, fontWeight: 900, color: t.textPrimary, lineHeight: 1 }}>
-                        {formatCurrency(MENSALIDADE)}
-                      </span>
-                      <span style={{ fontSize: 10.5, color: t.textSecondary, marginTop: 2 }}>por mês</span>
-                    </div>
+                  <td style={td}>
+                    <span style={{ fontSize: 13.5, fontWeight: 800, color: t.textPrimary, whiteSpace: "nowrap" }}>
+                      {formatCurrency(MENSALIDADE)}
+                      <span style={{ fontSize: 11, fontWeight: 500, color: t.textSecondary, marginLeft: 4 }}>/mês</span>
+                    </span>
                   </td>
 
                   {/* Situação */}
-                  <td style={{ padding: "16px 16px" }}>
+                  <td style={td}>
                     <StatusPill status={c.status} />
                   </td>
 
                   {/* Cadastro */}
-                  <td style={{ padding: "16px 16px" }}>
+                  <td style={td}>
                     <span style={{ fontSize: 12.5, color: t.textSecondary, whiteSpace: "nowrap" }}>
                       {formatDate(c.createdAt)}
                     </span>
                   </td>
 
                   {/* Select */}
-                  <td style={{ padding: "16px 16px" }}>
+                  <td style={td}>
                     <StatusSelect company={c} onUpdate={handleUpdate} disabled={isPending} />
                   </td>
                 </tr>
