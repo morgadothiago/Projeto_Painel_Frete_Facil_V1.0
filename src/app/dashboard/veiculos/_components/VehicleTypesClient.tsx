@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import {
   Plus, Pencil, Trash2, Power, PowerOff,
-  Truck, Car, Bike, Package, Weight,
+  Truck, Car, Weight, Package,
 } from "lucide-react";
 import {
   type VehicleTypeRow,
@@ -19,11 +19,11 @@ import {
 // ── Constantes ────────────────────────────────────────────────────────────────
 
 const VEHICLE_CLASSES = [
-  { value: "MOTO",           label: "Moto",            emoji: "🏍️" },
-  { value: "CARRO",          label: "Carro",            emoji: "🚗" },
-  { value: "VAN",            label: "Van",              emoji: "🚐" },
-  { value: "CAMINHAO_LEVE",  label: "Caminhão Leve",   emoji: "🚚" },
-  { value: "CAMINHAO_PESADO",label: "Caminhão Pesado",  emoji: "🚛" },
+  { value: "MOTO",           label: "Moto",           emoji: "🏍️" },
+  { value: "CARRO",          label: "Carro",           emoji: "🚗" },
+  { value: "VAN",            label: "Van",             emoji: "🚐" },
+  { value: "CAMINHAO_LEVE",  label: "Caminhão Leve",  emoji: "🚚" },
+  { value: "CAMINHAO_PESADO",label: "Caminhão Pesado", emoji: "🚛" },
 ];
 
 const SIZES = [
@@ -33,16 +33,16 @@ const SIZES = [
 ];
 
 const CATEGORIES = [
-  { value: "EXPRESSO",     label: "Expresso",      color: "#6366F1" },
-  { value: "PADRAO",       label: "Padrão",        color: "#2EC4B6" },
-  { value: "PREMIUM",      label: "Premium",       color: "#F59E0B" },
-  { value: "CARGA_PESADA", label: "Carga Pesada",  color: "#EF4444" },
+  { value: "EXPRESSO",     label: "Expresso",     color: "#6366F1" },
+  { value: "PADRAO",       label: "Padrão",       color: "#2EC4B6" },
+  { value: "PREMIUM",      label: "Premium",      color: "#F59E0B" },
+  { value: "CARGA_PESADA", label: "Carga Pesada", color: "#EF4444" },
 ];
 
 const ICONS = [
-  { value: "motorcycle", label: "Moto"   },
-  { value: "car",        label: "Carro"  },
-  { value: "van",        label: "Van"    },
+  { value: "motorcycle", label: "Moto"     },
+  { value: "car",        label: "Carro"    },
+  { value: "van",        label: "Van"      },
   { value: "truck",      label: "Caminhão" },
 ];
 
@@ -67,9 +67,9 @@ function Chip({ label, color }: { label: string; color: string }) {
     <span style={{
       display: "inline-flex", alignItems: "center",
       padding: "2px 10px", borderRadius: 20,
-      fontSize: 11.5, fontWeight: 600,
-      background: `${color}18`, color,
-      border: `1px solid ${color}30`,
+      fontSize: 11, fontWeight: 600,
+      background: `${color}14`, color,
+      border: `1px solid ${color}25`,
     }}>
       {label}
     </span>
@@ -78,9 +78,7 @@ function Chip({ label, color }: { label: string; color: string }) {
 
 // ── Modal ─────────────────────────────────────────────────────────────────────
 
-function Modal({
-  editing, onClose, onSaved,
-}: {
+function Modal({ editing, onClose, onSaved }: {
   editing: VehicleTypeRow | null;
   onClose: () => void;
   onSaved: (rows: VehicleTypeRow[]) => void;
@@ -110,7 +108,6 @@ function Modal({
         : await createVehicleType(form);
       if (!res.ok) { toast.error(res.error ?? "Erro ao salvar"); return; }
       toast.success(isEdit ? "Tipo atualizado!" : "Tipo criado com sucesso!");
-      // Busca lista atualizada e repassa ao pai
       const updated = await getVehicleTypes();
       onSaved(updated);
       onClose();
@@ -118,16 +115,17 @@ function Modal({
   }
 
   return (
-    <div style={{
-      position: "fixed", inset: 0, zIndex: 1000,
-      background: "rgba(0,0,0,0.4)", backdropFilter: "blur(2px)",
-      display: "flex", alignItems: "center", justifyContent: "center",
-      padding: 16,
-    }}
+    <div
+      style={{
+        position: "fixed", inset: 0, zIndex: 1000,
+        background: "rgba(0,0,0,0.4)", backdropFilter: "blur(2px)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        padding: 16,
+      }}
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <div style={{
-        background: "#fff", borderRadius: 20, width: "100%", maxWidth: 560,
+        background: "#fff", borderRadius: 18, width: "100%", maxWidth: 560,
         boxShadow: "0 20px 60px rgba(0,0,0,0.18)",
         maxHeight: "90vh", overflowY: "auto",
       }}>
@@ -149,7 +147,7 @@ function Modal({
               <h2 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: "#0F172A" }}>
                 {isEdit ? "Editar tipo" : "Novo tipo de veículo"}
               </h2>
-              <p style={{ margin: 0, fontSize: 12, color: "#94A3B8", marginTop: 1 }}>
+              <p style={{ margin: "2px 0 0", fontSize: 12, color: "#94A3B8" }}>
                 Preencha os dados do tipo de veículo
               </p>
             </div>
@@ -163,24 +161,19 @@ function Modal({
 
         {/* Body */}
         <div style={{ padding: "20px 24px", display: "flex", flexDirection: "column", gap: 16 }}>
-
-          {/* Nome */}
           <Field label="Nome do tipo *">
             <input value={form.name} onChange={(e) => set("name", e.target.value)}
               placeholder="Ex: Van Baú" style={inputStyle} />
           </Field>
 
-          {/* Tipo de veículo */}
           <Field label="Tipo de veículo *">
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               {VEHICLE_CLASSES.map((c) => (
-                <button key={c.value} type="button"
-                  onClick={() => set("vehicleClass", c.value)}
+                <button key={c.value} type="button" onClick={() => set("vehicleClass", c.value)}
                   style={{
                     padding: "7px 14px", borderRadius: 10, cursor: "pointer",
                     fontSize: 13, fontWeight: 600, transition: "all 0.15s",
-                    border: form.vehicleClass === c.value
-                      ? "2px solid #0C6B64" : "2px solid #E2E8F0",
+                    border: form.vehicleClass === c.value ? "2px solid #0C6B64" : "2px solid #E2E8F0",
                     background: form.vehicleClass === c.value ? "#E6FAF8" : "#F8FAFC",
                     color: form.vehicleClass === c.value ? "#0C6B64" : "#64748B",
                   }}>
@@ -190,13 +183,11 @@ function Modal({
             </div>
           </Field>
 
-          {/* Tamanho + Categoria */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             <Field label="Tamanho *">
               <div style={{ display: "flex", gap: 6 }}>
                 {SIZES.map((s) => (
-                  <button key={s.value} type="button"
-                    onClick={() => set("size", s.value)}
+                  <button key={s.value} type="button" onClick={() => set("size", s.value)}
                     style={{
                       flex: 1, padding: "7px 0", borderRadius: 9, cursor: "pointer",
                       fontSize: 12.5, fontWeight: 700, transition: "all 0.15s",
@@ -209,7 +200,6 @@ function Modal({
                 ))}
               </div>
             </Field>
-
             <Field label="Categoria *">
               <select value={form.category} onChange={(e) => set("category", e.target.value)}
                 style={inputStyle}>
@@ -220,7 +210,6 @@ function Modal({
             </Field>
           </div>
 
-          {/* Ícone + Peso */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             <Field label="Ícone">
               <select value={form.icon} onChange={(e) => set("icon", e.target.value)}
@@ -237,7 +226,6 @@ function Modal({
             </Field>
           </div>
 
-          {/* Descrição */}
           <Field label="Descrição">
             <textarea value={form.description}
               onChange={(e) => set("description", e.target.value)}
@@ -245,31 +233,26 @@ function Modal({
               style={{ ...inputStyle, resize: "vertical" }} />
           </Field>
 
-          {/* Preços */}
           <div>
-            <p style={{ margin: "0 0 10px", fontSize: 12, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+            <p style={{ margin: "0 0 10px", fontSize: 11, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.07em" }}>
               Precificação
             </p>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
               <Field label="Preço base (R$)">
                 <input type="text" inputMode="decimal" value={form.basePrice}
-                  onChange={(e) => set("basePrice", Number(e.target.value))}
-                  style={inputStyle} />
+                  onChange={(e) => set("basePrice", Number(e.target.value))} style={inputStyle} />
               </Field>
               <Field label="Preço por km (R$)">
                 <input type="text" inputMode="decimal" value={form.pricePerKm}
-                  onChange={(e) => set("pricePerKm", Number(e.target.value))}
-                  style={inputStyle} />
+                  onChange={(e) => set("pricePerKm", Number(e.target.value))} style={inputStyle} />
               </Field>
               <Field label="Ajudante (R$)">
                 <input type="text" inputMode="decimal" value={form.helperPrice}
-                  onChange={(e) => set("helperPrice", Number(e.target.value))}
-                  style={inputStyle} />
+                  onChange={(e) => set("helperPrice", Number(e.target.value))} style={inputStyle} />
               </Field>
               <Field label="Parada adicional (R$)">
                 <input type="text" inputMode="decimal" value={form.additionalStopPrice}
-                  onChange={(e) => set("additionalStopPrice", Number(e.target.value))}
-                  style={inputStyle} />
+                  onChange={(e) => set("additionalStopPrice", Number(e.target.value))} style={inputStyle} />
               </Field>
             </div>
           </div>
@@ -317,20 +300,19 @@ const inputStyle: React.CSSProperties = {
   background: "#F8FAFC", outline: "none", boxSizing: "border-box",
 };
 
-// ── Tabela principal ──────────────────────────────────────────────────────────
+// ── Componente principal ──────────────────────────────────────────────────────
 
 export function VehicleTypesClient({ initialData }: { initialData: VehicleTypeRow[] }) {
-  const [rows,    setRows]    = useState(initialData);
-  const [modal,   setModal]   = useState<"create" | VehicleTypeRow | null>(null);
-  const [isPending, start]    = useTransition();
+  const [rows,      setRows]    = useState(initialData);
+  const [modal,     setModal]   = useState<"create" | VehicleTypeRow | null>(null);
+  const [isPending, start]      = useTransition();
 
   async function handleToggle(row: VehicleTypeRow) {
     start(async () => {
       const res = await toggleVehicleTypeActive(row.id, !row.isActive);
       if (res.ok) {
         toast.success(`${row.name} ${!row.isActive ? "ativado" : "desativado"}.`);
-        const updated = await getVehicleTypes();
-        setRows(updated);
+        setRows(await getVehicleTypes());
       }
     });
   }
@@ -341,21 +323,38 @@ export function VehicleTypesClient({ initialData }: { initialData: VehicleTypeRo
       const res = await deleteVehicleType(row.id);
       if (res.ok) {
         toast.success("Tipo excluído.");
-        const updated = await getVehicleTypes();
-        setRows(updated);
+        setRows(await getVehicleTypes());
       } else {
         toast.error(res.error ?? "Erro ao excluir.");
       }
     });
   }
 
+  const active   = rows.filter((r) => r.isActive).length;
+  const inactive = rows.filter((r) => !r.isActive).length;
+
   return (
     <>
       {/* Toolbar */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-        <p style={{ margin: 0, fontSize: 13, color: "#64748B" }}>
-          {rows.filter((r) => r.isActive).length} ativos · {rows.filter((r) => !r.isActive).length} inativos
-        </p>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexShrink: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{
+            fontSize: 12, fontWeight: 600, color: "#0C6B64",
+            background: "#0C6B6412", border: "1px solid #0C6B6420",
+            padding: "4px 10px", borderRadius: 20,
+          }}>
+            {active} ativo{active !== 1 ? "s" : ""}
+          </span>
+          {inactive > 0 && (
+            <span style={{
+              fontSize: 12, fontWeight: 600, color: "#94A3B8",
+              background: "#F1F5F9", border: "1px solid #E2E8F0",
+              padding: "4px 10px", borderRadius: 20,
+            }}>
+              {inactive} inativo{inactive !== 1 ? "s" : ""}
+            </span>
+          )}
+        </div>
         <button
           onClick={() => setModal("create")}
           style={{
@@ -363,7 +362,7 @@ export function VehicleTypesClient({ initialData }: { initialData: VehicleTypeRo
             padding: "10px 18px", borderRadius: 11, border: "none",
             background: "linear-gradient(135deg,#0C6B64,#2EC4B6)",
             color: "#fff", fontSize: 13.5, fontWeight: 700, cursor: "pointer",
-            boxShadow: "0 4px 14px rgba(46,196,182,0.35)",
+            boxShadow: "0 4px 14px rgba(46,196,182,0.30)",
           }}
         >
           <Plus style={{ width: 15, height: 15 }} />
@@ -371,114 +370,41 @@ export function VehicleTypesClient({ initialData }: { initialData: VehicleTypeRo
         </button>
       </div>
 
-      {/* Cards grid */}
+      {/* Grid de cards */}
       <div style={{
         display: "grid",
         gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-        gap: 16,
+        gap: 14,
         opacity: isPending ? 0.6 : 1,
         transition: "opacity 0.2s",
+        overflowY: "auto",
       }}>
         {rows.map((row) => (
-          <div key={row.id} style={{
-            background: "#fff", borderRadius: 16,
-            border: row.isActive ? "1.5px solid #E2E8F0" : "1.5px dashed #E2E8F0",
-            padding: "18px 20px",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
-            opacity: row.isActive ? 1 : 0.6,
-            transition: "all 0.2s",
-          }}>
-            {/* Card header */}
-            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 12 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <div style={{
-                  width: 44, height: 44, borderRadius: 13, flexShrink: 0,
-                  background: row.isActive
-                    ? "linear-gradient(135deg,#0C6B64,#2EC4B6)"
-                    : "#F1F5F9",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 22,
-                }}>
-                  {classEmoji(row.vehicleClass)}
-                </div>
-                <div>
-                  <p style={{ margin: 0, fontSize: 15, fontWeight: 800, color: "#0F172A" }}>
-                    {row.name}
-                  </p>
-                  <p style={{ margin: 0, fontSize: 12, color: "#94A3B8", marginTop: 1 }}>
-                    {classLabel(row.vehicleClass)}
-                  </p>
-                </div>
-              </div>
-
-              {/* Ações */}
-              <div style={{ display: "flex", gap: 6 }}>
-                <IconBtn title="Editar" onClick={() => setModal(row)}>
-                  <Pencil style={{ width: 13, height: 13 }} />
-                </IconBtn>
-                <IconBtn
-                  title={row.isActive ? "Desativar" : "Ativar"}
-                  onClick={() => handleToggle(row)}
-                  color={row.isActive ? "#EF4444" : "#10B981"}
-                >
-                  {row.isActive
-                    ? <PowerOff style={{ width: 13, height: 13 }} />
-                    : <Power    style={{ width: 13, height: 13 }} />
-                  }
-                </IconBtn>
-                <IconBtn title="Excluir" onClick={() => handleDelete(row)} color="#EF4444">
-                  <Trash2 style={{ width: 13, height: 13 }} />
-                </IconBtn>
-              </div>
-            </div>
-
-            {/* Chips */}
-            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12 }}>
-              <Chip label={sizeLabel(row.size)}     color={sizeColor(row.size)} />
-              <Chip label={categoryLabel(row.category)} color={categoryColor(row.category)} />
-              {!row.isActive && <Chip label="Inativo" color="#94A3B8" />}
-            </div>
-
-            {/* Stats */}
-            <div style={{
-              display: "grid", gridTemplateColumns: "1fr 1fr 1fr",
-              gap: 8, padding: "12px 0", borderTop: "1px solid #F1F5F9",
-            }}>
-              <Stat icon={<Weight style={{ width: 12, height: 12 }} />} label="Peso máx." value={`${row.maxWeight}kg`} />
-              <Stat icon={<Truck  style={{ width: 12, height: 12 }} />} label="Veículos" value={String(row._count.vehicles)} />
-              <Stat icon={<Package style={{ width: 12, height: 12 }} />} label="Fretes" value={String(row._count.deliveries)} />
-            </div>
-
-            {/* Preços */}
-            <div style={{
-              display: "grid", gridTemplateColumns: "1fr 1fr",
-              gap: 6, marginTop: 10,
-            }}>
-              <PriceRow label="Base"       value={row.basePrice} />
-              <PriceRow label="Por km"     value={row.pricePerKm} />
-              <PriceRow label="Ajudante"   value={row.helperPrice} />
-              <PriceRow label="Parada"     value={row.additionalStopPrice} />
-            </div>
-          </div>
+          <VehicleCard
+            key={row.id}
+            row={row}
+            onEdit={() => setModal(row)}
+            onToggle={() => handleToggle(row)}
+            onDelete={() => handleDelete(row)}
+          />
         ))}
 
         {rows.length === 0 && (
           <div style={{
             gridColumn: "1/-1", padding: "60px 0",
-            display: "flex", flexDirection: "column", alignItems: "center", gap: 12,
+            display: "flex", flexDirection: "column", alignItems: "center", gap: 10,
           }}>
             <Car style={{ width: 36, height: 36, color: "#CBD5E1" }} />
             <p style={{ margin: 0, fontSize: 15, fontWeight: 700, color: "#0F172A" }}>
               Nenhum tipo cadastrado
             </p>
-            <p style={{ margin: 0, fontSize: 13, color: "#64748B" }}>
+            <p style={{ margin: 0, fontSize: 13, color: "#94A3B8" }}>
               Clique em "Novo tipo" para começar.
             </p>
           </div>
         )}
       </div>
 
-      {/* Modal */}
       {modal && (
         <Modal
           editing={modal === "create" ? null : modal}
@@ -490,16 +416,116 @@ export function VehicleTypesClient({ initialData }: { initialData: VehicleTypeRo
   );
 }
 
-function IconBtn({ children, onClick, title, color = "#475569" }: {
+// ── VehicleCard ───────────────────────────────────────────────────────────────
+
+function VehicleCard({ row, onEdit, onToggle, onDelete }: {
+  row:      VehicleTypeRow;
+  onEdit:   () => void;
+  onToggle: () => void;
+  onDelete: () => void;
+}) {
+  return (
+    <div style={{
+      background: "#fff",
+      borderRadius: 14,
+      border: row.isActive ? "1px solid #F1F5F9" : "1px dashed #E2E8F0",
+      boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+      padding: "18px 20px",
+      opacity: row.isActive ? 1 : 0.65,
+      transition: "all 0.2s",
+      display: "flex", flexDirection: "column", gap: 14,
+    }}>
+
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{
+            width: 42, height: 42, borderRadius: 12, flexShrink: 0,
+            background: row.isActive ? "#0C6B6412" : "#F1F5F9",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: 20,
+          }}>
+            {classEmoji(row.vehicleClass)}
+          </div>
+          <div>
+            <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: "#0F172A", letterSpacing: "-0.2px" }}>
+              {row.name}
+            </p>
+            <p style={{ margin: "2px 0 0", fontSize: 11.5, color: "#94A3B8" }}>
+              {classLabel(row.vehicleClass)}
+            </p>
+          </div>
+        </div>
+
+        <div style={{ display: "flex", gap: 5 }}>
+          <IconBtn title="Editar" onClick={onEdit}>
+            <Pencil style={{ width: 13, height: 13 }} />
+          </IconBtn>
+          <IconBtn
+            title={row.isActive ? "Desativar" : "Ativar"}
+            onClick={onToggle}
+            color={row.isActive ? "#EF4444" : "#10B981"}
+          >
+            {row.isActive
+              ? <PowerOff style={{ width: 13, height: 13 }} />
+              : <Power    style={{ width: 13, height: 13 }} />
+            }
+          </IconBtn>
+          <IconBtn title="Excluir" onClick={onDelete} color="#EF4444">
+            <Trash2 style={{ width: 13, height: 13 }} />
+          </IconBtn>
+        </div>
+      </div>
+
+      {/* Chips */}
+      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+        <Chip label={sizeLabel(row.size)}         color={sizeColor(row.size)} />
+        <Chip label={categoryLabel(row.category)} color={categoryColor(row.category)} />
+        {!row.isActive && <Chip label="Inativo" color="#94A3B8" />}
+      </div>
+
+      {/* Stats */}
+      <div style={{
+        display: "flex",
+        gap: 0,
+        borderTop: "1px solid #F8FAFC",
+        paddingTop: 14,
+      }}>
+        <StatItem icon={<Weight  style={{ width: 12, height: 12 }} />} label="Peso máx." value={`${row.maxWeight}kg`} />
+        <div style={{ width: 1, background: "#F1F5F9", margin: "0 12px" }} />
+        <StatItem icon={<Truck   style={{ width: 12, height: 12 }} />} label="Veículos"  value={String(row._count.vehicles)} />
+        <div style={{ width: 1, background: "#F1F5F9", margin: "0 12px" }} />
+        <StatItem icon={<Package style={{ width: 12, height: 12 }} />} label="Fretes"    value={String(row._count.deliveries)} />
+      </div>
+
+      {/* Preços */}
+      <div style={{
+        display: "grid", gridTemplateColumns: "1fr 1fr",
+        gap: 6,
+        borderTop: "1px solid #F8FAFC",
+        paddingTop: 14,
+      }}>
+        <PriceRow label="Base"     value={row.basePrice} />
+        <PriceRow label="Por km"   value={row.pricePerKm} />
+        <PriceRow label="Ajudante" value={row.helperPrice} />
+        <PriceRow label="Parada"   value={row.additionalStopPrice} />
+      </div>
+    </div>
+  );
+}
+
+// ── Sub-componentes ───────────────────────────────────────────────────────────
+
+function IconBtn({ children, onClick, title, color = "#64748B" }: {
   children: React.ReactNode;
-  onClick: () => void;
-  title: string;
-  color?: string;
+  onClick:  () => void;
+  title:    string;
+  color?:   string;
 }) {
   return (
     <button title={title} onClick={onClick} style={{
       width: 30, height: 30, borderRadius: 8,
-      border: "1px solid #E2E8F0", background: "#F8FAFC",
+      border: "1px solid #F1F5F9", background: "#F8FAFC",
       display: "flex", alignItems: "center", justifyContent: "center",
       cursor: "pointer", color, transition: "all 0.15s",
     }}>
@@ -508,14 +534,14 @@ function IconBtn({ children, onClick, title, color = "#475569" }: {
   );
 }
 
-function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+function StatItem({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
-    <div style={{ textAlign: "center" }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 4, color: "#94A3B8", marginBottom: 2 }}>
+    <div style={{ flex: 1 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 4, color: "#94A3B8", marginBottom: 3 }}>
         {icon}
-        <span style={{ fontSize: 10.5, fontWeight: 600 }}>{label}</span>
+        <span style={{ fontSize: 10.5, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" }}>{label}</span>
       </div>
-      <p style={{ margin: 0, fontSize: 14, fontWeight: 800, color: "#0F172A" }}>{value}</p>
+      <p style={{ margin: 0, fontSize: 15, fontWeight: 800, color: "#0F172A", letterSpacing: "-0.3px" }}>{value}</p>
     </div>
   );
 }
@@ -524,9 +550,9 @@ function PriceRow({ label, value }: { label: string; value: number }) {
   return (
     <div style={{
       display: "flex", justifyContent: "space-between", alignItems: "center",
-      padding: "5px 10px", borderRadius: 8, background: "#F8FAFC",
+      padding: "6px 10px", borderRadius: 8, background: "#F8FAFC",
     }}>
-      <span style={{ fontSize: 11.5, color: "#64748B", fontWeight: 500 }}>{label}</span>
+      <span style={{ fontSize: 11.5, color: "#94A3B8", fontWeight: 500 }}>{label}</span>
       <span style={{ fontSize: 12.5, fontWeight: 700, color: "#0F172A" }}>
         {value > 0 ? `R$ ${value.toFixed(2)}` : "—"}
       </span>

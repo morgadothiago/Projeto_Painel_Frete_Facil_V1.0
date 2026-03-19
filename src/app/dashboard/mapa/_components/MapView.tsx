@@ -7,8 +7,7 @@ import "leaflet/dist/leaflet.css";
 import { getMapData, type MapData } from "@/app/actions/map";
 import { simulateDriverNear }       from "@/app/actions/dev";
 import { toast }                    from "sonner";
-import { cn }                       from "@/lib/utils";
-import { Truck, Package, RefreshCw, Users, MapPin, FlaskConical } from "lucide-react";
+import { Truck, Package, RefreshCw, MapPin, FlaskConical } from "lucide-react";
 
 // ── Ícones personalizados ──────────────────────────────────────────────────────
 // NOTE: L.divIcon uses innerHTML HTML strings — Tailwind classes have no effect
@@ -122,12 +121,12 @@ function FitBounds({ data, locked }: { data: MapData; locked: boolean }) {
 // ── Componente principal ───────────────────────────────────────────────────────
 
 export function MapView() {
-  const [data,       setData]      = useState<MapData>({ drivers: [], deliveries: [] });
-  const [loading,    setLoading]   = useState(true);
-  const [lastSync,   setLastSync]  = useState<Date | null>(null);
-  const [myLocation,   setMyLocation]   = useState<MyLocation>(null);
-  const [locating,     setLocating]     = useState(false);
-  const [simulating,   setSimulating]   = useState(false);
+  const [data,        setData]      = useState<MapData>({ drivers: [], deliveries: [] });
+  const [loading,     setLoading]   = useState(true);
+  const [lastSync,    setLastSync]  = useState<Date | null>(null);
+  const [myLocation,  setMyLocation]  = useState<MyLocation>(null);
+  const [locating,    setLocating]    = useState(false);
+  const [simulating,  setSimulating]  = useState(false);
   const knownDriverIds = useRef<Set<string>>(new Set());
 
   async function refresh() {
@@ -145,211 +144,226 @@ export function MapView() {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div className="flex flex-col gap-4">
+    <div style={{ display: "flex", flexDirection: "column", gap: 14, flex: 1, minHeight: 0 }}>
 
-      {/* ── Stats bar ── */}
-      <div className="flex gap-3 flex-wrap">
-        <StatCard
-          icon={<Users className="w-4 h-4 text-[#0C6B64]" />}
+      {/* ── Barra de controles ── */}
+      <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", flexShrink: 0 }}>
+
+        {/* Stats */}
+        <MapStatCard
+          icon={<Truck style={{ width: 15, height: 15, color: "#0C6B64" }} />}
           label="Motoristas livres"
           value={data.drivers.length}
           color="#0C6B64"
-          bg="#E6FAF8"
         />
-        <StatCard
-          icon={<Package className="w-4 h-4 text-[#D97706]" />}
+        <MapStatCard
+          icon={<Package style={{ width: 15, height: 15, color: "#D97706" }} />}
           label="Entregas pendentes"
           value={data.deliveries.length}
           color="#D97706"
-          bg="#FEF3C7"
         />
-        <div className="ml-auto flex items-center gap-2">
-          <button
-            onClick={() => {
-              if (!navigator.geolocation) return;
-              setLocating(true);
-              navigator.geolocation.getCurrentPosition(
-                (pos) => {
-                  setMyLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-                  setLocating(false);
-                },
-                () => setLocating(false),
-                { enableHighAccuracy: true },
-              );
+
+        {/* Separador */}
+        <div style={{ flex: 1 }} />
+
+        {/* Botão me localizar */}
+        <ActionButton
+          onClick={() => {
+            if (!navigator.geolocation) return;
+            setLocating(true);
+            navigator.geolocation.getCurrentPosition(
+              (pos) => {
+                setMyLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+                setLocating(false);
+              },
+              () => setLocating(false),
+              { enableHighAccuracy: true },
+            );
+          }}
+          icon={<MapPin style={{ width: 13, height: 13 }} />}
+          label={locating ? "Buscando…" : myLocation ? "Localizado" : "Me localizar"}
+          active={!!myLocation}
+          activeColor="#1D4ED8"
+          activeBg="#EFF6FF"
+          activeBorder="#BFDBFE"
+        />
+
+        {/* Simular motorista */}
+        {myLocation && (
+          <ActionButton
+            onClick={async () => {
+              setSimulating(true);
+              const res = await simulateDriverNear(myLocation.lat, myLocation.lng);
+              if (res.ok) {
+                toast.success("Motorista simulado perto de você!", {
+                  description: `${res.name} aparecerá no mapa em instantes.`,
+                });
+                await refresh();
+              } else {
+                toast.error("Nenhum motorista encontrado no banco para simular.");
+              }
+              setSimulating(false);
             }}
-            className={cn(
-              "flex items-center gap-1.5 px-[14px] py-2 rounded-[10px]",
-              "border border-[#BFDBFE] text-[12.5px] font-semibold cursor-pointer",
-              myLocation ? "bg-[#EFF6FF] text-[#1D4ED8]" : "bg-white text-[#475569]",
-            )}
-          >
-            <MapPin className="w-[13px] h-[13px]" />
-            {locating ? "Buscando…" : myLocation ? "Minha localização" : "Me localizar"}
-          </button>
-          {/* Simular motorista próximo — só aparece se tiver localização */}
-          {myLocation && (
-            <button
-              onClick={async () => {
-                setSimulating(true);
-                const res = await simulateDriverNear(myLocation.lat, myLocation.lng);
-                if (res.ok) {
-                  toast.success(`Motorista simulado perto de você!`, {
-                    description: `${res.name} aparecerá no mapa em instantes.`,
-                  });
-                  await refresh();
-                } else {
-                  toast.error("Nenhum motorista encontrado no banco para simular.");
-                }
-                setSimulating(false);
-              }}
-              className={cn(
-                "flex items-center gap-1.5 px-[14px] py-2 rounded-[10px]",
-                "border border-[#D8B4FE] bg-[#FAF5FF] text-[12.5px] font-semibold text-violet-600",
-                simulating ? "cursor-not-allowed opacity-70" : "cursor-pointer opacity-100",
-              )}
+            icon={<FlaskConical style={{ width: 13, height: 13 }} />}
+            label={simulating ? "Simulando…" : "Simular motorista"}
+            disabled={simulating}
+            activeColor="#7C3AED"
+            activeBg="#FAF5FF"
+            activeBorder="#DDD6FE"
+            active
+          />
+        )}
+
+        {/* Atualizar */}
+        <ActionButton
+          onClick={refresh}
+          icon={<RefreshCw style={{ width: 13, height: 13 }} />}
+          label="Atualizar"
+        />
+
+        {/* Timestamp */}
+        {lastSync && (
+          <span suppressHydrationWarning style={{ fontSize: 11.5, color: "#94A3B8", whiteSpace: "nowrap" }}>
+            Atualizado às {lastSync.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+          </span>
+        )}
+      </div>
+
+      {/* ── Card do mapa ── */}
+      <div style={{
+        background: "#fff",
+        borderRadius: 14,
+        border: "1px solid #F1F5F9",
+        boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+        overflow: "hidden",
+        flex: 1,
+        minHeight: 480,
+        display: "flex",
+        flexDirection: "column",
+      }}>
+
+        {/* Legenda no topo do card */}
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 18,
+          padding: "10px 16px",
+          borderBottom: "1px solid #F8FAFC",
+          flexShrink: 0,
+        }}>
+          <span style={{ fontSize: 10.5, fontWeight: 600, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.07em" }}>
+            Legenda
+          </span>
+          <LegendItem emoji="🚗" label="Motorista livre" />
+          <LegendItem emoji="📦" label="Entrega pendente" />
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <span style={{
+              display: "inline-block", width: 10, height: 10, borderRadius: "50%",
+              background: "#4285F4", border: "2px solid #fff",
+              boxShadow: "0 0 0 3px rgba(66,133,244,0.25)",
+            }} />
+            <span style={{ fontSize: 12, color: "#64748B" }}>Minha localização</span>
+          </div>
+        </div>
+
+        {/* Mapa */}
+        <div style={{ flex: 1, position: "relative" }}>
+          {loading ? (
+            <div style={{
+              height: "100%", display: "flex", flexDirection: "column",
+              alignItems: "center", justifyContent: "center", gap: 10,
+              background: "#F8FAFC",
+            }}>
+              <MapPin style={{ width: 28, height: 28, color: "#CBD5E1" }} />
+              <p style={{ margin: 0, fontSize: 13, color: "#94A3B8" }}>Carregando mapa…</p>
+            </div>
+          ) : (
+            <MapContainer
+              center={[-23.55, -46.63]}
+              zoom={11}
+              style={{ height: "100%", width: "100%" }}
+              zoomControl={true}
             >
-              <FlaskConical className="w-[13px] h-[13px]" />
-              {simulating ? "Simulando…" : "Simular motorista aqui"}
-            </button>
-          )}
-          <button
-            onClick={refresh}
-            className="flex items-center gap-1.5 px-[14px] py-2 rounded-[10px] border border-border bg-white text-[12.5px] font-semibold text-[#475569] cursor-pointer"
-          >
-            <RefreshCw className="w-[13px] h-[13px]" />
-            Atualizar
-          </button>
-          {lastSync && (
-            <span suppressHydrationWarning className="text-[11.5px] text-[#94A3B8]">
-              Atualizado às {lastSync.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
-            </span>
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+
+              <FitBounds data={data} locked={!!myLocation} />
+              <FlyToLocation location={myLocation} />
+
+              {myLocation && (
+                <Marker position={[myLocation.lat, myLocation.lng]} icon={myLocationIcon} zIndexOffset={1000}>
+                  <Popup>
+                    <div style={{ minWidth: 140 }}>
+                      <p style={{ margin: "0 0 2px", fontWeight: 700, fontSize: 13 }}>📍 Você está aqui</p>
+                      <p style={{ margin: 0, fontSize: 11.5, color: "#555" }}>
+                        {myLocation.lat.toFixed(5)}, {myLocation.lng.toFixed(5)}
+                      </p>
+                    </div>
+                  </Popup>
+                </Marker>
+              )}
+
+              {data.drivers.map((driver) => (
+                <Marker key={driver.id} position={[driver.lat, driver.lng]} icon={createCarIcon(driver.heading)}>
+                  <Popup>
+                    <div style={{ minWidth: 180 }}>
+                      <p style={{ margin: "0 0 4px", fontWeight: 700, fontSize: 14 }}>🚛 {driver.name}</p>
+                      {driver.vehicle && (
+                        <p style={{ margin: "0 0 2px", fontSize: 12, color: "#555" }}>Veículo: {driver.vehicle}</p>
+                      )}
+                      {driver.plate && (
+                        <p style={{ margin: "0 0 2px", fontSize: 12, color: "#555" }}>Placa: <b>{driver.plate}</b></p>
+                      )}
+                      {driver.phone && (
+                        <p style={{ margin: "0 0 2px", fontSize: 12, color: "#555" }}>Tel: {driver.phone}</p>
+                      )}
+                      <p style={{ margin: "4px 0 0", fontSize: 11.5, color: "#0C6B64", fontWeight: 600 }}>
+                        ⭐ {driver.rating.toFixed(1)} · Livre
+                      </p>
+                    </div>
+                  </Popup>
+                </Marker>
+              ))}
+
+              {data.deliveries.map((delivery) => (
+                <Marker key={delivery.id} position={[delivery.originLat, delivery.originLng]} icon={deliveryIcon}>
+                  <Popup>
+                    <div style={{ minWidth: 180 }}>
+                      <p style={{ margin: "0 0 4px", fontWeight: 700, fontSize: 14 }}>📦 #{delivery.publicId}</p>
+                      <p style={{ margin: "0 0 2px", fontSize: 12, color: "#555" }}>Empresa: {delivery.company}</p>
+                      {delivery.description && (
+                        <p style={{ margin: "0 0 2px", fontSize: 12, color: "#555" }}>Carga: {delivery.description}</p>
+                      )}
+                      <p style={{ margin: "0 0 2px", fontSize: 12, color: "#555" }}>
+                        {delivery.originCity} → {delivery.destCity}
+                      </p>
+                      <p style={{ margin: "4px 0 0", fontSize: 11.5, color: "#D97706", fontWeight: 600 }}>
+                        Aguardando motorista
+                      </p>
+                    </div>
+                  </Popup>
+                </Marker>
+              ))}
+
+            </MapContainer>
           )}
         </div>
       </div>
 
-      {/* ── Legenda ── */}
-      <div className="flex gap-4 text-[12.5px] text-[#64748B]">
-        <span className="flex items-center gap-1.5">
-          <span className="text-base">🚗</span> Motorista livre
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="text-base">📦</span> Entrega pendente
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="inline-block w-3 h-3 rounded-full bg-[#4285F4] border-2 border-white shadow-[0_0_0_3px_rgba(66,133,244,0.3)]" />
-          Minha localização
-        </span>
-      </div>
-
-      {/* ── Mapa ── */}
-      <div className="rounded-2xl overflow-hidden shadow-[0_2px_16px_rgba(0,0,0,0.08)] border border-border h-[520px] relative">
-        {loading ? (
-          <div className="h-full flex flex-col items-center justify-center gap-3 bg-[#F8FAFC]">
-            <MapPin className="w-8 h-8 text-[#CBD5E1]" />
-            <p className="m-0 text-sm text-[#94A3B8]">Carregando mapa…</p>
-          </div>
-        ) : (
-          <MapContainer
-            center={[-23.55, -46.63]}
-            zoom={11}
-            className="h-full w-full"
-            zoomControl={true}
-          >
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-
-            <FitBounds data={data} locked={!!myLocation} />
-            <FlyToLocation location={myLocation} />
-
-            {/* Minha localização */}
-            {myLocation && (
-              <Marker
-                position={[myLocation.lat, myLocation.lng]}
-                icon={myLocationIcon}
-                zIndexOffset={1000}
-              >
-                <Popup>
-                  <div style={{ minWidth: 140 }}>
-                    <p style={{ margin: "0 0 2px", fontWeight: 700, fontSize: 13 }}>
-                      📍 Você está aqui
-                    </p>
-                    <p style={{ margin: 0, fontSize: 11.5, color: "#555" }}>
-                      {myLocation.lat.toFixed(5)}, {myLocation.lng.toFixed(5)}
-                    </p>
-                  </div>
-                </Popup>
-              </Marker>
-            )}
-
-            {data.drivers.map((driver) => (
-              <Marker key={driver.id} position={[driver.lat, driver.lng]} icon={createCarIcon(driver.heading)}>
-                <Popup>
-                  <div style={{ minWidth: 180 }}>
-                    <p style={{ margin: "0 0 4px", fontWeight: 700, fontSize: 14 }}>
-                      🚛 {driver.name}
-                    </p>
-                    {driver.vehicle && (
-                      <p style={{ margin: "0 0 2px", fontSize: 12, color: "#555" }}>
-                        Veículo: {driver.vehicle}
-                      </p>
-                    )}
-                    {driver.plate && (
-                      <p style={{ margin: "0 0 2px", fontSize: 12, color: "#555" }}>
-                        Placa: <b>{driver.plate}</b>
-                      </p>
-                    )}
-                    {driver.phone && (
-                      <p style={{ margin: "0 0 2px", fontSize: 12, color: "#555" }}>
-                        Tel: {driver.phone}
-                      </p>
-                    )}
-                    <p style={{ margin: "4px 0 0", fontSize: 11.5, color: "#2EC4B6", fontWeight: 600 }}>
-                      ⭐ {driver.rating.toFixed(1)} · Livre
-                    </p>
-                  </div>
-                </Popup>
-              </Marker>
-            ))}
-
-            {data.deliveries.map((delivery) => (
-              <Marker
-                key={delivery.id}
-                position={[delivery.originLat, delivery.originLng]}
-                icon={deliveryIcon}
-              >
-                <Popup>
-                  <div style={{ minWidth: 180 }}>
-                    <p style={{ margin: "0 0 4px", fontWeight: 700, fontSize: 14 }}>
-                      📦 #{delivery.publicId}
-                    </p>
-                    <p style={{ margin: "0 0 2px", fontSize: 12, color: "#555" }}>
-                      Empresa: {delivery.company}
-                    </p>
-                    {delivery.description && (
-                      <p style={{ margin: "0 0 2px", fontSize: 12, color: "#555" }}>
-                        Carga: {delivery.description}
-                      </p>
-                    )}
-                    <p style={{ margin: "0 0 2px", fontSize: 12, color: "#555" }}>
-                      {delivery.originCity} → {delivery.destCity}
-                    </p>
-                    <p style={{ margin: "4px 0 0", fontSize: 11.5, color: "#D97706", fontWeight: 600 }}>
-                      Aguardando motorista
-                    </p>
-                  </div>
-                </Popup>
-              </Marker>
-            ))}
-
-          </MapContainer>
-        )}
-      </div>
-
       {/* ── Empty state ── */}
       {!loading && data.drivers.length === 0 && data.deliveries.length === 0 && (
-        <div className="p-5 rounded-xl bg-[#FFF8E7] border border-[#FDE68A] text-[13px] text-[#92400E] text-center">
+        <div style={{
+          padding: "14px 18px",
+          borderRadius: 12,
+          background: "#FFFBEB",
+          border: "1px solid #FDE68A",
+          fontSize: 13,
+          color: "#92400E",
+          textAlign: "center",
+          flexShrink: 0,
+        }}>
           Nenhum motorista online ou entrega pendente com coordenadas no momento.
         </div>
       )}
@@ -358,27 +372,86 @@ export function MapView() {
   );
 }
 
-// ── StatCard ──────────────────────────────────────────────────────────────────
+// ── Sub-componentes ─────────────────────────────────────────────────────────
 
-function StatCard({
-  icon, label, value, color, bg,
-}: {
-  icon: React.ReactNode;
+function MapStatCard({ icon, label, value, color }: {
+  icon:  React.ReactNode;
   label: string;
   value: number;
   color: string;
-  bg: string;
 }) {
   return (
-    <div
-      className="flex items-center gap-2.5 px-4 py-[10px] rounded-xl border"
-      style={{ background: bg, borderColor: `${color}25` }}
-    >
-      {icon}
-      <div>
-        <p className="m-0 text-[11.5px] font-semibold" style={{ color }}>{label}</p>
-        <p className="m-0 text-[20px] font-extrabold leading-[1.2]" style={{ color }}>{value}</p>
+    <div style={{
+      display: "flex", alignItems: "center", gap: 10,
+      padding: "10px 16px",
+      background: "#fff",
+      borderRadius: 12,
+      border: "1px solid #F1F5F9",
+      boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+    }}>
+      <div style={{
+        width: 34, height: 34, borderRadius: 9, flexShrink: 0,
+        background: `${color}12`,
+        display: "flex", alignItems: "center", justifyContent: "center",
+      }}>
+        {icon}
       </div>
+      <div>
+        <p style={{ margin: 0, fontSize: 11, fontWeight: 600, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.07em" }}>
+          {label}
+        </p>
+        <p style={{ margin: "2px 0 0", fontSize: 22, fontWeight: 800, color: "#0F172A", lineHeight: 1.1, letterSpacing: "-0.5px" }}>
+          {value}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function ActionButton({ onClick, icon, label, active, activeColor, activeBg, activeBorder, disabled }: {
+  onClick:      () => void;
+  icon:         React.ReactNode;
+  label:        string;
+  active?:      boolean;
+  activeColor?: string;
+  activeBg?:    string;
+  activeBorder?:string;
+  disabled?:    boolean;
+}) {
+  const color  = active && activeColor ? activeColor : "#475569";
+  const bg     = active && activeBg    ? activeBg    : "#fff";
+  const border = active && activeBorder ? activeBorder : "#E2E8F0";
+
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      style={{
+        display: "flex", alignItems: "center", gap: 6,
+        padding: "8px 14px",
+        borderRadius: 10,
+        border: `1px solid ${border}`,
+        background: bg,
+        color,
+        fontSize: 12.5,
+        fontWeight: 600,
+        cursor: disabled ? "not-allowed" : "pointer",
+        opacity: disabled ? 0.65 : 1,
+        whiteSpace: "nowrap",
+        transition: "all 0.12s",
+      }}
+    >
+      <span style={{ display: "flex", color }}>{icon}</span>
+      {label}
+    </button>
+  );
+}
+
+function LegendItem({ emoji, label }: { emoji: string; label: string }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+      <span style={{ fontSize: 14 }}>{emoji}</span>
+      <span style={{ fontSize: 12, color: "#64748B" }}>{label}</span>
     </div>
   );
 }

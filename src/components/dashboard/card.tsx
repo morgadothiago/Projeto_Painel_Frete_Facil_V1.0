@@ -17,7 +17,7 @@ export function Card({ children, title, icon, href, hrefLabel = "Ver todos", fil
       border: "1px solid #F1F5F9",
       boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
       display: "flex", flexDirection: "column",
-      overflow: "hidden",
+      overflow: "visible",
       ...(fill ? { flex: 1, minHeight: 0 } : {}),
     }}>
       {title && (

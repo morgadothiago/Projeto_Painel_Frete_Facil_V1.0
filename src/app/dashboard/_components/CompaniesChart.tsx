@@ -4,75 +4,83 @@ import { useState } from "react";
 import {
   AreaChart, Area, BarChart, Bar,
   XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, Legend,
+  ResponsiveContainer,
 } from "recharts";
 import { Building2, UserCircle, Wallet } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { tenantConfig } from "@/config/tenant";
 import type { DashboardStats } from "@/app/actions/dashboard";
-
-const { theme: t } = tenantConfig;
 
 type Tab = "empresas" | "usuarios" | "faturamento";
 
-const TABS: { key: Tab; label: string; icon: React.ReactNode }[] = [
-  { key: "empresas",    label: "Empresas",    icon: <Building2  className="w-[13px] h-[13px]" /> },
-  { key: "usuarios",    label: "Usuários",    icon: <UserCircle className="w-[13px] h-[13px]" /> },
-  { key: "faturamento", label: "Faturamento", icon: <Wallet     className="w-[13px] h-[13px]" /> },
-];
+const TAB_META: Record<Tab, {
+  label:    string;
+  icon:     React.ReactNode;
+  color:    string;
+  colorBg:  string;
+  areaKey:  { main: string; new: string };
+  areaName: { main: string; new: string };
+}> = {
+  empresas: {
+    label:    "Empresas",
+    icon:     <Building2  style={{ width: 13, height: 13 }} />,
+    color:    "#0C6B64",
+    colorBg:  "#0C6B6412",
+    areaKey:  { main: "total", new: "novas" },
+    areaName: { main: "Total", new: "Novas" },
+  },
+  usuarios: {
+    label:    "Usuários",
+    icon:     <UserCircle style={{ width: 13, height: 13 }} />,
+    color:    "#3B82F6",
+    colorBg:  "#3B82F612",
+    areaKey:  { main: "total", new: "novas" },
+    areaName: { main: "Total", new: "Novos" },
+  },
+  faturamento: {
+    label:    "Faturamento",
+    icon:     <Wallet style={{ width: 13, height: 13 }} />,
+    color:    "#059669",
+    colorBg:  "#05966912",
+    areaKey:  { main: "total",          new: "novas"        },
+    areaName: { main: "Acumulado (R$)", new: "No mês (R$)" },
+  },
+};
 
-// ── Tooltip ───────────────────────────────────────────────────
+const TABS = (["empresas", "usuarios", "faturamento"] as Tab[]);
+
+// ── Tooltip ────────────────────────────────────────────────────
 function CustomTooltip({ active, payload, label }: {
-  active?: boolean;
-  payload?: { name: string; value: number; color: string }[];
-  label?: string;
+  active?:   boolean;
+  payload?:  { name: string; value: number; color: string }[];
+  label?:    string;
 }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-white rounded-xl px-[14px] py-[10px] shadow-[0_4px_16px_rgba(0,0,0,0.10)] text-[12.5px] min-w-[140px]">
-      <p className="font-bold text-foreground mb-[6px]">{label}</p>
+    <div style={{
+      background: "#fff",
+      borderRadius: 10,
+      padding: "10px 14px",
+      boxShadow: "0 4px 16px rgba(0,0,0,0.10)",
+      fontSize: 12.5,
+      minWidth: 130,
+      border: "1px solid #F1F5F9",
+    }}>
+      <p style={{ fontWeight: 700, color: "#0F172A", margin: "0 0 6px" }}>{label}</p>
       {payload.map((p) => (
-        <div key={p.name} className="flex items-center gap-[6px] mb-[3px]">
-          <span
-            className="w-2 h-2 rounded-full shrink-0"
-            style={{ background: p.color }}
-          />
-          <span className="text-muted-foreground">{p.name}:</span>
-          <span className="font-bold text-foreground">{p.value}</span>
+        <div key={p.name} style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 3 }}>
+          <span style={{ width: 7, height: 7, borderRadius: "50%", background: p.color, flexShrink: 0 }} />
+          <span style={{ color: "#94A3B8" }}>{p.name}:</span>
+          <span style={{ fontWeight: 700, color: "#0F172A" }}>{p.value}</span>
         </div>
       ))}
     </div>
   );
 }
 
-// ── Metadados estáticos por aba ───────────────────────────────
-const TAB_META: Record<Tab, {
-  areaKey:  { main: string; new: string };
-  areaName: { main: string; new: string };
-  color:    string;
-}> = {
-  empresas: {
-    areaKey:  { main: "total", new: "novas" },
-    areaName: { main: "Total", new: "Novas" },
-    color:    "#8B5CF6",
-  },
-  usuarios: {
-    areaKey:  { main: "total", new: "novas" },
-    areaName: { main: "Total", new: "Novos" },
-    color:    "#3B82F6",
-  },
-  faturamento: {
-    areaKey:  { main: "total",         new: "novas"        },
-    areaName: { main: "Acumulado (R$)", new: "No mês (R$)" },
-    color:    t.success,
-  },
-};
-
-// ── Componente principal ──────────────────────────────────────
+// ── Componente principal ───────────────────────────────────────
 export function AdminChart({ stats }: { stats?: DashboardStats | null }) {
   const [active, setActive] = useState<Tab>("empresas");
-  const meta  = TAB_META[active];
-  const color = meta.color;
+  const meta    = TAB_META[active];
+  const color   = meta.color;
 
   const tabData = stats?.[active];
   const monthly = tabData?.monthly ?? [];
@@ -80,96 +88,180 @@ export function AdminChart({ stats }: { stats?: DashboardStats | null }) {
   const stat    = tabData?.stat    ?? { value: "—", label: "", new: "" };
 
   return (
-    <div className="bg-white rounded-[20px] shadow-[0_2px_12px_rgba(0,0,0,0.055),0_1px_3px_rgba(0,0,0,0.03)] px-5 pt-[18px] pb-4 flex flex-col flex-1 min-h-0">
+    <div style={{
+      background: "#fff",
+      borderRadius: 14,
+      border: "1px solid #F1F5F9",
+      boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+      display: "flex", flexDirection: "column",
+      flex: 1, minHeight: 0,
+      overflow: "hidden",
+    }}>
 
-      {/* ── Header ──────────────────────────────────────── */}
-      <div className="flex items-center justify-between mb-4 shrink-0">
+      {/* ── Header ──────────────────────────────────────────── */}
+      <div style={{
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        padding: "16px 18px 14px",
+        borderBottom: "1px solid #F8FAFC",
+        flexShrink: 0,
+        gap: 12,
+      }}>
 
         {/* Tabs */}
-        <div className="flex items-center bg-background rounded-xl p-[3px] gap-0.5">
-          {TABS.map((tab) => {
-            const isActive = active === tab.key;
+        <div style={{
+          display: "flex", alignItems: "center",
+          background: "#F1F5F9",
+          borderRadius: 10,
+          padding: 3,
+          gap: 2,
+        }}>
+          {TABS.map((key) => {
+            const m        = TAB_META[key];
+            const isActive = active === key;
             return (
               <button
-                key={tab.key}
+                key={key}
                 type="button"
-                onClick={() => setActive(tab.key)}
-                className={cn(
-                  "flex items-center gap-[6px] px-3 py-1.5 rounded-lg border-none cursor-pointer text-[12.5px] transition-all duration-150 whitespace-nowrap",
-                  isActive
-                    ? "font-bold bg-white text-foreground shadow-[0_1px_4px_rgba(0,0,0,0.08)]"
-                    : "font-medium bg-transparent text-muted-foreground shadow-none"
-                )}
+                onClick={() => setActive(key)}
+                style={{
+                  display: "flex", alignItems: "center", gap: 5,
+                  padding: "5px 11px",
+                  borderRadius: 8,
+                  border: "none",
+                  cursor: "pointer",
+                  fontSize: 12.5,
+                  fontWeight: isActive ? 700 : 500,
+                  color: isActive ? "#0F172A" : "#94A3B8",
+                  background: isActive ? "#fff" : "transparent",
+                  boxShadow: isActive ? "0 1px 4px rgba(0,0,0,0.08)" : "none",
+                  transition: "all 0.12s",
+                  whiteSpace: "nowrap",
+                }}
               >
-                <span
-                  className={cn("flex transition-colors duration-150", isActive ? "" : "text-muted-foreground")}
-                  style={isActive ? { color } : undefined}
-                >
-                  {tab.icon}
+                <span style={{ color: isActive ? m.color : "#CBD5E1", display: "flex" }}>
+                  {m.icon}
                 </span>
-                {tab.label}
+                {m.label}
               </button>
             );
           })}
         </div>
 
         {/* Stat rápido */}
-        <div className="text-right">
-          <p className="text-[20px] font-extrabold text-foreground m-0 leading-none tracking-[-0.5px]">
+        <div style={{ textAlign: "right", flexShrink: 0 }}>
+          <p style={{ fontSize: 20, fontWeight: 800, color: "#0F172A", margin: 0, lineHeight: 1, letterSpacing: "-0.5px" }}>
             {stat.value}
           </p>
-          <p className="text-[11.5px] font-semibold mt-0.5 mb-0" style={{ color }}>
+          <p style={{ fontSize: 11, fontWeight: 600, color, margin: "3px 0 0" }}>
             {stat.new}
           </p>
         </div>
       </div>
 
-      {/* ── Gráficos lado a lado ─────────────────────────── */}
-      <div className="grid gap-4 flex-1 min-h-0" style={{ gridTemplateColumns: "1fr 180px" }}>
+      {/* ── Gráficos ────────────────────────────────────────── */}
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "1fr 180px",
+        gap: 16,
+        flex: 1, minHeight: 0,
+        padding: "16px 18px 14px",
+      }}>
 
-        {/* Área: evolução */}
-        <div className="flex flex-col min-h-0">
-          <p className="text-[10.5px] font-semibold text-muted-foreground uppercase tracking-[0.07em] mb-2 shrink-0">
+        {/* Área: evolução mensal */}
+        <div style={{ display: "flex", flexDirection: "column", minHeight: 0 }}>
+          <p style={{
+            fontSize: 10.5, fontWeight: 600, color: "#94A3B8",
+            textTransform: "uppercase", letterSpacing: "0.07em",
+            margin: "0 0 10px", flexShrink: 0,
+          }}>
             Evolução mensal
           </p>
-          <div className="flex-1 min-h-0">
+          <div style={{ flex: 1, minHeight: 0 }}>
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={monthly} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
                 <defs>
-                  <linearGradient id="gradMain" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%"  stopColor={color} stopOpacity={0.18} />
+                  <linearGradient id={`grad-main-${active}`} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%"  stopColor={color} stopOpacity={0.16} />
                     <stop offset="95%" stopColor={color} stopOpacity={0.01} />
                   </linearGradient>
-                  <linearGradient id="gradNew" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%"  stopColor={t.primary} stopOpacity={0.14} />
-                    <stop offset="95%" stopColor={t.primary} stopOpacity={0.01} />
+                  <linearGradient id={`grad-new-${active}`} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%"  stopColor={color} stopOpacity={0.08} />
+                    <stop offset="95%" stopColor={color} stopOpacity={0.01} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke={t.border} vertical={false} />
-                <XAxis dataKey="mes" tick={{ fontSize: 11, fill: t.textSecondary }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 10.5, fill: t.textSecondary }} axisLine={false} tickLine={false} allowDecimals={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
+                <XAxis
+                  dataKey="mes"
+                  tick={{ fontSize: 11, fill: "#94A3B8" }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis
+                  tick={{ fontSize: 10.5, fill: "#94A3B8" }}
+                  axisLine={false}
+                  tickLine={false}
+                  allowDecimals={false}
+                />
                 <Tooltip content={<CustomTooltip />} />
-                <Legend iconType="circle" iconSize={6} wrapperStyle={{ fontSize: 11.5, paddingTop: 6, color: t.textSecondary }} />
-                <Area type="monotone" dataKey={meta.areaKey.main} name={meta.areaName.main} stroke={color} strokeWidth={2.5} fill="url(#gradMain)" dot={false} activeDot={{ r: 4 }} />
-                <Area type="monotone" dataKey={meta.areaKey.new}  name={meta.areaName.new}  stroke={t.primary} strokeWidth={2} fill="url(#gradNew)" dot={false} activeDot={{ r: 4 }} />
+                <Area
+                  type="monotone"
+                  dataKey={meta.areaKey.main}
+                  name={meta.areaName.main}
+                  stroke={color}
+                  strokeWidth={2.5}
+                  fill={`url(#grad-main-${active})`}
+                  dot={false}
+                  activeDot={{ r: 4, fill: color, strokeWidth: 0 }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey={meta.areaKey.new}
+                  name={meta.areaName.new}
+                  stroke={`${color}70`}
+                  strokeWidth={1.5}
+                  strokeDasharray="4 3"
+                  fill={`url(#grad-new-${active})`}
+                  dot={false}
+                  activeDot={{ r: 3, fill: color, strokeWidth: 0 }}
+                />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
 
         {/* Barras: por status */}
-        <div className="flex flex-col min-h-0">
-          <p className="text-[10.5px] font-semibold text-muted-foreground uppercase tracking-[0.07em] mb-2 shrink-0">
+        <div style={{ display: "flex", flexDirection: "column", minHeight: 0 }}>
+          <p style={{
+            fontSize: 10.5, fontWeight: 600, color: "#94A3B8",
+            textTransform: "uppercase", letterSpacing: "0.07em",
+            margin: "0 0 10px", flexShrink: 0,
+          }}>
             Por status
           </p>
-          <div className="flex-1 min-h-0">
+          <div style={{ flex: 1, minHeight: 0 }}>
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={status} margin={{ top: 4, right: 4, left: -20, bottom: 0 }} barSize={28}>
-                <CartesianGrid strokeDasharray="3 3" stroke={t.border} vertical={false} />
-                <XAxis dataKey="label" tick={{ fontSize: 10, fill: t.textSecondary }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 10, fill: t.textSecondary }} axisLine={false} tickLine={false} allowDecimals={false} />
+              <BarChart data={status} margin={{ top: 4, right: 4, left: -20, bottom: 0 }} barSize={24}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
+                <XAxis
+                  dataKey="label"
+                  tick={{ fontSize: 10, fill: "#94A3B8" }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis
+                  tick={{ fontSize: 10, fill: "#94A3B8" }}
+                  axisLine={false}
+                  tickLine={false}
+                  allowDecimals={false}
+                />
                 <Tooltip content={<CustomTooltip />} />
-                <Bar dataKey="qtd" name="Total" radius={[5, 5, 0, 0]} fill={color} />
+                <Bar
+                  dataKey="qtd"
+                  name="Total"
+                  radius={[5, 5, 0, 0]}
+                  fill={color}
+                  opacity={0.85}
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>
