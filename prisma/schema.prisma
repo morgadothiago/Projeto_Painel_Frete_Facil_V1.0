@@ -249,6 +249,19 @@ model FreightConfig {
   @@map("freight_config")
 }
 
+// ─── Password Reset ───────────────────────────────────────────────────────────
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  email     String
+  code      String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@map("password_reset_tokens")
+}
+
 // ─── Notifications ────────────────────────────────────────────────────────────
 
 model Notification {

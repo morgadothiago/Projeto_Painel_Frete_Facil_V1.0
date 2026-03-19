@@ -146,6 +146,42 @@ export async function sendAccountPendingEmail(to: string, name: string) {
   });
 }
 
+export async function sendPasswordResetEmail(to: string, name: string, code: string) {
+  const content = `
+    <div style="text-align:center;margin-bottom:28px;">
+      <div style="display:inline-flex;align-items:center;justify-content:center;width:64px;height:64px;border-radius:18px;background:#EFF6FF;margin-bottom:16px;">
+        <span style="font-size:32px;">🔑</span>
+      </div>
+      <h2 style="margin:0;font-size:22px;font-weight:800;color:#0F172A;letter-spacing:-0.3px;">Redefinição de senha</h2>
+      <p style="margin:8px 0 0;font-size:14px;color:#64748B;">Olá, <strong>${name}</strong></p>
+    </div>
+
+    <p style="margin:0 0 16px;font-size:15px;color:#334155;line-height:1.7;">
+      Recebemos uma solicitação para redefinir a senha da sua conta. Use o código abaixo para continuar:
+    </p>
+
+    <div style="text-align:center;margin:28px 0;">
+      <div style="display:inline-block;background:#F8FAFC;border:2px dashed #CBD5E1;border-radius:16px;padding:20px 48px;">
+        <p style="margin:0;font-size:11px;font-weight:700;color:#94A3B8;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;">Seu código</p>
+        <p style="margin:0;font-size:40px;font-weight:900;color:#0C6B64;letter-spacing:10px;font-family:monospace;">${code}</p>
+      </div>
+    </div>
+
+    <div style="background:#EFF6FF;border-left:4px solid #3B82F6;border-radius:0 10px 10px 0;padding:14px 18px;margin:20px 0;">
+      <p style="margin:0;font-size:13px;color:#1D4ED8;line-height:1.6;">
+        ⏱ Este código expira em <strong>15 minutos</strong>.<br/>
+        Se você não solicitou a redefinição, ignore este e-mail.
+      </p>
+    </div>`;
+
+  await transporter.sendMail({
+    from:    FROM,
+    to,
+    subject: "🔑 Código para redefinir sua senha — FreteFácil",
+    html:    baseLayout(content),
+  });
+}
+
 export async function sendAccountActivatedEmail(to: string, name: string) {
   const content = `
     <div style="text-align:center;margin-bottom:28px;">
