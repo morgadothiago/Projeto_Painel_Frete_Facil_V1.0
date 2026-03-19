@@ -4,6 +4,7 @@ import {
   Building2,
   Wallet,
   Settings,
+  Map,
   MapPin,
   ClipboardList,
   Car,
@@ -38,6 +39,7 @@ export const NAV_BY_ROLE: Record<string, NavGroup[]> = {
       items: [
         { title: "Fretes",           href: "/dashboard/fretes",       icon: Truck },
         { title: "Empresas",         href: "/dashboard/empresas",     icon: Building2 },
+        { title: "Mapa",             href: "/dashboard/mapa",         icon: Map },
         { title: "Tipos de Veiculo", href: "/dashboard/veiculos",     icon: Car },
       ],
     },
