@@ -30,27 +30,10 @@ export default async function EmpresasPage() {
         </div>
         <a
           href="/signup"
-          className="inline-flex items-center gap-[10px] no-underline transition-all active:scale-[0.97]"
-          style={{
-            background: "#0C6B64",
-            color: "#fff",
-            fontSize: 13,
-            fontWeight: 600,
-            padding: "9px 16px 9px 12px",
-            borderRadius: 10,
-            boxShadow: "0 1px 3px rgba(12,107,100,0.25), 0 1px 2px rgba(0,0,0,0.08)",
-            letterSpacing: "0.01em",
-          }}
-          onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "#0a5e58"; }}
-          onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "#0C6B64"; }}
+          className="inline-flex items-center gap-[10px] rounded-[10px] bg-[#0C6B64] py-[9px] pl-3 pr-4 text-[13px] font-semibold tracking-[0.01em] text-white no-underline shadow-[0_1px_3px_rgba(12,107,100,0.25),0_1px_2px_rgba(0,0,0,0.08)] transition-all hover:bg-[#0a5e58] active:scale-[0.97]"
         >
-          <span style={{
-            width: 20, height: 20, borderRadius: 6,
-            background: "rgba(255,255,255,0.18)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            flexShrink: 0,
-          }}>
-            <Plus className="h-[12px] w-[12px]" strokeWidth={2.5} />
+          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-[6px] bg-white/20">
+            <Plus className="h-3 w-3" strokeWidth={2.5} />
           </span>
           Nova empresa
         </a>
