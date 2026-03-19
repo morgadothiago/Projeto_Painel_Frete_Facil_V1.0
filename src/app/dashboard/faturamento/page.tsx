@@ -1,6 +1,6 @@
 import { redirect }     from "next/navigation";
 import { auth }         from "@/auth";
-import { DollarSign }   from "lucide-react";
+import { Wallet }       from "lucide-react";
 import { getCompanies } from "@/app/actions/companies";
 import { FaturamentoClient } from "./_components/FaturamentoClient";
 
@@ -11,20 +11,22 @@ export default async function FaturamentoPage() {
   const companies = await getCompanies();
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-5">
+    <div className="flex min-h-0 flex-col gap-6">
 
-      {/* Header */}
-      <div className="flex shrink-0 flex-wrap items-center gap-3">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] bg-[linear-gradient(135deg,#0C6B64,#2EC4B6)] shadow-[0_4px_16px_rgba(46,196,182,0.35)]">
-          <DollarSign className="h-[20px] w-[20px] text-white" />
-        </div>
-        <div>
-          <h1 className="m-0 text-[22px] font-extrabold leading-tight tracking-[-0.4px] text-slate-900">
-            Faturamento
-          </h1>
-          <p className="m-0 mt-0.5 text-[13px] text-muted-foreground">
-            Gerencie mensalidades e situação financeira das empresas cadastradas
-          </p>
+      {/* ── Header ── */}
+      <div className="flex shrink-0 flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#0C6B64,#2EC4B6)] shadow-[0_6px_20px_rgba(46,196,182,0.40)]">
+            <Wallet className="h-[22px] w-[22px] text-white" />
+          </div>
+          <div>
+            <h1 className="m-0 text-[24px] font-black leading-tight tracking-[-0.5px] text-slate-900">
+              Faturamento
+            </h1>
+            <p className="m-0 mt-0.5 text-[13px] text-muted-foreground">
+              Gerencie mensalidades e situação financeira das empresas
+            </p>
+          </div>
         </div>
       </div>
 
