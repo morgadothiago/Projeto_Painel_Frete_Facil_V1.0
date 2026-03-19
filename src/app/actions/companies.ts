@@ -3,6 +3,11 @@
 import { db }          from "@/lib/db";
 import { auth }        from "@/auth";
 import { revalidatePath } from "next/cache";
+import {
+  sendAccountBlockedEmail,
+  sendAccountPendingEmail,
+  sendAccountActivatedEmail,
+} from "@/lib/mailer";
 
 export type CompanyRow = {
   id:        string;
@@ -67,7 +72,11 @@ export async function updateCompanyStatus(
     return { ok: false, error: "Sem permissão" };
   }
 
-  await db.user.update({ where: { id: userId }, data: { status } });
+  const user = await db.user.update({
+    where: { id: userId },
+    data:  { status },
+    select: { email: true, name: true },
+  });
 
   const notif = STATUS_NOTIFICATION[status];
   await db.notification.create({
@@ -79,6 +88,17 @@ export async function updateCompanyStatus(
       read:  false,
     },
   });
+
+  // Enviar e-mail em background (não bloqueia a resposta)
+  void (async () => {
+    try {
+      if (status === "INACTIVE") await sendAccountBlockedEmail(user.email, user.name);
+      if (status === "PENDING")  await sendAccountPendingEmail(user.email, user.name);
+      if (status === "ACTIVE")   await sendAccountActivatedEmail(user.email, user.name);
+    } catch (err) {
+      console.error("[mailer] Erro ao enviar e-mail de status:", err);
+    }
+  })();
 
   revalidatePath("/dashboard/empresas");
   revalidatePath("/dashboard/faturamento");
