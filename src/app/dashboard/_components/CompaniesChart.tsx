@@ -6,7 +6,8 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Legend,
 } from "recharts";
-import { Building2, UserCircle, Wallet, TrendingUp, ArrowUpRight } from "lucide-react";
+import { Building2, UserCircle, Wallet } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { tenantConfig } from "@/config/tenant";
 
 const { theme: t } = tenantConfig;
@@ -75,9 +76,9 @@ const DATA = {
 type Tab = keyof typeof DATA;
 
 const TABS: { key: Tab; label: string; icon: React.ReactNode }[] = [
-  { key: "empresas",    label: "Empresas",    icon: <Building2  style={{ width: 13, height: 13 }} /> },
-  { key: "usuarios",    label: "Usuários",    icon: <UserCircle style={{ width: 13, height: 13 }} /> },
-  { key: "faturamento", label: "Faturamento", icon: <Wallet     style={{ width: 13, height: 13 }} /> },
+  { key: "empresas",    label: "Empresas",    icon: <Building2  className="w-[13px] h-[13px]" /> },
+  { key: "usuarios",    label: "Usuários",    icon: <UserCircle className="w-[13px] h-[13px]" /> },
+  { key: "faturamento", label: "Faturamento", icon: <Wallet     className="w-[13px] h-[13px]" /> },
 ];
 
 // ── Tooltip ───────────────────────────────────────────────────
@@ -88,19 +89,16 @@ function CustomTooltip({ active, payload, label }: {
 }) {
   if (!active || !payload?.length) return null;
   return (
-    <div style={{
-      background: t.surface,
-      borderRadius: t.radiusMd,
-      padding: "10px 14px",
-      boxShadow: "0 4px 16px rgba(0,0,0,0.10)",
-      fontSize: 12.5, minWidth: 140,
-    }}>
-      <p style={{ fontWeight: 700, color: t.textPrimary, marginBottom: 6 }}>{label}</p>
+    <div className="bg-white rounded-xl px-[14px] py-[10px] shadow-[0_4px_16px_rgba(0,0,0,0.10)] text-[12.5px] min-w-[140px]">
+      <p className="font-bold text-foreground mb-[6px]">{label}</p>
       {payload.map((p) => (
-        <div key={p.name} style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 3 }}>
-          <span style={{ width: 8, height: 8, borderRadius: "50%", background: p.color, flexShrink: 0 }} />
-          <span style={{ color: t.textSecondary }}>{p.name}:</span>
-          <span style={{ fontWeight: 700, color: t.textPrimary }}>{p.value}</span>
+        <div key={p.name} className="flex items-center gap-[6px] mb-[3px]">
+          <span
+            className="w-2 h-2 rounded-full shrink-0"
+            style={{ background: p.color }}
+          />
+          <span className="text-muted-foreground">{p.name}:</span>
+          <span className="font-bold text-foreground">{p.value}</span>
         </div>
       ))}
     </div>
@@ -114,25 +112,13 @@ export function AdminChart() {
   const color  = data.color;
 
   return (
-    <div style={{
-      background: t.surface,
-      borderRadius: t.radiusLg,
-      boxShadow: "0 2px 12px rgba(0,0,0,0.055), 0 1px 3px rgba(0,0,0,0.03)",
-      padding: "18px 20px 16px",
-      display: "flex", flexDirection: "column",
-      flex: 1, minHeight: 0,
-    }}>
+    <div className="bg-white rounded-[20px] shadow-[0_2px_12px_rgba(0,0,0,0.055),0_1px_3px_rgba(0,0,0,0.03)] px-5 pt-[18px] pb-4 flex flex-col flex-1 min-h-0">
 
       {/* ── Header ──────────────────────────────────────── */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, flexShrink: 0 }}>
+      <div className="flex items-center justify-between mb-4 shrink-0">
 
         {/* Tabs */}
-        <div style={{
-          display: "flex", alignItems: "center",
-          background: t.background,
-          borderRadius: t.radiusMd,
-          padding: 3, gap: 2,
-        }}>
+        <div className="flex items-center bg-background rounded-xl p-[3px] gap-0.5">
           {TABS.map((tab) => {
             const isActive = active === tab.key;
             return (
@@ -140,19 +126,17 @@ export function AdminChart() {
                 key={tab.key}
                 type="button"
                 onClick={() => setActive(tab.key)}
-                style={{
-                  display: "flex", alignItems: "center", gap: 6,
-                  padding: "6px 12px", borderRadius: 8,
-                  border: "none", cursor: "pointer",
-                  fontSize: 12.5, fontWeight: isActive ? 700 : 500,
-                  background: isActive ? t.surface : "transparent",
-                  color: isActive ? t.textPrimary : t.textSecondary,
-                  boxShadow: isActive ? "0 1px 4px rgba(0,0,0,0.08)" : "none",
-                  transition: "all 0.15s",
-                  whiteSpace: "nowrap",
-                }}
+                className={cn(
+                  "flex items-center gap-[6px] px-3 py-1.5 rounded-lg border-none cursor-pointer text-[12.5px] transition-all duration-150 whitespace-nowrap",
+                  isActive
+                    ? "font-bold bg-white text-foreground shadow-[0_1px_4px_rgba(0,0,0,0.08)]"
+                    : "font-medium bg-transparent text-muted-foreground shadow-none"
+                )}
               >
-                <span style={{ color: isActive ? color : t.textSecondary, display: "flex", transition: "color 0.15s" }}>
+                <span
+                  className={cn("flex transition-colors duration-150", isActive ? "" : "text-muted-foreground")}
+                  style={isActive ? { color } : undefined}
+                >
                   {tab.icon}
                 </span>
                 {tab.label}
@@ -162,25 +146,25 @@ export function AdminChart() {
         </div>
 
         {/* Stat rápido */}
-        <div style={{ textAlign: "right" }}>
-          <p style={{ fontSize: 20, fontWeight: 800, color: t.textPrimary, margin: 0, lineHeight: 1, letterSpacing: "-0.5px" }}>
+        <div className="text-right">
+          <p className="text-[20px] font-extrabold text-foreground m-0 leading-none tracking-[-0.5px]">
             {data.stat.value}
           </p>
-          <p style={{ fontSize: 11.5, color: color, fontWeight: 600, margin: "2px 0 0" }}>
+          <p className="text-[11.5px] font-semibold mt-0.5 mb-0" style={{ color }}>
             {data.stat.new}
           </p>
         </div>
       </div>
 
       {/* ── Gráficos lado a lado ─────────────────────────── */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 180px", gap: 16, flex: 1, minHeight: 0 }}>
+      <div className="grid gap-4 flex-1 min-h-0" style={{ gridTemplateColumns: "1fr 180px" }}>
 
         {/* Área: evolução */}
-        <div style={{ display: "flex", flexDirection: "column", minHeight: 0 }}>
-          <p style={{ fontSize: 10.5, fontWeight: 600, color: t.textSecondary, textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 8, flexShrink: 0 }}>
+        <div className="flex flex-col min-h-0">
+          <p className="text-[10.5px] font-semibold text-muted-foreground uppercase tracking-[0.07em] mb-2 shrink-0">
             Evolução mensal
           </p>
-          <div style={{ flex: 1, minHeight: 0 }}>
+          <div className="flex-1 min-h-0">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={data.monthly} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
                 <defs>
@@ -206,11 +190,11 @@ export function AdminChart() {
         </div>
 
         {/* Barras: por status */}
-        <div style={{ display: "flex", flexDirection: "column", minHeight: 0 }}>
-          <p style={{ fontSize: 10.5, fontWeight: 600, color: t.textSecondary, textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 8, flexShrink: 0 }}>
+        <div className="flex flex-col min-h-0">
+          <p className="text-[10.5px] font-semibold text-muted-foreground uppercase tracking-[0.07em] mb-2 shrink-0">
             Por status
           </p>
-          <div style={{ flex: 1, minHeight: 0 }}>
+          <div className="flex-1 min-h-0">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={data.status} margin={{ top: 4, right: 4, left: -20, bottom: 0 }} barSize={28}>
                 <CartesianGrid strokeDasharray="3 3" stroke={t.border} vertical={false} />

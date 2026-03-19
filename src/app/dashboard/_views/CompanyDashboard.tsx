@@ -14,7 +14,7 @@ type Props = { userName: string };
 
 function TruckIllustration() {
   return (
-    <svg viewBox="0 0 64 64" fill="none" style={{ width: 44, height: 44 }}>
+    <svg viewBox="0 0 64 64" fill="none" className="w-[44px] h-[44px]">
       <rect x="4"  y="18" width="36" height="28" rx="5" fill={t.primary} opacity=".2" />
       <rect x="6"  y="20" width="32" height="24" rx="4" fill={t.primary} opacity=".35" />
       <rect x="10" y="23" width="14" height="10" rx="2" fill={t.primary} />
@@ -32,7 +32,7 @@ function TruckIllustration() {
 
 export function CompanyDashboard({ userName }: Props) {
   return (
-    <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 16, overflow: "hidden", minHeight: 0 }}>
+    <div className="flex-1 flex flex-col gap-4 overflow-hidden min-h-0">
 
       <PageHeader
         label="Empresa"
@@ -42,18 +42,18 @@ export function CompanyDashboard({ userName }: Props) {
         actionHref="/dashboard/fretes"
       />
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, flexShrink: 0 }}>
+      <div className="grid grid-cols-4 gap-3 shrink-0">
         <StatCard icon={<Truck />}        label="Fretes Ativos" value="0"    sub="em andamento" accent={t.primary} />
         <StatCard icon={<CheckCircle2 />} label="Concluídos"   value="0"    sub="este mês"     accent={t.success} />
         <StatCard icon={<Clock />}        label="Aguardando"   value="0"    sub="pendentes"    accent={t.warning} />
         <StatCard icon={<Wallet />}       label="Saldo"        value="R$ 0" sub="disponível"   accent="#6366F1"   />
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 280px", gap: 14, flex: 1, minHeight: 0, overflow: "hidden" }}>
+      <div className="grid gap-[14px] flex-1 min-h-0 overflow-hidden" style={{ gridTemplateColumns: "1fr 280px" }}>
 
         <Card
           title="Fretes Recentes"
-          icon={<Truck style={{ width: 15, height: 15 }} />}
+          icon={<Truck className="w-[15px] h-[15px]" />}
           href="/dashboard/fretes"
           fill
         >
@@ -66,9 +66,9 @@ export function CompanyDashboard({ userName }: Props) {
           />
         </Card>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 12, overflow: "hidden", minHeight: 0 }}>
+        <div className="flex flex-col gap-3 overflow-hidden min-h-0">
           <Card title="Ações rápidas">
-            <div style={{ padding: "8px" }}>
+            <div className="p-2">
               <QuickAction icon={<Truck />}  label="Novo Frete"    sub="Criar uma entrega"     href="/dashboard/fretes"     color={t.primary} />
               <QuickAction icon={<MapPin />} label="Simular Frete" sub="Calcular preço e rota" href="/dashboard/simular"    color="#6366F1" />
               <QuickAction icon={<Wallet />} label="Financeiro"    sub="Saldo e faturamento"   href="/dashboard/financeiro" color={t.success} />
@@ -76,7 +76,7 @@ export function CompanyDashboard({ userName }: Props) {
           </Card>
 
           <InfoCard
-            icon={<MapPin style={{ width: 15, height: 15 }} />}
+            icon={<MapPin className="w-[15px] h-[15px]" />}
             title="Rastreamento GPS"
             description="Acompanhe seus fretes em tempo real com notificações automáticas."
             linkLabel="Saiba mais"

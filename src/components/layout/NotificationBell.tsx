@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { Bell, Building2, CheckCheck, Loader2, BellOff, Sparkles, X } from "lucide-react";
 import { toast }          from "sonner";
-import { tenantConfig }   from "@/config/tenant";
+import { cn }             from "@/lib/utils";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import {
   getNotifications,
@@ -11,8 +11,6 @@ import {
   activateCompany,
   type AppNotification,
 } from "@/app/actions/notifications";
-
-const { theme: t } = tenantConfig;
 
 function timeAgo(date: Date): string {
   const diff = Date.now() - new Date(date).getTime();
@@ -41,60 +39,47 @@ function NotificationItem({
   const isUnread  = !notification.read && !isDone;
 
   return (
-    <div style={{
-      padding: "14px 20px",
-      borderBottom: `1px solid #F1F5F9`,
-      background: isUnread ? "#F8FFFE" : "#fff",
-      position: "relative",
-      transition: "background 0.15s",
-    }}>
+    <div className={cn(
+      "px-5 py-[14px] border-b border-[#F1F5F9] relative transition-colors duration-150",
+      isUnread ? "bg-[#F8FFFE]" : "bg-white",
+    )}>
       {/* Barra lateral colorida */}
       {isUnread && (
-        <div style={{
-          position: "absolute", left: 0, top: 14, bottom: 14,
-          width: 3, borderRadius: "0 3px 3px 0",
-          background: `linear-gradient(to bottom, #0C6B64, ${t.primary})`,
-        }} />
+        <div className="absolute left-0 top-[14px] bottom-[14px] w-[3px] rounded-r-[3px] bg-[linear-gradient(to_bottom,#0C6B64,#2EC4B6)]" />
       )}
 
-      <div style={{ display: "flex", gap: 12 }}>
+      <div className="flex gap-3">
         {/* Ícone */}
-        <div style={{
-          width: 40, height: 40, borderRadius: 12, flexShrink: 0,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          background: isDone
-            ? "linear-gradient(135deg, #DCFCE7, #BBF7D0)"
+        <div className={cn(
+          "w-10 h-10 rounded-xl shrink-0 flex items-center justify-center",
+          isDone
+            ? "bg-[linear-gradient(135deg,#DCFCE7,#BBF7D0)]"
             : isPending
-            ? "linear-gradient(135deg, #EDE9FE, #C4B5FD)"
-            : "#F1F5F9",
-        }}>
+            ? "bg-[linear-gradient(135deg,#EDE9FE,#C4B5FD)]"
+            : "bg-[#F1F5F9]",
+        )}>
           {isDone
-            ? <CheckCheck style={{ width: 17, height: 17, color: "#16A34A" }} />
-            : <Building2  style={{ width: 17, height: 17, color: isPending ? "#7C3AED" : "#94A3B8" }} />
+            ? <CheckCheck className="w-[17px] h-[17px] text-green-600" />
+            : <Building2  className={cn("w-[17px] h-[17px]", isPending ? "text-violet-600" : "text-[#94A3B8]")} />
           }
         </div>
 
         {/* Conteúdo */}
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 6 }}>
-            <p style={{
-              margin: 0, fontSize: 13, lineHeight: 1.4,
-              fontWeight: isUnread ? 700 : 600,
-              color: isDone ? "#16A34A" : "#0F172A",
-            }}>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between gap-1.5">
+            <p className={cn(
+              "m-0 text-[13px] leading-[1.4]",
+              isUnread ? "font-bold" : "font-semibold",
+              isDone ? "text-green-600" : "text-[#0F172A]",
+            )}>
               {isDone ? "Empresa ativada!" : notification.title}
             </p>
-            <span suppressHydrationWarning style={{
-              fontSize: 11, color: "#94A3B8", whiteSpace: "nowrap",
-              flexShrink: 0, marginTop: 1,
-            }}>
+            <span suppressHydrationWarning className="text-[11px] text-[#94A3B8] whitespace-nowrap shrink-0 mt-[1px]">
               {timeAgo(notification.createdAt)}
             </span>
           </div>
 
-          <p style={{
-            margin: "3px 0 0", fontSize: 12.5, color: "#64748B", lineHeight: 1.55,
-          }}>
+          <p className="mt-[3px] text-[12.5px] text-[#64748B] leading-[1.55]">
             {isDone
               ? `${data.companyName ?? "A empresa"} já pode acessar a plataforma.`
               : notification.body
@@ -103,13 +88,8 @@ function NotificationItem({
 
           {/* Chip empresa */}
           {isPending && data.companyName && !isDone && (
-            <span style={{
-              display: "inline-flex", alignItems: "center", gap: 4,
-              marginTop: 7, padding: "2px 9px", borderRadius: 20,
-              background: "#F3F0FF", color: "#7C3AED",
-              fontSize: 11.5, fontWeight: 600,
-            }}>
-              <Building2 style={{ width: 10, height: 10 }} />
+            <span className="inline-flex items-center gap-1 mt-[7px] px-[9px] py-[2px] rounded-[20px] bg-[#F3F0FF] text-violet-600 text-[11.5px] font-semibold">
+              <Building2 className="w-[10px] h-[10px]" />
               {data.companyName}
             </span>
           )}
@@ -120,21 +100,17 @@ function NotificationItem({
               type="button"
               disabled={isLoading}
               onClick={() => onActivate(data.companyUserId, notification.id)}
-              style={{
-                marginTop: 10,
-                display: "inline-flex", alignItems: "center", gap: 6,
-                padding: "6px 14px", borderRadius: 8, border: "none",
-                background: isLoading ? "#E2E8F0" : `linear-gradient(135deg, #0C6B64, ${t.primary})`,
-                color: isLoading ? "#94A3B8" : "#fff",
-                fontSize: 12, fontWeight: 700,
-                cursor: isLoading ? "not-allowed" : "pointer",
-                boxShadow: isLoading ? "none" : `0 3px 10px ${t.primary}40`,
-                transition: "all 0.2s",
-              }}
+              className={cn(
+                "mt-[10px] inline-flex items-center gap-1.5 px-[14px] py-[6px] rounded-lg border-none",
+                "text-[12px] font-bold transition-all duration-200",
+                isLoading
+                  ? "bg-[#E2E8F0] text-[#94A3B8] cursor-not-allowed shadow-none"
+                  : "bg-[linear-gradient(135deg,#0C6B64,#2EC4B6)] text-white cursor-pointer shadow-[0_3px_10px_#2EC4B640]",
+              )}
             >
               {isLoading
-                ? <><Loader2 style={{ width: 11, height: 11, animation: "spin 0.9s linear infinite" }} />Ativando…</>
-                : <><Sparkles style={{ width: 11, height: 11 }} />Ativar empresa</>
+                ? <><Loader2 className="w-[11px] h-[11px] animate-spin" />Ativando…</>
+                : <><Sparkles className="w-[11px] h-[11px]" />Ativar empresa</>
               }
             </button>
           )}
@@ -238,25 +214,11 @@ export function NotificationBell() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        style={{
-          position: "relative",
-          width: 36, height: 36, borderRadius: 10,
-          border: "none", background: "transparent",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          color: t.textSecondary, cursor: "pointer",
-          transition: "background 0.15s, color 0.15s",
-        }}
-        onMouseEnter={(e) => { e.currentTarget.style.background = t.background; e.currentTarget.style.color = t.primary; }}
-        onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = t.textSecondary; }}
+        className="relative w-9 h-9 rounded-[10px] border-none bg-transparent flex items-center justify-center text-muted-foreground cursor-pointer transition-[background,color] duration-150 hover:bg-background hover:text-primary"
       >
-        <Bell style={{ width: 17, height: 17 }} />
+        <Bell className="w-[17px] h-[17px]" />
         {unread > 0 && (
-          <span style={{
-            position: "absolute", top: 6, right: 6,
-            width: 8, height: 8, borderRadius: "50%",
-            background: "#EF4444", border: `2px solid ${t.surface}`,
-            animation: "pulseRed 2s infinite",
-          }} />
+          <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500 border-2 border-white [animation:pulseRed_2s_infinite]" />
         )}
       </button>
 
@@ -265,58 +227,37 @@ export function NotificationBell() {
         <SheetContent
           side="right"
           showCloseButton={false}
-          className="flex flex-col p-0"
-          style={{ width: 390, maxWidth: "100vw", border: "none", padding: 0 }}
+          className="flex flex-col p-0 w-[390px] max-w-[100vw] border-none"
         >
 
           {/* ── Header com gradiente ─────────────────────── */}
-          <div style={{
-            background: "linear-gradient(135deg, #0C6B64 0%, #2EC4B6 100%)",
-            padding: "24px 22px 0",
-            flexShrink: 0,
-          }}>
+          <div className="bg-[linear-gradient(135deg,#0C6B64_0%,#2EC4B6_100%)] pt-6 px-[22px] pb-0 shrink-0">
             {/* Linha superior */}
-            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 18 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div className="flex items-start justify-between mb-[18px]">
+              <div className="flex items-center gap-3">
                 {/* Ícone */}
-                <div style={{
-                  width: 42, height: 42, borderRadius: 13,
-                  background: "rgba(255,255,255,0.18)",
-                  border: "1px solid rgba(255,255,255,0.28)",
-                  backdropFilter: "blur(8px)",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                }}>
-                  <Bell style={{ width: 18, height: 18, color: "#fff" }} />
+                <div className="w-[42px] h-[42px] rounded-[13px] bg-white/[0.18] border border-white/[0.28] backdrop-blur-[8px] flex items-center justify-center">
+                  <Bell className="w-[18px] h-[18px] text-white" />
                 </div>
                 <div>
-                  <h2 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: "#fff", letterSpacing: "-0.3px" }}>
+                  <h2 className="m-0 text-base font-extrabold text-white tracking-[-0.3px]">
                     Notificações
                   </h2>
-                  <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.7)", marginTop: 1 }}>
+                  <p className="m-0 text-[12px] text-white/70 mt-[1px]">
                     {unread > 0 ? `${unread} não lida${unread > 1 ? "s" : ""}` : "Tudo em dia"}
                   </p>
                 </div>
               </div>
 
-              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <div className="flex items-center gap-1.5">
                 {/* Marcar todas */}
                 {unread > 0 && (
                   <button
                     type="button"
                     onClick={handleMarkAll}
-                    style={{
-                      display: "flex", alignItems: "center", gap: 5,
-                      padding: "6px 11px", borderRadius: 8,
-                      border: "1px solid rgba(255,255,255,0.3)",
-                      background: "rgba(255,255,255,0.15)",
-                      color: "#fff", fontSize: 12, fontWeight: 600,
-                      cursor: "pointer", backdropFilter: "blur(4px)",
-                      transition: "background 0.15s",
-                    }}
-                    onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.25)"; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.15)"; }}
+                    className="flex items-center gap-[5px] px-[11px] py-[6px] rounded-lg border border-white/30 bg-white/15 text-white text-[12px] font-semibold cursor-pointer backdrop-blur-[4px] transition-[background] duration-150 hover:bg-white/25"
                   >
-                    <CheckCheck style={{ width: 12, height: 12 }} />
+                    <CheckCheck className="w-3 h-3" />
                     Lidas
                   </button>
                 )}
@@ -324,24 +265,15 @@ export function NotificationBell() {
                 <button
                   type="button"
                   onClick={() => setOpen(false)}
-                  style={{
-                    width: 32, height: 32, borderRadius: 9,
-                    border: "1px solid rgba(255,255,255,0.3)",
-                    background: "rgba(255,255,255,0.15)",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    color: "#fff", cursor: "pointer", backdropFilter: "blur(4px)",
-                    transition: "background 0.15s",
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.28)"; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.15)"; }}
+                  className="w-8 h-8 rounded-[9px] border border-white/30 bg-white/15 flex items-center justify-center text-white cursor-pointer backdrop-blur-[4px] transition-[background] duration-150 hover:bg-white/[0.28]"
                 >
-                  <X style={{ width: 14, height: 14 }} />
+                  <X className="w-[14px] h-[14px]" />
                 </button>
               </div>
             </div>
 
             {/* Tabs dentro do header */}
-            <div style={{ display: "flex", gap: 0 }}>
+            <div className="flex gap-0">
               {FILTERS.map((f) => {
                 const active = filter === f.value;
                 const count  = f.value === "unread" ? unread : notifs.length;
@@ -350,24 +282,19 @@ export function NotificationBell() {
                     key={f.value}
                     type="button"
                     onClick={() => setFilter(f.value)}
-                    style={{
-                      padding: "9px 16px",
-                      border: "none", background: "transparent",
-                      fontSize: 13, fontWeight: active ? 700 : 500,
-                      color: active ? "#fff" : "rgba(255,255,255,0.6)",
-                      cursor: "pointer",
-                      borderBottom: active ? "2.5px solid #fff" : "2.5px solid transparent",
-                      transition: "all 0.15s",
-                    }}
+                    className={cn(
+                      "px-4 py-[9px] border-none bg-transparent text-[13px] cursor-pointer transition-all duration-150",
+                      active
+                        ? "font-bold text-white border-b-[2.5px] border-white"
+                        : "font-medium text-white/60 border-b-[2.5px] border-transparent",
+                    )}
                   >
                     {f.label}
                     {count > 0 && (
-                      <span style={{
-                        marginLeft: 6, padding: "1px 6px",
-                        borderRadius: 20, fontSize: 10.5, fontWeight: 700,
-                        background: active ? "rgba(255,255,255,0.25)" : "rgba(255,255,255,0.12)",
-                        color: "#fff",
-                      }}>
+                      <span className={cn(
+                        "ml-1.5 px-[6px] py-[1px] rounded-[20px] text-[10.5px] font-bold text-white",
+                        active ? "bg-white/25" : "bg-white/[0.12]",
+                      )}>
                         {count}
                       </span>
                     )}
@@ -378,46 +305,28 @@ export function NotificationBell() {
           </div>
 
           {/* ── Lista ────────────────────────────────────── */}
-          <div style={{ flex: 1, overflowY: "auto", background: "#F8FAFC" }}>
+          <div className="flex-1 overflow-y-auto bg-[#F8FAFC]">
 
             {/* Loading inicial */}
             {isPending && notifs.length === 0 ? (
-              <div style={{
-                display: "flex", flexDirection: "column",
-                alignItems: "center", justifyContent: "center",
-                gap: 12, height: 260,
-              }}>
-                <div style={{
-                  width: 48, height: 48, borderRadius: 16,
-                  background: "#fff",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  boxShadow: "0 2px 12px rgba(0,0,0,0.08)",
-                }}>
-                  <Loader2 style={{ width: 20, height: 20, color: t.primary, animation: "spin 0.9s linear infinite" }} />
+              <div className="flex flex-col items-center justify-center gap-3 h-[260px]">
+                <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center shadow-[0_2px_12px_rgba(0,0,0,0.08)]">
+                  <Loader2 className="w-5 h-5 text-primary animate-spin" />
                 </div>
-                <p style={{ margin: 0, fontSize: 13, color: "#64748B" }}>Carregando…</p>
+                <p className="m-0 text-[13px] text-[#64748B]">Carregando…</p>
               </div>
 
             /* Empty state */
             ) : filtered.length === 0 ? (
-              <div style={{
-                display: "flex", flexDirection: "column",
-                alignItems: "center", justifyContent: "center",
-                gap: 14, padding: "60px 32px", textAlign: "center",
-              }}>
-                <div style={{
-                  width: 64, height: 64, borderRadius: 20,
-                  background: "#fff",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  boxShadow: "0 2px 16px rgba(0,0,0,0.07)",
-                }}>
-                  <BellOff style={{ width: 26, height: 26, color: "#CBD5E1" }} />
+              <div className="flex flex-col items-center justify-center gap-[14px] px-8 py-[60px] text-center">
+                <div className="w-16 h-16 rounded-[20px] bg-white flex items-center justify-center shadow-[0_2px_16px_rgba(0,0,0,0.07)]">
+                  <BellOff className="w-[26px] h-[26px] text-[#CBD5E1]" />
                 </div>
                 <div>
-                  <p style={{ margin: 0, fontSize: 15, fontWeight: 700, color: "#0F172A" }}>
+                  <p className="m-0 text-[15px] font-bold text-[#0F172A]">
                     {filter === "unread" ? "Nenhuma não lida" : "Tudo em dia!"}
                   </p>
-                  <p style={{ margin: "6px 0 0", fontSize: 13, color: "#64748B", lineHeight: 1.55 }}>
+                  <p className="mt-1.5 text-[13px] text-[#64748B] leading-[1.55]">
                     {filter === "unread"
                       ? "Você já leu todas as notificações."
                       : "Novas notificações aparecerão aqui."}
@@ -427,7 +336,7 @@ export function NotificationBell() {
 
             /* Lista */
             ) : (
-              <div style={{ background: "#fff" }}>
+              <div className="bg-white">
                 {filtered.map((n) => (
                   <NotificationItem
                     key={n.id}
@@ -443,14 +352,8 @@ export function NotificationBell() {
 
           {/* ── Footer ───────────────────────────────────── */}
           {notifs.length > 0 && (
-            <div style={{
-              padding: "12px 20px",
-              background: "#fff",
-              borderTop: "1px solid #F1F5F9",
-              flexShrink: 0,
-              textAlign: "center",
-            }}>
-              <span style={{ fontSize: 12, color: "#94A3B8" }}>
+            <div className="px-5 py-3 bg-white border-t border-[#F1F5F9] shrink-0 text-center">
+              <span className="text-[12px] text-[#94A3B8]">
                 {notifs.length} notificaç{notifs.length !== 1 ? "ões" : "ão"} no total
               </span>
             </div>

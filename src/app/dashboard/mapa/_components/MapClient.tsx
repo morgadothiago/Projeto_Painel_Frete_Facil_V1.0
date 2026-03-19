@@ -8,12 +8,7 @@ const MapView = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div style={{
-        height: 520, borderRadius: 16,
-        background: "#F8FAFC", border: "1px solid #E2E8F0",
-        display: "flex", alignItems: "center", justifyContent: "center",
-        fontSize: 14, color: "#94A3B8",
-      }}>
+      <div className="h-[520px] rounded-2xl bg-[#F8FAFC] border border-border flex items-center justify-center text-sm text-muted-foreground">
         Carregando mapa…
       </div>
     ),

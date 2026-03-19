@@ -3,9 +3,6 @@ import { auth }           from "@/auth";
 import { Building2, Plus } from "lucide-react";
 import { getCompanies }   from "@/app/actions/companies";
 import { CompaniesTable } from "./_components/CompaniesTable";
-import { tenantConfig }   from "@/config/tenant";
-
-const { theme: t } = tenantConfig;
 
 export default async function EmpresasPage() {
   const session = await auth();
@@ -14,34 +11,19 @@ export default async function EmpresasPage() {
   const companies = await getCompanies();
 
   return (
-    <div style={{
-      display: "flex", flexDirection: "column", gap: 20,
-      height: "100%", minHeight: 0,
-    }}>
+    <div className="flex flex-col gap-5 h-full min-h-0">
 
       {/* ── Cabeçalho ──────────────────────────────────────── */}
-      <div style={{
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        flexShrink: 0,
-      }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <div style={{
-            width: 44, height: 44, borderRadius: 14,
-            background: `linear-gradient(135deg, #0C6B64, ${t.primary})`,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            boxShadow: `0 4px 16px ${t.primary}35`,
-          }}>
-            <Building2 style={{ width: 21, height: 21, color: "#fff" }} />
+      <div className="flex items-center justify-between shrink-0">
+        <div className="flex items-center gap-[14px]">
+          <div className="w-[44px] h-[44px] rounded-[14px] bg-[linear-gradient(135deg,#0C6B64,#2EC4B6)] flex items-center justify-center shadow-[0_4px_16px_#2EC4B635]">
+            <Building2 className="w-[21px] h-[21px] text-white" />
           </div>
           <div>
-            <h1 style={{
-              margin: 0, fontSize: 22, fontWeight: 800,
-              color: t.textPrimary, lineHeight: 1.15,
-              letterSpacing: "-0.4px",
-            }}>
+            <h1 className="m-0 text-[22px] font-extrabold text-foreground leading-[1.15] tracking-[-0.4px]">
               Empresas
             </h1>
-            <p style={{ margin: 0, fontSize: 13, color: t.textSecondary, marginTop: 2 }}>
+            <p className="m-0 mt-0.5 text-[13px] text-muted-foreground">
               Gerencie todas as empresas cadastradas na plataforma
             </p>
           </div>
@@ -49,19 +31,9 @@ export default async function EmpresasPage() {
 
         <a
           href="/signup"
-          className="btn-nova-empresa"
-          style={{
-            display: "inline-flex", alignItems: "center", gap: 7,
-            padding: "10px 20px", borderRadius: 12,
-            background: `linear-gradient(135deg, #0C6B64, ${t.primary})`,
-            color: "#fff", fontSize: 13.5, fontWeight: 700,
-            textDecoration: "none",
-            boxShadow: `0 4px 16px ${t.primary}35`,
-            transition: "opacity 0.15s",
-            letterSpacing: "0.01em",
-          }}
+          className="btn-nova-empresa inline-flex items-center gap-[7px] px-5 py-[10px] rounded-xl bg-[linear-gradient(135deg,#0C6B64,#2EC4B6)] text-white text-[13.5px] font-bold no-underline shadow-[0_4px_16px_#2EC4B635] transition-opacity duration-150 tracking-[0.01em]"
         >
-          <Plus style={{ width: 15, height: 15 }} />
+          <Plus className="w-[15px] h-[15px]" />
           Nova empresa
         </a>
       </div>

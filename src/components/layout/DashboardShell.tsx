@@ -4,9 +4,7 @@ import { useState } from "react";
 import { PanelLeft, Search } from "lucide-react";
 import { Sidebar } from "./Sidebar";
 import { NotificationBell } from "./NotificationBell";
-import { tenantConfig } from "@/config/tenant";
-
-const { theme: t } = tenantConfig;
+import { cn } from "@/lib/utils";
 
 type User = {
   name?:  string | null;
@@ -25,72 +23,40 @@ export function DashboardShell({ user, initials, children }: Props) {
   const [collapsed, setCollapsed] = useState(false);
 
   return (
-    <div style={{
-      display: "flex", height: "100vh", overflow: "hidden",
-      background: t.background,
-    }}>
+    <div className="flex h-screen overflow-hidden bg-background">
 
       <Sidebar user={user} collapsed={collapsed} />
 
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", minWidth: 0 }}>
+      <div className="flex flex-1 flex-col overflow-hidden min-w-0">
 
         {/* ── Header ──────────────────────────────────────── */}
-        <header style={{
-          height: 60,
-          background: t.surface,
-          display: "flex", alignItems: "center",
-          padding: "0 20px 0 16px",
-          gap: 10, flexShrink: 0,
-          boxShadow: "0 1px 0 rgba(0,0,0,0.04)",
-        }}>
+        <header className="flex h-[60px] shrink-0 items-center gap-[10px] bg-white px-5 pl-4 shadow-[0_1px_0_rgba(0,0,0,0.04)]">
 
           {/* Toggle sidebar */}
           <button
             type="button"
             onClick={() => setCollapsed((c) => !c)}
             title={collapsed ? "Expandir menu" : "Recolher menu"}
-            style={{
-              width: 36, height: 36, borderRadius: t.radiusMd,
-              background: "transparent", border: "none",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              cursor: "pointer", color: t.textSecondary, flexShrink: 0,
-              transition: "background 0.15s, color 0.15s",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = t.background;
-              e.currentTarget.style.color = t.primary;
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = "transparent";
-              e.currentTarget.style.color = t.textSecondary;
-            }}
+            className={cn(
+              "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border-none bg-transparent",
+              "cursor-pointer text-muted-foreground transition-[background,color] duration-150",
+              "hover:bg-background hover:text-primary"
+            )}
           >
-            <PanelLeft style={{ width: 18, height: 18 }} />
+            <PanelLeft className="h-[18px] w-[18px]" />
           </button>
 
           {/* Busca */}
-          <div style={{
-            display: "flex", alignItems: "center", gap: 8,
-            padding: "7px 14px", borderRadius: t.radiusMd,
-            background: t.background,
-            flex: 1, maxWidth: 300, cursor: "text",
-          }}>
-            <Search style={{ width: 13, height: 13, color: t.textSecondary, flexShrink: 0 }} />
-            <span style={{ fontSize: 13, color: t.textSecondary }}>Buscar…</span>
+          <div className="flex max-w-[300px] flex-1 cursor-text items-center gap-2 rounded-xl bg-background px-[14px] py-[7px]">
+            <Search className="h-[13px] w-[13px] shrink-0 text-muted-foreground" />
+            <span className="text-[13px] text-muted-foreground">Buscar…</span>
           </div>
 
-          <div style={{ flex: 1 }} />
+          <div className="flex-1" />
 
           {/* Status online */}
-          <div style={{
-            display: "flex", alignItems: "center", gap: 6,
-            fontSize: 12, fontWeight: 500, color: t.textSecondary,
-          }}>
-            <span style={{
-              width: 7, height: 7, borderRadius: "50%",
-              background: t.success, display: "inline-block",
-              boxShadow: `0 0 0 2px ${t.success}25`,
-            }} />
+          <div className="flex items-center gap-[6px] text-xs font-medium text-muted-foreground">
+            <span className="inline-block h-[7px] w-[7px] rounded-full bg-green-500 shadow-[0_0_0_2px_rgba(76,175,80,0.145)]" />
             Online
           </div>
 
@@ -98,26 +64,19 @@ export function DashboardShell({ user, initials, children }: Props) {
           <NotificationBell />
 
           {/* Divisor */}
-          <div style={{ width: 1, height: 20, background: t.border, flexShrink: 0 }} />
+          <div className="h-5 w-px shrink-0 bg-border" />
 
           {/* Avatar + nome */}
-          <div style={{
-            display: "flex", alignItems: "center", gap: 9,
-            cursor: "pointer", padding: "4px 6px", borderRadius: t.radiusMd,
-            transition: "background 0.15s",
-          }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = t.background; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+          <div
+            className={cn(
+              "flex cursor-pointer items-center gap-[9px] rounded-xl px-[6px] py-1",
+              "transition-[background] duration-150 hover:bg-background"
+            )}
           >
-            <div style={{
-              width: 30, height: 30, borderRadius: "50%",
-              background: t.gradientPrimary,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              color: "#fff", fontSize: 11, fontWeight: 700, flexShrink: 0,
-            }}>
+            <div className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-full bg-[linear-gradient(135deg,#2EC4B6,#A8E6CF)] text-[11px] font-bold text-white">
               {initials}
             </div>
-            <span style={{ fontSize: 13, fontWeight: 600, color: t.textPrimary, whiteSpace: "nowrap" }}>
+            <span className="whitespace-nowrap text-[13px] font-semibold text-foreground">
               {user.name?.split(" ")[0] ?? user.email}
             </span>
           </div>
@@ -125,11 +84,7 @@ export function DashboardShell({ user, initials, children }: Props) {
         </header>
 
         {/* ── Conteúdo ─────────────────────────────────── */}
-        <main style={{
-          flex: 1, overflowY: "auto",
-          padding: "20px 24px",
-          display: "flex", flexDirection: "column",
-        }}>
+        <main className="flex flex-1 flex-col overflow-y-auto p-5 px-6">
           {children}
         </main>
 

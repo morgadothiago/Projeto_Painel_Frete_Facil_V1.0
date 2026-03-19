@@ -13,24 +13,19 @@ export default async function VeiculosPage() {
   const types = await getVehicleTypes();
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 24, padding: "8px 0" }}>
+    <div className="flex flex-col gap-6 py-2">
 
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <div style={{
-            width: 44, height: 44, borderRadius: 14, flexShrink: 0,
-            background: "linear-gradient(135deg, #0C6B64, #2EC4B6)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            boxShadow: "0 4px 14px rgba(46,196,182,0.35)",
-          }}>
-            <Car style={{ width: 20, height: 20, color: "#fff" }} />
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-[14px]">
+          <div className="w-[44px] h-[44px] rounded-[14px] shrink-0 bg-[linear-gradient(135deg,#0C6B64,#2EC4B6)] flex items-center justify-center shadow-[0_4px_14px_rgba(46,196,182,0.35)]">
+            <Car className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: "#0F172A", letterSpacing: "-0.4px" }}>
+            <h1 className="m-0 text-[22px] font-extrabold text-foreground tracking-[-0.4px]">
               Tipos de Veículo
             </h1>
-            <p style={{ margin: 0, fontSize: 13, color: "#64748B", marginTop: 2 }}>
+            <p className="m-0 text-[13px] text-muted-foreground mt-0.5">
               {types.length} tipo{types.length !== 1 ? "s" : ""} cadastrado{types.length !== 1 ? "s" : ""}
             </p>
           </div>

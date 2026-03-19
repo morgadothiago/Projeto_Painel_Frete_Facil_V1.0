@@ -7,9 +7,12 @@ import "leaflet/dist/leaflet.css";
 import { getMapData, type MapData } from "@/app/actions/map";
 import { simulateDriverNear }       from "@/app/actions/dev";
 import { toast }                    from "sonner";
+import { cn }                       from "@/lib/utils";
 import { Truck, Package, RefreshCw, Users, MapPin, FlaskConical } from "lucide-react";
 
 // ── Ícones personalizados ──────────────────────────────────────────────────────
+// NOTE: L.divIcon uses innerHTML HTML strings — Tailwind classes have no effect
+// here, so inline CSS inside template literals is intentional and must stay as-is.
 
 const driverIcon = L.divIcon({
   className: "",
@@ -142,25 +145,25 @@ export function MapView() {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+    <div className="flex flex-col gap-4">
 
       {/* ── Stats bar ── */}
-      <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+      <div className="flex gap-3 flex-wrap">
         <StatCard
-          icon={<Users style={{ width: 16, height: 16, color: "#0C6B64" }} />}
+          icon={<Users className="w-4 h-4 text-[#0C6B64]" />}
           label="Motoristas livres"
           value={data.drivers.length}
           color="#0C6B64"
           bg="#E6FAF8"
         />
         <StatCard
-          icon={<Package style={{ width: 16, height: 16, color: "#D97706" }} />}
+          icon={<Package className="w-4 h-4 text-[#D97706]" />}
           label="Entregas pendentes"
           value={data.deliveries.length}
           color="#D97706"
           bg="#FEF3C7"
         />
-        <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 8 }}>
+        <div className="ml-auto flex items-center gap-2">
           <button
             onClick={() => {
               if (!navigator.geolocation) return;
@@ -174,17 +177,13 @@ export function MapView() {
                 { enableHighAccuracy: true },
               );
             }}
-            style={{
-              display: "flex", alignItems: "center", gap: 6,
-              padding: "8px 14px", borderRadius: 10,
-              border: "1px solid #BFDBFE",
-              background: myLocation ? "#EFF6FF" : "#fff",
-              fontSize: 12.5, fontWeight: 600,
-              color: myLocation ? "#1D4ED8" : "#475569",
-              cursor: "pointer",
-            }}
+            className={cn(
+              "flex items-center gap-1.5 px-[14px] py-2 rounded-[10px]",
+              "border border-[#BFDBFE] text-[12.5px] font-semibold cursor-pointer",
+              myLocation ? "bg-[#EFF6FF] text-[#1D4ED8]" : "bg-white text-[#475569]",
+            )}
           >
-            <MapPin style={{ width: 13, height: 13 }} />
+            <MapPin className="w-[13px] h-[13px]" />
             {locating ? "Buscando…" : myLocation ? "Minha localização" : "Me localizar"}
           </button>
           {/* Simular motorista próximo — só aparece se tiver localização */}
@@ -203,35 +202,25 @@ export function MapView() {
                 }
                 setSimulating(false);
               }}
-              style={{
-                display: "flex", alignItems: "center", gap: 6,
-                padding: "8px 14px", borderRadius: 10,
-                border: "1px solid #D8B4FE",
-                background: "#FAF5FF",
-                fontSize: 12.5, fontWeight: 600, color: "#7C3AED",
-                cursor: simulating ? "not-allowed" : "pointer",
-                opacity: simulating ? 0.7 : 1,
-              }}
+              className={cn(
+                "flex items-center gap-1.5 px-[14px] py-2 rounded-[10px]",
+                "border border-[#D8B4FE] bg-[#FAF5FF] text-[12.5px] font-semibold text-violet-600",
+                simulating ? "cursor-not-allowed opacity-70" : "cursor-pointer opacity-100",
+              )}
             >
-              <FlaskConical style={{ width: 13, height: 13 }} />
+              <FlaskConical className="w-[13px] h-[13px]" />
               {simulating ? "Simulando…" : "Simular motorista aqui"}
             </button>
           )}
           <button
             onClick={refresh}
-            style={{
-              display: "flex", alignItems: "center", gap: 6,
-              padding: "8px 14px", borderRadius: 10,
-              border: "1px solid #E2E8F0", background: "#fff",
-              fontSize: 12.5, fontWeight: 600, color: "#475569",
-              cursor: "pointer",
-            }}
+            className="flex items-center gap-1.5 px-[14px] py-2 rounded-[10px] border border-border bg-white text-[12.5px] font-semibold text-[#475569] cursor-pointer"
           >
-            <RefreshCw style={{ width: 13, height: 13 }} />
+            <RefreshCw className="w-[13px] h-[13px]" />
             Atualizar
           </button>
           {lastSync && (
-            <span suppressHydrationWarning style={{ fontSize: 11.5, color: "#94A3B8" }}>
+            <span suppressHydrationWarning className="text-[11.5px] text-[#94A3B8]">
               Atualizado às {lastSync.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
             </span>
           )}
@@ -239,53 +228,31 @@ export function MapView() {
       </div>
 
       {/* ── Legenda ── */}
-      <div style={{ display: "flex", gap: 16, fontSize: 12.5, color: "#64748B" }}>
-        <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          <span style={{ fontSize: 16 }}>🚗</span> Motorista livre
+      <div className="flex gap-4 text-[12.5px] text-[#64748B]">
+        <span className="flex items-center gap-1.5">
+          <span className="text-base">🚗</span> Motorista livre
         </span>
-        <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          <span style={{ fontSize: 16 }}>📦</span> Entrega pendente
+        <span className="flex items-center gap-1.5">
+          <span className="text-base">📦</span> Entrega pendente
         </span>
-        <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          <span style={{
-            display: "inline-block", width: 12, height: 12, borderRadius: "50%",
-            background: "#4285F4", border: "2px solid #fff",
-            boxShadow: "0 0 0 3px rgba(66,133,244,0.3)",
-          }} />
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block w-3 h-3 rounded-full bg-[#4285F4] border-2 border-white shadow-[0_0_0_3px_rgba(66,133,244,0.3)]" />
           Minha localização
         </span>
       </div>
 
       {/* ── Mapa ── */}
-      <div style={{
-        borderRadius: 16, overflow: "hidden",
-        boxShadow: "0 2px 16px rgba(0,0,0,0.08)",
-        border: "1px solid #E2E8F0",
-        height: 520,
-        position: "relative",
-      }}>
+      <div className="rounded-2xl overflow-hidden shadow-[0_2px_16px_rgba(0,0,0,0.08)] border border-border h-[520px] relative">
         {loading ? (
-          <div style={{
-            height: "100%", display: "flex", flexDirection: "column",
-            alignItems: "center", justifyContent: "center", gap: 12,
-            background: "#F8FAFC",
-          }}>
-            <MapPin style={{ width: 32, height: 32, color: "#CBD5E1" }} />
-            <p style={{ margin: 0, fontSize: 14, color: "#94A3B8" }}>Carregando mapa…</p>
+          <div className="h-full flex flex-col items-center justify-center gap-3 bg-[#F8FAFC]">
+            <MapPin className="w-8 h-8 text-[#CBD5E1]" />
+            <p className="m-0 text-sm text-[#94A3B8]">Carregando mapa…</p>
           </div>
         ) : (
-          <>
-          <style>{`
-          @keyframes pulse-blue {
-            0%   { transform: scale(1);   opacity: 0.6; }
-            70%  { transform: scale(2.5); opacity: 0;   }
-            100% { transform: scale(1);   opacity: 0;   }
-          }
-        `}</style>
-        <MapContainer
+          <MapContainer
             center={[-23.55, -46.63]}
             zoom={11}
-            style={{ height: "100%", width: "100%" }}
+            className="h-full w-full"
             zoomControl={true}
           >
             <TileLayer
@@ -377,17 +344,12 @@ export function MapView() {
             ))}
 
           </MapContainer>
-          </>
         )}
       </div>
 
       {/* ── Empty state ── */}
       {!loading && data.drivers.length === 0 && data.deliveries.length === 0 && (
-        <div style={{
-          padding: "20px", borderRadius: 12,
-          background: "#FFF8E7", border: "1px solid #FDE68A",
-          fontSize: 13, color: "#92400E", textAlign: "center",
-        }}>
+        <div className="p-5 rounded-xl bg-[#FFF8E7] border border-[#FDE68A] text-[13px] text-[#92400E] text-center">
           Nenhum motorista online ou entrega pendente com coordenadas no momento.
         </div>
       )}
@@ -408,15 +370,14 @@ function StatCard({
   bg: string;
 }) {
   return (
-    <div style={{
-      display: "flex", alignItems: "center", gap: 10,
-      padding: "10px 16px", borderRadius: 12,
-      background: bg, border: `1px solid ${color}25`,
-    }}>
+    <div
+      className="flex items-center gap-2.5 px-4 py-[10px] rounded-xl border"
+      style={{ background: bg, borderColor: `${color}25` }}
+    >
       {icon}
       <div>
-        <p style={{ margin: 0, fontSize: 11.5, color, fontWeight: 600 }}>{label}</p>
-        <p style={{ margin: 0, fontSize: 20, fontWeight: 800, color, lineHeight: 1.2 }}>{value}</p>
+        <p className="m-0 text-[11.5px] font-semibold" style={{ color }}>{label}</p>
+        <p className="m-0 text-[20px] font-extrabold leading-[1.2]" style={{ color }}>{value}</p>
       </div>
     </div>
   );

@@ -9,6 +9,7 @@ import {
   saveFreightConfig,
   saveVehicleTypePricing,
 } from "@/app/actions/freightConfig";
+import { cn } from "@/lib/utils";
 
 const CLASS_EMOJI: Record<string, string> = {
   MOTO:            "🏍️",
@@ -39,36 +40,28 @@ function DriverPreview({
   const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
   return (
-    <div style={{
-      background: "#fff", borderRadius: 16,
-      border: "1.5px solid #E2E8F0",
-      overflow: "hidden",
-    }}>
+    <div className="bg-white rounded-2xl border-[1.5px] border-border overflow-hidden">
       {/* Cabeçalho simulado do app do motorista */}
-      <div style={{
-        background: "linear-gradient(135deg,#0C6B64,#2EC4B6)",
-        padding: "14px 18px",
-        display: "flex", alignItems: "center", gap: 10,
-      }}>
-        <span style={{ fontSize: 22 }}>{CLASS_EMOJI[vehicleType.vehicleClass] ?? "🚗"}</span>
+      <div className="bg-[linear-gradient(135deg,#0C6B64,#2EC4B6)] px-[18px] py-[14px] flex items-center gap-[10px]">
+        <span className="text-[22px]">{CLASS_EMOJI[vehicleType.vehicleClass] ?? "🚗"}</span>
         <div>
-          <p style={{ margin: 0, fontSize: 13.5, fontWeight: 700, color: "#fff" }}>
+          <p className="m-0 text-[13.5px] font-bold text-white">
             {vehicleType.name}
           </p>
-          <p style={{ margin: 0, fontSize: 11.5, color: "rgba(255,255,255,0.75)" }}>
+          <p className="m-0 text-[11.5px] text-white/75">
             Simulação — {distance}km
           </p>
         </div>
       </div>
 
       {/* Detalhamento */}
-      <div style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 8 }}>
+      <div className="px-[18px] py-4 flex flex-col gap-2">
         <PreviewRow label="Preço base"          value={fmt(base)} />
         <PreviewRow label={`${distance}km × ${fmt(vehicleType.pricePerKm)}/km`} value={fmt(km)} />
         {config.minimumPrice > 0 && (base + km) < config.minimumPrice && (
           <PreviewRow label="Mínimo aplicado" value={fmt(config.minimumPrice)} highlight />
         )}
-        <div style={{ borderTop: "1px dashed #E2E8F0", margin: "4px 0" }} />
+        <div className="border-t border-dashed border-border my-1" />
         <PreviewRow label="Subtotal do frete"   value={fmt(subtotal)} bold />
         <PreviewRow label={`Comissão plataforma (${config.platformFeePct}%)`} value={`- ${fmt(platform)}`} red />
         {config.insuranceFeePct > 0 && (
@@ -83,19 +76,14 @@ function DriverPreview({
         {config.weekendSurcharge > 0 && (
           <PreviewRow label={`Adicional fim de semana (${config.weekendSurcharge}%)`} value={`+ ${fmt(subtotal * config.weekendSurcharge / 100)}`} green />
         )}
-        <div style={{ borderTop: "2px solid #E2E8F0", margin: "4px 0" }} />
+        <div className="border-t-2 border-border my-1" />
 
         {/* O motorista recebe */}
-        <div style={{
-          display: "flex", justifyContent: "space-between", alignItems: "center",
-          padding: "12px 14px", borderRadius: 12,
-          background: "linear-gradient(135deg,#E6FAF8,#F0FDFB)",
-          border: "1.5px solid #2EC4B630",
-        }}>
-          <span style={{ fontSize: 13, fontWeight: 700, color: "#0C6B64" }}>
+        <div className="flex justify-between items-center px-[14px] py-3 rounded-xl bg-[linear-gradient(135deg,#E6FAF8,#F0FDFB)] border-[1.5px] border-[#2EC4B630]">
+          <span className="text-[13px] font-bold text-primary-dark">
             Motorista recebe
           </span>
-          <span style={{ fontSize: 20, fontWeight: 900, color: "#0C6B64" }}>
+          <span className="text-[20px] font-black text-primary-dark">
             {fmt(driverGets)}
           </span>
         </div>
@@ -109,12 +97,18 @@ function PreviewRow({ label, value, bold, red, green, highlight }: {
   bold?: boolean; red?: boolean; green?: boolean; highlight?: boolean;
 }) {
   return (
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-      <span style={{ fontSize: 12.5, color: "#64748B" }}>{label}</span>
-      <span style={{
-        fontSize: 13, fontWeight: bold ? 800 : 600,
-        color: red ? "#EF4444" : green ? "#10B981" : highlight ? "#F59E0B" : "#0F172A",
-      }}>
+    <div className="flex justify-between items-center">
+      <span className="text-[12.5px] text-muted-foreground">{label}</span>
+      <span
+        className={cn(
+          "text-[13px]",
+          bold      ? "font-extrabold" : "font-semibold",
+          red       ? "text-red-500"   :
+          green     ? "text-green-500" :
+          highlight ? "text-orange-400":
+                      "text-foreground"
+        )}
+      >
         {value}
       </span>
     </div>
@@ -178,14 +172,15 @@ export function FreightConfigClient({
   }
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: 24, alignItems: "start" }}>
+    // gridTemplateColumns uses a mixed template (1fr + fixed px), kept as inline style per spec
+    <div className="grid gap-6 items-start" style={{ gridTemplateColumns: "1fr 340px" }}>
 
       {/* ── Coluna esquerda: configurações ──────────────────────────────── */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+      <div className="flex flex-col gap-5">
 
         {/* Taxas globais */}
-        <Card title="Taxas Globais" icon={<Percent style={{ width: 16, height: 16, color: "#0C6B64" }} />}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+        <Card title="Taxas Globais" icon={<Percent className="w-4 h-4 text-primary-dark" />}>
+          <div className="grid grid-cols-2 gap-[14px]">
             <NumField
               label="Comissão da plataforma (%)"
               hint="% cobrada sobre o valor do frete"
@@ -222,32 +217,27 @@ export function FreightConfigClient({
               suffix="%"
             />
             {/* Toggle pedágio */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              <label style={{ fontSize: 12.5, fontWeight: 600, color: "#475569" }}>
+            <div className="flex flex-col gap-[6px]">
+              <label className="text-[12.5px] font-semibold text-slate-600">
                 Reembolso de pedágio
               </label>
-              <p style={{ margin: 0, fontSize: 11.5, color: "#94A3B8" }}>
+              <p className="m-0 text-[11.5px] text-slate-400">
                 Pedágio repassado ao motorista
               </p>
               <button
                 type="button"
                 onClick={() => setConf("tollReimburse", !config.tollReimburse)}
+                className="relative w-[50px] h-[28px] rounded-[14px] border-none cursor-pointer transition-all duration-200"
                 style={{
-                  width: 50, height: 28, borderRadius: 14,
-                  border: "none", cursor: "pointer", transition: "background 0.2s",
                   background: config.tollReimburse
-                    ? "linear-gradient(135deg,#0C6B64,#2EC4B6)" : "#E2E8F0",
-                  position: "relative",
+                    ? "linear-gradient(135deg,#0C6B64,#2EC4B6)"
+                    : "#E2E8F0",
                 }}
               >
-                <span style={{
-                  position: "absolute", top: 3,
-                  left: config.tollReimburse ? 24 : 4,
-                  width: 22, height: 22, borderRadius: "50%",
-                  background: "#fff",
-                  boxShadow: "0 1px 4px rgba(0,0,0,0.18)",
-                  transition: "left 0.2s",
-                }} />
+                <span
+                  className="absolute top-[3px] w-[22px] h-[22px] rounded-full bg-white shadow-[0_1px_4px_rgba(0,0,0,0.18)] transition-all duration-200"
+                  style={{ left: config.tollReimburse ? 24 : 4 }}
+                />
               </button>
             </div>
           </div>
@@ -255,64 +245,56 @@ export function FreightConfigClient({
           <button
             onClick={handleSaveConfig}
             disabled={isPending}
-            style={{
-              marginTop: 8,
-              display: "flex", alignItems: "center", gap: 7,
-              padding: "11px 22px", borderRadius: 11, border: "none",
-              background: "linear-gradient(135deg,#0C6B64,#2EC4B6)",
-              color: "#fff", fontSize: 14, fontWeight: 700,
-              cursor: isPending ? "not-allowed" : "pointer",
-              opacity: isPending ? 0.7 : 1,
-              boxShadow: "0 4px 14px rgba(46,196,182,0.35)",
-              alignSelf: "flex-start",
-            }}
+            className={cn(
+              "mt-2 flex items-center gap-[7px] px-[22px] py-[11px] rounded-[11px] border-none bg-[linear-gradient(135deg,#0C6B64,#2EC4B6)] text-white text-[14px] font-bold self-start shadow-[0_4px_14px_rgba(46,196,182,0.35)] transition-opacity",
+              isPending ? "opacity-70 cursor-not-allowed" : "cursor-pointer opacity-100"
+            )}
           >
-            <Save style={{ width: 15, height: 15 }} />
+            <Save className="w-[15px] h-[15px]" />
             {isPending ? "Salvando…" : "Salvar configurações"}
           </button>
         </Card>
 
         {/* Preços por tipo de veículo */}
-        <Card title="Preços por Tipo de Veículo" icon={<Truck style={{ width: 16, height: 16, color: "#0C6B64" }} />}>
+        <Card title="Preços por Tipo de Veículo" icon={<Truck className="w-4 h-4 text-primary-dark" />}>
           {vehicleTypes.length === 0 ? (
-            <p style={{ margin: 0, fontSize: 13, color: "#94A3B8" }}>
+            <p className="m-0 text-[13px] text-slate-400">
               Nenhum tipo cadastrado. Crie em Tipos de Veículo.
             </p>
           ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            <div className="flex flex-col gap-[14px]">
               {vehicleTypes.map((vt) => {
                 const editing = editingPrices[vt.id];
                 const cur     = editing ?? vt;
                 const isDirty = !!editing;
 
                 return (
-                  <div key={vt.id} style={{
-                    borderRadius: 14, border: isDirty ? "1.5px solid #2EC4B6" : "1.5px solid #F1F5F9",
-                    background: isDirty ? "#F0FDFB" : "#FAFAFA",
-                    padding: "14px 16px",
-                    transition: "all 0.2s",
-                  }}>
+                  <div
+                    key={vt.id}
+                    className={cn(
+                      "rounded-[14px] border-[1.5px] px-4 py-[14px] transition-all duration-200",
+                      isDirty
+                        ? "border-primary bg-[#F0FDFB]"
+                        : "border-slate-100 bg-[#FAFAFA]"
+                    )}
+                  >
                     {/* Header do veículo */}
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                        <span style={{ fontSize: 24 }}>{CLASS_EMOJI[vt.vehicleClass] ?? "🚗"}</span>
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-[10px]">
+                        <span className="text-[24px]">{CLASS_EMOJI[vt.vehicleClass] ?? "🚗"}</span>
                         <div>
-                          <p style={{ margin: 0, fontSize: 14, fontWeight: 800, color: "#0F172A" }}>{vt.name}</p>
+                          <p className="m-0 text-[14px] font-extrabold text-foreground">{vt.name}</p>
                           {!vt.isActive && (
-                            <span style={{ fontSize: 11, color: "#94A3B8", fontWeight: 600 }}>Inativo</span>
+                            <span className="text-[11px] text-slate-400 font-semibold">Inativo</span>
                           )}
                         </div>
                       </div>
-                      <div style={{ display: "flex", gap: 8 }}>
+                      <div className="flex gap-2">
                         {isDirty && (
                           <button
                             onClick={() => handleSaveVtPricing(vt.id)}
                             disabled={isPending}
-                            style={{
-                              padding: "6px 14px", borderRadius: 8, border: "none",
-                              background: "linear-gradient(135deg,#0C6B64,#2EC4B6)",
-                              color: "#fff", fontSize: 12.5, fontWeight: 700, cursor: "pointer",
-                            }}
+                            className="px-[14px] py-[6px] rounded-lg border-none bg-[linear-gradient(135deg,#0C6B64,#2EC4B6)] text-white text-[12.5px] font-bold cursor-pointer"
                           >
                             Salvar
                           </button>
@@ -322,25 +304,20 @@ export function FreightConfigClient({
                             setPreviewVt(vt);
                             if (!isDirty) startEditVt(vt);
                           }}
-                          style={{
-                            padding: "6px 12px", borderRadius: 8,
-                            border: "1px solid #E2E8F0", background: "#fff",
-                            fontSize: 12, fontWeight: 600, color: "#475569", cursor: "pointer",
-                            display: "flex", alignItems: "center", gap: 5,
-                          }}
+                          className="px-3 py-[6px] rounded-lg border border-border bg-white text-[12px] font-semibold text-slate-600 cursor-pointer flex items-center gap-[5px]"
                         >
-                          <Eye style={{ width: 12, height: 12 }} />
+                          <Eye className="w-3 h-3" />
                           {isDirty ? "Editando" : "Editar"}
                         </button>
                       </div>
                     </div>
 
                     {/* Campos de preço */}
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 10 }}>
-                      <MiniNumField label="Base (R$)"       value={cur.basePrice}           onChange={(v) => { startEditVt(vt); setVtField(vt.id, "basePrice", v); }} />
-                      <MiniNumField label="Por km (R$)"     value={cur.pricePerKm}          onChange={(v) => { startEditVt(vt); setVtField(vt.id, "pricePerKm", v); }} />
-                      <MiniNumField label="Ajudante (R$)"   value={cur.helperPrice}         onChange={(v) => { startEditVt(vt); setVtField(vt.id, "helperPrice", v); }} />
-                      <MiniNumField label="Parada (R$)"     value={cur.additionalStopPrice} onChange={(v) => { startEditVt(vt); setVtField(vt.id, "additionalStopPrice", v); }} />
+                    <div className="grid grid-cols-4 gap-[10px]">
+                      <MiniNumField label="Base (R$)"     value={cur.basePrice}           onChange={(v) => { startEditVt(vt); setVtField(vt.id, "basePrice", v); }} />
+                      <MiniNumField label="Por km (R$)"   value={cur.pricePerKm}          onChange={(v) => { startEditVt(vt); setVtField(vt.id, "pricePerKm", v); }} />
+                      <MiniNumField label="Ajudante (R$)" value={cur.helperPrice}         onChange={(v) => { startEditVt(vt); setVtField(vt.id, "helperPrice", v); }} />
+                      <MiniNumField label="Parada (R$)"   value={cur.additionalStopPrice} onChange={(v) => { startEditVt(vt); setVtField(vt.id, "additionalStopPrice", v); }} />
                     </div>
                   </div>
                 );
@@ -351,18 +328,18 @@ export function FreightConfigClient({
       </div>
 
       {/* ── Coluna direita: preview ──────────────────────────────────────── */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 16, position: "sticky", top: 24 }}>
-        <Card title="Preview — Como o motorista vê" icon={<Eye style={{ width: 16, height: 16, color: "#0C6B64" }} />}>
+      <div className="flex flex-col gap-4 sticky top-6">
+        <Card title="Preview — Como o motorista vê" icon={<Eye className="w-4 h-4 text-primary-dark" />}>
           {/* Seletor de veículo para preview */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <div className="flex flex-col gap-[10px]">
             <div>
-              <label style={{ fontSize: 12, fontWeight: 600, color: "#475569", display: "block", marginBottom: 5 }}>
+              <label className="text-[12px] font-semibold text-slate-600 block mb-[5px]">
                 Simular com veículo
               </label>
               <select
                 value={previewVt?.id ?? ""}
                 onChange={(e) => setPreviewVt(vehicleTypes.find((v) => v.id === e.target.value) ?? null)}
-                style={selectStyle}
+                className={selectClass}
               >
                 {vehicleTypes.map((v) => (
                   <option key={v.id} value={v.id}>{CLASS_EMOJI[v.vehicleClass]} {v.name}</option>
@@ -370,14 +347,17 @@ export function FreightConfigClient({
               </select>
             </div>
             <div>
-              <label style={{ fontSize: 12, fontWeight: 600, color: "#475569", display: "block", marginBottom: 5 }}>
+              <label className="text-[12px] font-semibold text-slate-600 block mb-[5px]">
                 Distância (km): <strong>{previewDist}km</strong>
               </label>
               <input
-                type="range" min={5} max={500} step={5}
+                type="range"
+                min={5}
+                max={500}
+                step={5}
                 value={previewDist}
                 onChange={(e) => setPreviewDist(Number(e.target.value))}
-                style={{ width: "100%", accentColor: "#2EC4B6" }}
+                className="w-full accent-primary"
               />
             </div>
           </div>
@@ -385,18 +365,14 @@ export function FreightConfigClient({
           {previewVt ? (
             <DriverPreview config={config} vehicleType={previewVt} distance={previewDist} />
           ) : (
-            <div style={{ padding: "32px 0", textAlign: "center", color: "#94A3B8", fontSize: 13 }}>
+            <div className="py-8 text-center text-slate-400 text-[13px]">
               Selecione um tipo de veículo
             </div>
           )}
 
-          <div style={{
-            padding: "10px 12px", borderRadius: 10,
-            background: "#FFF8E7", border: "1px solid #FDE68A",
-            display: "flex", gap: 8, alignItems: "flex-start",
-          }}>
-            <Info style={{ width: 14, height: 14, color: "#D97706", flexShrink: 0, marginTop: 1 }} />
-            <p style={{ margin: 0, fontSize: 11.5, color: "#92400E", lineHeight: 1.5 }}>
+          <div className="px-3 py-[10px] rounded-[10px] bg-[#FFF8E7] border border-[#FDE68A] flex gap-2 items-start">
+            <Info className="w-[14px] h-[14px] text-amber-600 shrink-0 mt-[1px]" />
+            <p className="m-0 text-[11.5px] text-amber-900 leading-[1.5]">
               Este é o preview exato que o motorista verá ao aceitar um frete. Ajuste as taxas e veja o impacto em tempo real.
             </p>
           </div>
@@ -410,21 +386,12 @@ export function FreightConfigClient({
 
 function Card({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div style={{
-      background: "#fff", borderRadius: 16,
-      border: "1.5px solid #E2E8F0",
-      padding: "20px 22px",
-      display: "flex", flexDirection: "column", gap: 16,
-      boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
-    }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-        <div style={{
-          width: 30, height: 30, borderRadius: 9,
-          background: "#E6FAF8", display: "flex", alignItems: "center", justifyContent: "center",
-        }}>
+    <div className="bg-white rounded-2xl border-[1.5px] border-border px-[22px] py-5 flex flex-col gap-4 shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+      <div className="flex items-center gap-2">
+        <div className="w-[30px] h-[30px] rounded-[9px] bg-primary-light flex items-center justify-center">
           {icon}
         </div>
-        <h2 style={{ margin: 0, fontSize: 15, fontWeight: 800, color: "#0F172A" }}>{title}</h2>
+        <h2 className="m-0 text-[15px] font-extrabold text-foreground">{title}</h2>
       </div>
       {children}
     </div>
@@ -436,30 +403,31 @@ function NumField({ label, hint, value, onChange, suffix, prefix }: {
   onChange: (v: number) => void; suffix?: string; prefix?: string;
 }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-      <label style={{ fontSize: 12.5, fontWeight: 600, color: "#475569" }}>{label}</label>
-      {hint && <p style={{ margin: 0, fontSize: 11, color: "#94A3B8" }}>{hint}</p>}
-      <div style={{ position: "relative" }}>
+    <div className="flex flex-col gap-1">
+      <label className="text-[12.5px] font-semibold text-slate-600">{label}</label>
+      {hint && <p className="m-0 text-[11px] text-slate-400">{hint}</p>}
+      <div className="relative">
         {prefix && (
-          <span style={{
-            position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)",
-            fontSize: 12.5, color: "#64748B", fontWeight: 600,
-          }}>{prefix}</span>
+          <span className="absolute left-[10px] top-1/2 -translate-y-1/2 text-[12.5px] text-muted-foreground font-semibold">
+            {prefix}
+          </span>
         )}
         <input
-          type="number" value={value} min={0} step={0.1}
+          type="number"
+          value={value}
+          min={0}
+          step={0.1}
           onChange={(e) => onChange(Number(e.target.value))}
-          style={{
-            ...inputStyle,
-            paddingLeft: prefix ? 32 : 12,
-            paddingRight: suffix ? 30 : 12,
-          }}
+          className={cn(
+            inputClass,
+            prefix ? "pl-8" : "pl-3",
+            suffix ? "pr-[30px]" : "pr-3"
+          )}
         />
         {suffix && (
-          <span style={{
-            position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)",
-            fontSize: 12.5, color: "#64748B", fontWeight: 600,
-          }}>{suffix}</span>
+          <span className="absolute right-[10px] top-1/2 -translate-y-1/2 text-[12.5px] text-muted-foreground font-semibold">
+            {suffix}
+          </span>
         )}
       </div>
     </div>
@@ -470,25 +438,22 @@ function MiniNumField({ label, value, onChange }: {
   label: string; value: number; onChange: (v: number) => void;
 }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-      <label style={{ fontSize: 11, fontWeight: 600, color: "#64748B" }}>{label}</label>
+    <div className="flex flex-col gap-1">
+      <label className="text-[11px] font-semibold text-muted-foreground">{label}</label>
       <input
-        type="number" value={value} min={0} step={0.01}
+        type="number"
+        value={value}
+        min={0}
+        step={0.01}
         onChange={(e) => onChange(Number(e.target.value))}
-        style={{ ...inputStyle, fontSize: 12.5, padding: "7px 8px" }}
+        className={cn(inputClass, "text-[12.5px] px-2 py-[7px]")}
       />
     </div>
   );
 }
 
-const inputStyle: React.CSSProperties = {
-  width: "100%", padding: "9px 12px", borderRadius: 10,
-  border: "1.5px solid #E2E8F0", fontSize: 13.5, color: "#0F172A",
-  background: "#F8FAFC", outline: "none", boxSizing: "border-box",
-};
+const inputClass =
+  "w-full px-3 py-[9px] rounded-[10px] border-[1.5px] border-border text-[13.5px] text-foreground bg-slate-50 outline-none box-border";
 
-const selectStyle: React.CSSProperties = {
-  width: "100%", padding: "9px 12px", borderRadius: 10,
-  border: "1.5px solid #E2E8F0", fontSize: 13, color: "#0F172A",
-  background: "#F8FAFC", outline: "none",
-};
+const selectClass =
+  "w-full px-3 py-[9px] rounded-[10px] border-[1.5px] border-border text-[13px] text-foreground bg-slate-50 outline-none";

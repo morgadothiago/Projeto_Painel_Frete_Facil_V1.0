@@ -6,10 +6,8 @@ import {
   MoreHorizontal, UserCheck, UserX, ChevronUp, ChevronDown,
   ChevronsUpDown, SlidersHorizontal, Mail, Phone,
 } from "lucide-react";
-import { tenantConfig }      from "@/config/tenant";
+import { cn } from "@/lib/utils";
 import { updateCompanyStatus, type CompanyRow } from "@/app/actions/companies";
-
-const { theme: t } = tenantConfig;
 
 // ── Status config ─────────────────────────────────────────────────────────────
 
@@ -24,16 +22,14 @@ const STATUS_CONFIG: Record<string, {
 function StatusBadge({ status }: { status: string }) {
   const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.INACTIVE;
   return (
-    <span style={{
-      display: "inline-flex", alignItems: "center", gap: 5,
-      padding: "4px 10px", borderRadius: 20,
-      background: cfg.bg, color: cfg.color,
-      fontSize: 12, fontWeight: 600,
-    }}>
-      <span style={{
-        width: 6, height: 6, borderRadius: "50%",
-        background: cfg.dot, flexShrink: 0,
-      }} />
+    <span
+      className="inline-flex items-center gap-[5px] px-[10px] py-1 rounded-full text-[12px] font-semibold"
+      style={{ background: cfg.bg, color: cfg.color }}
+    >
+      <span
+        className="w-1.5 h-1.5 rounded-full shrink-0"
+        style={{ background: cfg.dot }}
+      />
       {cfg.label}
     </span>
   );
@@ -75,66 +71,38 @@ function ActionsMenu({
   const [open, setOpen] = useState(false);
 
   const action = company.status === "PENDING"
-    ? { label: "Ativar empresa",    icon: <UserCheck style={{ width: 13, height: 13 }} />, status: "ACTIVE"   as const, color: "#059669", hoverBg: "#ECFDF5" }
+    ? { label: "Ativar empresa",    icon: <UserCheck className="w-[13px] h-[13px]" />, status: "ACTIVE"   as const, colorClass: "text-[#059669]", hoverBgClass: "hover:bg-[#ECFDF5]" }
     : company.status === "ACTIVE"
-    ? { label: "Desativar empresa", icon: <UserX     style={{ width: 13, height: 13 }} />, status: "INACTIVE" as const, color: "#DC2626", hoverBg: "#FEF2F2" }
-    : { label: "Reativar empresa",  icon: <UserCheck style={{ width: 13, height: 13 }} />, status: "ACTIVE"   as const, color: "#059669", hoverBg: "#ECFDF5" };
+    ? { label: "Desativar empresa", icon: <UserX     className="w-[13px] h-[13px]" />, status: "INACTIVE" as const, colorClass: "text-[#DC2626]", hoverBgClass: "hover:bg-[#FEF2F2]" }
+    : { label: "Reativar empresa",  icon: <UserCheck className="w-[13px] h-[13px]" />, status: "ACTIVE"   as const, colorClass: "text-[#059669]", hoverBgClass: "hover:bg-[#ECFDF5]" };
 
   return (
-    <div style={{ position: "relative" }}>
+    <div className="relative">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        style={{
-          width: 32, height: 32, borderRadius: 8,
-          border: `1.5px solid ${t.border}`,
-          background: open ? t.background : "transparent",
-          cursor: "pointer",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          color: open ? t.primary : t.textSecondary,
-          transition: "all 0.15s",
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.background = t.background;
-          e.currentTarget.style.color = t.primary;
-          e.currentTarget.style.borderColor = t.primary;
-        }}
-        onMouseLeave={(e) => {
-          if (!open) {
-            e.currentTarget.style.background = "transparent";
-            e.currentTarget.style.color = t.textSecondary;
-            e.currentTarget.style.borderColor = t.border;
-          }
-        }}
+        className={cn(
+          "w-8 h-8 rounded-lg border-[1.5px] border-border cursor-pointer flex items-center justify-center transition-all duration-150",
+          open
+            ? "bg-background text-primary border-primary"
+            : "bg-transparent text-muted-foreground hover:bg-background hover:text-primary hover:border-primary"
+        )}
       >
-        <MoreHorizontal style={{ width: 15, height: 15 }} />
+        <MoreHorizontal className="w-[15px] h-[15px]" />
       </button>
 
       {open && (
         <>
-          <div style={{ position: "fixed", inset: 0, zIndex: 10 }} onClick={() => setOpen(false)} />
-          <div style={{
-            position: "absolute", right: 0, top: "calc(100% + 6px)",
-            background: t.surface,
-            border: `1px solid ${t.border}`,
-            borderRadius: 12,
-            boxShadow: "0 8px 24px rgba(0,0,0,0.10), 0 2px 6px rgba(0,0,0,0.06)",
-            zIndex: 20, minWidth: 190, overflow: "hidden",
-            padding: 4,
-          }}>
+          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
+          <div className="absolute right-0 top-[calc(100%+6px)] bg-white border border-border rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.10),0_2px_6px_rgba(0,0,0,0.06)] z-20 min-w-[190px] overflow-hidden p-1">
             <button
               type="button"
               onClick={() => { onUpdate(company.userId, action.status); setOpen(false); }}
-              style={{
-                display: "flex", alignItems: "center", gap: 9,
-                width: "100%", padding: "9px 12px",
-                border: "none", background: "transparent",
-                fontSize: 13, fontWeight: 600, color: action.color,
-                cursor: "pointer", borderRadius: 8,
-                transition: "background 0.15s",
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = action.hoverBg; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+              className={cn(
+                "flex items-center gap-[9px] w-full px-3 py-[9px] border-none bg-transparent text-[13px] font-semibold cursor-pointer rounded-lg transition-colors duration-150",
+                action.colorClass,
+                action.hoverBgClass
+              )}
             >
               {action.icon}
               {action.label}
@@ -164,18 +132,14 @@ function Th({
   return (
     <th
       onClick={() => onSort(sortKey)}
-      style={{
-        padding: "12px 20px",
-        fontSize: 11, fontWeight: 700,
-        color: active ? t.primary : "#94A3B8",
-        textTransform: "uppercase", letterSpacing: "0.07em",
-        cursor: "pointer", userSelect: "none", whiteSpace: "nowrap",
-        textAlign: "left",
-      }}
+      className={cn(
+        "px-5 py-3 text-[11px] font-bold uppercase tracking-[0.07em] cursor-pointer select-none whitespace-nowrap text-left",
+        active ? "text-primary" : "text-muted-foreground"
+      )}
     >
-      <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+      <span className="inline-flex items-center gap-1">
         {label}
-        <Icon style={{ width: 12, height: 12 }} />
+        <Icon className="w-3 h-3" />
       </span>
     </th>
   );
@@ -238,58 +202,49 @@ export function CompaniesTable({ initialData }: { initialData: CompanyRow[] }) {
   }, [data, search, filter, sortKey, sortDir]);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16, height: "100%", minHeight: 0 }}>
+    <div className="flex flex-col gap-4 h-full min-h-0">
 
       {/* ── Stats ── */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, flexShrink: 0 }}>
+      <div className="grid grid-cols-4 gap-3 shrink-0">
         {[
           {
             label: "Total", value: counts.total,
-            icon: <Building2 style={{ width: 16, height: 16 }} />,
-            iconBg: `linear-gradient(135deg, #0C6B64, ${t.primary})`,
-            iconColor: "#fff",
-            valueBg: t.surface, valueFg: t.textPrimary, border: t.border,
+            icon: <Building2 className="w-4 h-4" />,
+            iconBg: "bg-[linear-gradient(135deg,#0C6B64,#2EC4B6)]",
+            cardBg: "bg-white border-border",
+            valueFgClass: "text-foreground",
           },
           {
             label: "Ativas", value: counts.active,
-            icon: <CheckCircle2 style={{ width: 16, height: 16 }} />,
-            iconBg: "#059669", iconColor: "#fff",
-            valueBg: "#ECFDF5", valueFg: "#059669", border: "#A7F3D0",
+            icon: <CheckCircle2 className="w-4 h-4" />,
+            iconBg: "bg-[#059669]",
+            cardBg: "bg-[#ECFDF5] border-[#A7F3D0]",
+            valueFgClass: "text-[#059669]",
           },
           {
             label: "Pendentes", value: counts.pending,
-            icon: <Clock style={{ width: 16, height: 16 }} />,
-            iconBg: "#D97706", iconColor: "#fff",
-            valueBg: "#FFFBEB", valueFg: "#D97706", border: "#FDE68A",
+            icon: <Clock className="w-4 h-4" />,
+            iconBg: "bg-[#D97706]",
+            cardBg: "bg-[#FFFBEB] border-[#FDE68A]",
+            valueFgClass: "text-[#D97706]",
           },
           {
             label: "Inativas", value: counts.inactive,
-            icon: <XCircle style={{ width: 16, height: 16 }} />,
-            iconBg: "#94A3B8", iconColor: "#fff",
-            valueBg: "#F8FAFC", valueFg: "#64748B", border: "#E2E8F0",
+            icon: <XCircle className="w-4 h-4" />,
+            iconBg: "bg-[#94A3B8]",
+            cardBg: "bg-[#F8FAFC] border-border",
+            valueFgClass: "text-muted-foreground",
           },
         ].map((card) => (
-          <div key={card.label} style={{
-            background: card.valueBg,
-            border: `1px solid ${card.border}`,
-            borderRadius: 16,
-            padding: "18px 20px",
-            display: "flex", alignItems: "center", gap: 14,
-          }}>
-            <div style={{
-              width: 40, height: 40, borderRadius: 12, flexShrink: 0,
-              background: card.iconBg,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              color: card.iconColor,
-              boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
-            }}>
+          <div key={card.label} className={cn("border rounded-2xl p-[18px_20px] flex items-center gap-[14px]", card.cardBg)}>
+            <div className={cn("w-10 h-10 rounded-xl shrink-0 flex items-center justify-center text-white shadow-[0_2px_8px_rgba(0,0,0,0.12)]", card.iconBg)}>
               {card.icon}
             </div>
             <div>
-              <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.07em" }}>
+              <p className="m-0 text-[11px] font-bold text-muted-foreground uppercase tracking-[0.07em]">
                 {card.label}
               </p>
-              <p style={{ margin: "2px 0 0", fontSize: 26, fontWeight: 800, color: card.valueFg, lineHeight: 1 }}>
+              <p className={cn("mt-0.5 text-[26px] font-extrabold leading-none", card.valueFgClass)}>
                 {card.value}
               </p>
             </div>
@@ -298,50 +253,31 @@ export function CompaniesTable({ initialData }: { initialData: CompanyRow[] }) {
       </div>
 
       {/* ── Tabela ── */}
-      <div style={{
-        background: t.surface,
-        border: `1px solid ${t.border}`,
-        borderRadius: 16,
-        flex: 1, minHeight: 0,
-        display: "flex", flexDirection: "column",
-        overflow: "hidden",
-        opacity: isPending ? 0.65 : 1,
-        transition: "opacity 0.2s",
-      }}>
+      <div className={cn(
+        "bg-white border border-border rounded-2xl flex-1 min-h-0 flex flex-col overflow-hidden transition-opacity duration-200",
+        isPending ? "opacity-65" : "opacity-100"
+      )}>
 
         {/* Toolbar */}
-        <div style={{
-          padding: "14px 20px",
-          borderBottom: `1px solid ${t.border}`,
-          display: "flex", alignItems: "center", gap: 12,
-          flexShrink: 0, flexWrap: "wrap",
-        }}>
+        <div className="px-5 py-[14px] border-b border-border flex items-center gap-3 shrink-0 flex-wrap">
           {/* Search */}
-          <div style={{
-            display: "flex", alignItems: "center", gap: 9,
-            background: t.background, borderRadius: 10,
-            padding: "8px 14px", flex: 1, minWidth: 220,
-            border: `1.5px solid ${t.border}`,
-          }}>
-            <Search style={{ width: 14, height: 14, color: "#94A3B8", flexShrink: 0 }} />
+          <div className="flex items-center gap-[9px] bg-background rounded-[10px] px-[14px] py-2 flex-1 min-w-[220px] border-[1.5px] border-border">
+            <Search className="w-[14px] h-[14px] text-muted-foreground shrink-0" />
             <input
               type="text"
               placeholder="Buscar por nome, CNPJ ou e-mail…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              style={{
-                border: "none", background: "transparent", outline: "none",
-                fontSize: 13, color: t.textPrimary, width: "100%",
-              }}
+              className="border-none bg-transparent outline-none text-[13px] text-foreground w-full"
             />
           </div>
 
           {/* Divider */}
-          <div style={{ width: 1, height: 28, background: t.border, flexShrink: 0 }} />
+          <div className="w-px h-7 bg-border shrink-0" />
 
           {/* Filter pills */}
-          <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
-            <SlidersHorizontal style={{ width: 13, height: 13, color: "#94A3B8", marginRight: 6, flexShrink: 0 }} />
+          <div className="flex items-center gap-0.5">
+            <SlidersHorizontal className="w-[13px] h-[13px] text-muted-foreground mr-[6px] shrink-0" />
             {FILTERS.map((f) => {
               const active = filter === f.value;
               return (
@@ -349,16 +285,12 @@ export function CompaniesTable({ initialData }: { initialData: CompanyRow[] }) {
                   key={f.value}
                   type="button"
                   onClick={() => setFilter(f.value)}
-                  style={{
-                    padding: "6px 13px", borderRadius: 8,
-                    border: active ? `1.5px solid ${t.primary}` : "1.5px solid transparent",
-                    fontSize: 12.5, fontWeight: active ? 700 : 500,
-                    background: active ? `${t.primary}12` : "transparent",
-                    color: active ? t.primary : t.textSecondary,
-                    cursor: "pointer", transition: "all 0.15s",
-                  }}
-                  onMouseEnter={(e) => { if (!active) { e.currentTarget.style.color = t.textPrimary; e.currentTarget.style.background = t.background; } }}
-                  onMouseLeave={(e) => { if (!active) { e.currentTarget.style.color = t.textSecondary; e.currentTarget.style.background = "transparent"; } }}
+                  className={cn(
+                    "px-[13px] py-1.5 rounded-lg border-[1.5px] text-[12.5px] cursor-pointer transition-all duration-150",
+                    active
+                      ? "border-primary bg-primary/[0.07] text-primary font-bold"
+                      : "border-transparent bg-transparent text-muted-foreground font-medium hover:text-foreground hover:bg-background"
+                  )}
                 >
                   {f.label}
                 </button>
@@ -368,41 +300,33 @@ export function CompaniesTable({ initialData }: { initialData: CompanyRow[] }) {
         </div>
 
         {/* Table */}
-        <div style={{ overflowY: "auto", flex: 1 }}>
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead style={{ position: "sticky", top: 0, zIndex: 1 }}>
-              <tr style={{ background: t.background, borderBottom: `1px solid ${t.border}` }}>
+        <div className="overflow-y-auto flex-1">
+          <table className="w-full border-collapse">
+            <thead className="sticky top-0 z-[1]">
+              <tr className="bg-background border-b border-border">
                 <Th label="Empresa"  sortKey="name"      current={sortKey} dir={sortDir} onSort={handleSort} />
                 <Th label="CNPJ"     sortKey="cnpj"      current={sortKey} dir={sortDir} onSort={handleSort} />
-                <th style={{ padding: "12px 20px", fontSize: 11, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.07em", textAlign: "left" }}>
+                <th className="px-5 py-3 text-[11px] font-bold text-muted-foreground uppercase tracking-[0.07em] text-left">
                   Contato
                 </th>
                 <Th label="Status"   sortKey="status"    current={sortKey} dir={sortDir} onSort={handleSort} />
                 <Th label="Cadastro" sortKey="createdAt" current={sortKey} dir={sortDir} onSort={handleSort} />
-                <th style={{ width: 56 }} />
+                <th className="w-14" />
               </tr>
             </thead>
             <tbody>
               {rows.length === 0 ? (
                 <tr>
                   <td colSpan={6}>
-                    <div style={{
-                      display: "flex", flexDirection: "column",
-                      alignItems: "center", gap: 12,
-                      padding: "64px 24px",
-                    }}>
-                      <div style={{
-                        width: 56, height: 56, borderRadius: 18,
-                        background: t.background,
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                      }}>
-                        <Building2 style={{ width: 24, height: 24, color: "#CBD5E1" }} />
+                    <div className="flex flex-col items-center gap-3 py-16 px-6">
+                      <div className="w-14 h-14 rounded-[18px] bg-background flex items-center justify-center">
+                        <Building2 className="w-6 h-6 text-[#CBD5E1]" />
                       </div>
-                      <div style={{ textAlign: "center" }}>
-                        <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: t.textPrimary }}>
+                      <div className="text-center">
+                        <p className="m-0 text-[14px] font-bold text-foreground">
                           Nenhuma empresa encontrada
                         </p>
-                        <p style={{ margin: "5px 0 0", fontSize: 13, color: t.textSecondary }}>
+                        <p className="mt-[5px] text-[13px] text-muted-foreground">
                           {search || filter !== "ALL"
                             ? "Tente ajustar os filtros."
                             : "Empresas cadastradas aparecerão aqui."}
@@ -415,31 +339,25 @@ export function CompaniesTable({ initialData }: { initialData: CompanyRow[] }) {
                 rows.map((c, i) => (
                   <tr
                     key={c.id}
-                    style={{
-                      borderBottom: i < rows.length - 1 ? `1px solid ${t.border}` : "none",
-                      transition: "background 0.12s",
-                      cursor: "default",
-                    }}
-                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = `${t.primary}05`; }}
-                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
+                    className={cn(
+                      "transition-colors duration-[120ms] cursor-default hover:bg-primary/[0.02]",
+                      i < rows.length - 1 ? "border-b border-border" : ""
+                    )}
                   >
                     {/* Empresa */}
-                    <td style={{ padding: "16px 20px" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                        <div style={{
-                          width: 38, height: 38, borderRadius: 11, flexShrink: 0,
-                          background: avatarColor(c.tradeName ?? c.name),
-                          display: "flex", alignItems: "center", justifyContent: "center",
-                          color: "#fff", fontSize: 14, fontWeight: 800,
-                          boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
-                        }}>
+                    <td className="px-5 py-4">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className="w-[38px] h-[38px] rounded-[11px] shrink-0 flex items-center justify-center text-white text-[14px] font-extrabold shadow-[0_2px_8px_rgba(0,0,0,0.12)]"
+                          style={{ background: avatarColor(c.tradeName ?? c.name) }}
+                        >
                           {(c.tradeName ?? c.name).charAt(0).toUpperCase()}
                         </div>
                         <div>
-                          <p style={{ margin: 0, fontSize: 13.5, fontWeight: 700, color: t.textPrimary, lineHeight: 1.3 }}>
+                          <p className="m-0 text-[13.5px] font-bold text-foreground leading-[1.3]">
                             {c.tradeName ?? c.name}
                           </p>
-                          <p style={{ margin: "2px 0 0", fontSize: 12, color: t.textSecondary }}>
+                          <p className="mt-0.5 text-[12px] text-muted-foreground">
                             {c.name}
                           </p>
                         </div>
@@ -447,28 +365,22 @@ export function CompaniesTable({ initialData }: { initialData: CompanyRow[] }) {
                     </td>
 
                     {/* CNPJ */}
-                    <td style={{ padding: "16px 20px" }}>
-                      <span style={{
-                        fontSize: 12.5, color: t.textSecondary,
-                        fontFamily: "'Geist Mono', monospace",
-                        background: t.background,
-                        padding: "3px 8px", borderRadius: 6,
-                        border: `1px solid ${t.border}`,
-                      }}>
+                    <td className="px-5 py-4">
+                      <span className="text-[12.5px] text-muted-foreground font-[family-name:var(--font-geist-mono)] bg-background px-2 py-[3px] rounded-md border border-border">
                         {formatCNPJ(c.cnpj)}
                       </span>
                     </td>
 
                     {/* Contato */}
-                    <td style={{ padding: "16px 20px" }}>
-                      <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-                        <span style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12.5, color: t.textPrimary }}>
-                          <Mail style={{ width: 11, height: 11, color: "#94A3B8", flexShrink: 0 }} />
+                    <td className="px-5 py-4">
+                      <div className="flex flex-col gap-[3px]">
+                        <span className="flex items-center gap-[5px] text-[12.5px] text-foreground">
+                          <Mail className="w-[11px] h-[11px] text-muted-foreground shrink-0" />
                           {c.email}
                         </span>
                         {c.phone && (
-                          <span style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, color: t.textSecondary }}>
-                            <Phone style={{ width: 11, height: 11, color: "#94A3B8", flexShrink: 0 }} />
+                          <span className="flex items-center gap-[5px] text-[12px] text-muted-foreground">
+                            <Phone className="w-[11px] h-[11px] text-muted-foreground shrink-0" />
                             {c.phone}
                           </span>
                         )}
@@ -476,19 +388,19 @@ export function CompaniesTable({ initialData }: { initialData: CompanyRow[] }) {
                     </td>
 
                     {/* Status */}
-                    <td style={{ padding: "16px 20px" }}>
+                    <td className="px-5 py-4">
                       <StatusBadge status={c.status} />
                     </td>
 
                     {/* Data */}
-                    <td style={{ padding: "16px 20px" }}>
-                      <span style={{ fontSize: 12.5, color: t.textSecondary, whiteSpace: "nowrap" }}>
+                    <td className="px-5 py-4">
+                      <span className="text-[12.5px] text-muted-foreground whitespace-nowrap">
                         {formatDate(c.createdAt)}
                       </span>
                     </td>
 
                     {/* Actions */}
-                    <td style={{ padding: "16px 20px", textAlign: "right" }}>
+                    <td className="px-5 py-4 text-right">
                       <ActionsMenu company={c} onUpdate={handleUpdate} />
                     </td>
                   </tr>
@@ -500,24 +412,15 @@ export function CompaniesTable({ initialData }: { initialData: CompanyRow[] }) {
 
         {/* Footer */}
         {rows.length > 0 && (
-          <div style={{
-            padding: "10px 20px",
-            borderTop: `1px solid ${t.border}`,
-            display: "flex", alignItems: "center", justifyContent: "space-between",
-            flexShrink: 0,
-          }}>
-            <span style={{ fontSize: 12, color: t.textSecondary }}>
-              Exibindo <strong style={{ color: t.textPrimary }}>{rows.length}</strong> de <strong style={{ color: t.textPrimary }}>{data.length}</strong> empresa{data.length !== 1 ? "s" : ""}
+          <div className="px-5 py-[10px] border-t border-border flex items-center justify-between shrink-0">
+            <span className="text-[12px] text-muted-foreground">
+              Exibindo <strong className="text-foreground">{rows.length}</strong> de <strong className="text-foreground">{data.length}</strong> empresa{data.length !== 1 ? "s" : ""}
             </span>
             {filter !== "ALL" || search ? (
               <button
                 type="button"
                 onClick={() => { setFilter("ALL"); setSearch(""); }}
-                style={{
-                  fontSize: 12, color: t.primary, background: "none",
-                  border: "none", cursor: "pointer", fontWeight: 600,
-                  padding: 0,
-                }}
+                className="text-[12px] text-primary bg-transparent border-none cursor-pointer font-semibold p-0"
               >
                 Limpar filtros
               </button>

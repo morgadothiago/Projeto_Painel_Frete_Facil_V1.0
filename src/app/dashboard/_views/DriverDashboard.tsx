@@ -14,7 +14,7 @@ type Props = { userName: string };
 
 export function DriverDashboard({ userName }: Props) {
   return (
-    <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 16, overflow: "hidden", minHeight: 0 }}>
+    <div className="flex-1 flex flex-col gap-4 overflow-hidden min-h-0">
 
       <PageHeader
         label="Motorista"
@@ -24,24 +24,24 @@ export function DriverDashboard({ userName }: Props) {
         actionHref="/dashboard/disponiveis"
       />
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, flexShrink: 0 }}>
+      <div className="grid grid-cols-4 gap-3 shrink-0">
         <StatCard icon={<PackageSearch />} label="Disponíveis"  value="0"    sub="para aceitar"  accent="#F59E0B" />
         <StatCard icon={<Truck />}         label="Em Andamento" value="0"    sub="agora"         accent={t.primary} />
         <StatCard icon={<CheckCircle2 />}  label="Concluídos"  value="0"    sub="este mês"      accent={t.success} />
         <StatCard icon={<Wallet />}        label="Saldo"        value="R$ 0" sub="disponível"    accent="#6366F1" />
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 280px", gap: 14, flex: 1, minHeight: 0, overflow: "hidden" }}>
+      <div className="grid gap-[14px] flex-1 min-h-0 overflow-hidden" style={{ gridTemplateColumns: "1fr 280px" }}>
 
         <Card
           title="Meus Fretes"
-          icon={<Truck style={{ width: 15, height: 15 }} />}
+          icon={<Truck className="w-[15px] h-[15px]" />}
           href="/dashboard/fretes"
           fill
         >
           <EmptyState
             icon={
-              <svg viewBox="0 0 64 64" fill="none" style={{ width: 44, height: 44 }}>
+              <svg viewBox="0 0 64 64" fill="none" className="w-[44px] h-[44px]">
                 <circle cx="32" cy="24" r="14" fill={t.primary} opacity=".15" />
                 <circle cx="32" cy="24" r="8" fill={t.primary} opacity=".35" />
                 <circle cx="32" cy="24" r="4" fill={t.primary} />
@@ -56,9 +56,9 @@ export function DriverDashboard({ userName }: Props) {
           />
         </Card>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 12, overflow: "hidden", minHeight: 0 }}>
+        <div className="flex flex-col gap-3 overflow-hidden min-h-0">
           <Card title="Ações rápidas">
-            <div style={{ padding: "8px" }}>
+            <div className="p-2">
               <QuickAction icon={<PackageSearch />} label="Fretes Disponíveis" sub="Aceitar uma entrega"     href="/dashboard/disponiveis"  color="#F59E0B" />
               <QuickAction icon={<MapPin />}        label="Em Andamento"       sub="Ver rota atual"         href="/dashboard/em-andamento" color={t.primary} />
               <QuickAction icon={<Wallet />}        label="Meu Saldo"          sub="Ganhos e saques"        href="/dashboard/saldo"        color={t.success} />
@@ -66,7 +66,7 @@ export function DriverDashboard({ userName }: Props) {
           </Card>
 
           <InfoCard
-            icon={<Navigation style={{ width: 15, height: 15 }} />}
+            icon={<Navigation className="w-[15px] h-[15px]" />}
             title="Navegação integrada"
             description="Receba rotas otimizadas e atualizações em tempo real direto no app."
             linkLabel="Ver fretes"

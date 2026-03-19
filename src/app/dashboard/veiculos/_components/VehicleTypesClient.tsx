@@ -15,6 +15,7 @@ import {
   toggleVehicleTypeActive,
   deleteVehicleType,
 } from "@/app/actions/vehicleTypes";
+import { cn } from "@/lib/utils";
 
 // ── Constantes ────────────────────────────────────────────────────────────────
 
@@ -62,15 +63,17 @@ function sizeColor(v: string)     { return SIZES.find((s) => s.value === v)?.col
 function categoryLabel(v: string) { return CATEGORIES.find((c) => c.value === v)?.label ?? v; }
 function categoryColor(v: string) { return CATEGORIES.find((c) => c.value === v)?.color ?? "#64748B"; }
 
+// Chip uses runtime-dynamic colors derived from data, so inline style is kept
 function Chip({ label, color }: { label: string; color: string }) {
   return (
-    <span style={{
-      display: "inline-flex", alignItems: "center",
-      padding: "2px 10px", borderRadius: 20,
-      fontSize: 11.5, fontWeight: 600,
-      background: `${color}18`, color,
-      border: `1px solid ${color}30`,
-    }}>
+    <span
+      className="inline-flex items-center px-[10px] py-[2px] rounded-[20px] text-[11.5px] font-semibold border"
+      style={{
+        background: `${color}18`,
+        color,
+        borderColor: `${color}30`,
+      }}
+    >
       {label}
     </span>
   );
@@ -118,72 +121,62 @@ function Modal({
   }
 
   return (
-    <div style={{
-      position: "fixed", inset: 0, zIndex: 1000,
-      background: "rgba(0,0,0,0.4)", backdropFilter: "blur(2px)",
-      display: "flex", alignItems: "center", justifyContent: "center",
-      padding: 16,
-    }}
+    <div
+      className="fixed inset-0 z-[1000] bg-black/40 backdrop-blur-[2px] flex items-center justify-center p-4"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div style={{
-        background: "#fff", borderRadius: 20, width: "100%", maxWidth: 560,
-        boxShadow: "0 20px 60px rgba(0,0,0,0.18)",
-        maxHeight: "90vh", overflowY: "auto",
-      }}>
+      <div className="bg-white rounded-[20px] w-full max-w-[560px] shadow-[0_20px_60px_rgba(0,0,0,0.18)] max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div style={{
-          padding: "22px 24px 18px",
-          borderBottom: "1px solid #F1F5F9",
-          display: "flex", alignItems: "center", justifyContent: "space-between",
-        }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{
-              width: 38, height: 38, borderRadius: 11,
-              background: "linear-gradient(135deg,#0C6B64,#2EC4B6)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-            }}>
-              <Car style={{ width: 17, height: 17, color: "#fff" }} />
+        <div className="px-6 pt-[22px] pb-[18px] border-b border-slate-100 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-[38px] h-[38px] rounded-[11px] bg-[linear-gradient(135deg,#0C6B64,#2EC4B6)] flex items-center justify-center">
+              <Car className="w-[17px] h-[17px] text-white" />
             </div>
             <div>
-              <h2 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: "#0F172A" }}>
+              <h2 className="m-0 text-base font-extrabold text-slate-900">
                 {isEdit ? "Editar tipo" : "Novo tipo de veículo"}
               </h2>
-              <p style={{ margin: 0, fontSize: 12, color: "#94A3B8", marginTop: 1 }}>
+              <p className="m-0 text-xs text-slate-400 mt-[1px]">
                 Preencha os dados do tipo de veículo
               </p>
             </div>
           </div>
-          <button onClick={onClose} style={{
-            width: 32, height: 32, borderRadius: 8,
-            border: "none", background: "#F8FAFC",
-            cursor: "pointer", fontSize: 16, color: "#64748B",
-          }}>×</button>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 rounded-lg border-none bg-slate-50 cursor-pointer text-base text-slate-500"
+          >
+            ×
+          </button>
         </div>
 
         {/* Body */}
-        <div style={{ padding: "20px 24px", display: "flex", flexDirection: "column", gap: 16 }}>
+        <div className="px-6 py-5 flex flex-col gap-4">
 
           {/* Nome */}
           <Field label="Nome do tipo *">
-            <input value={form.name} onChange={(e) => set("name", e.target.value)}
-              placeholder="Ex: Van Baú" style={inputStyle} />
+            <input
+              value={form.name}
+              onChange={(e) => set("name", e.target.value)}
+              placeholder="Ex: Van Baú"
+              className={inputClass}
+            />
           </Field>
 
           {/* Tipo de veículo */}
           <Field label="Tipo de veículo *">
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <div className="flex gap-2 flex-wrap">
               {VEHICLE_CLASSES.map((c) => (
-                <button key={c.value} type="button"
+                <button
+                  key={c.value}
+                  type="button"
                   onClick={() => set("vehicleClass", c.value)}
-                  style={{
-                    padding: "7px 14px", borderRadius: 10, cursor: "pointer",
-                    fontSize: 13, fontWeight: 600, transition: "all 0.15s",
-                    border: form.vehicleClass === c.value
-                      ? "2px solid #0C6B64" : "2px solid #E2E8F0",
-                    background: form.vehicleClass === c.value ? "#E6FAF8" : "#F8FAFC",
-                    color: form.vehicleClass === c.value ? "#0C6B64" : "#64748B",
-                  }}>
+                  className={cn(
+                    "px-[14px] py-[7px] rounded-[10px] cursor-pointer text-[13px] font-semibold transition-all duration-150 border-2",
+                    form.vehicleClass === c.value
+                      ? "border-primary-dark bg-[#E6FAF8] text-primary-dark"
+                      : "border-border bg-slate-50 text-muted-foreground"
+                  )}
+                >
                   {c.emoji} {c.label}
                 </button>
               ))}
@@ -191,19 +184,22 @@ function Modal({
           </Field>
 
           {/* Tamanho + Categoria */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <div className="grid grid-cols-2 gap-3">
             <Field label="Tamanho *">
-              <div style={{ display: "flex", gap: 6 }}>
+              <div className="flex gap-[6px]">
+                {/* Size buttons use runtime-dynamic colors from data, keep inline style for color-dependent props */}
                 {SIZES.map((s) => (
-                  <button key={s.value} type="button"
+                  <button
+                    key={s.value}
+                    type="button"
                     onClick={() => set("size", s.value)}
+                    className="flex-1 py-[7px] rounded-[9px] cursor-pointer text-[12.5px] font-bold transition-all duration-150 border-2"
                     style={{
-                      flex: 1, padding: "7px 0", borderRadius: 9, cursor: "pointer",
-                      fontSize: 12.5, fontWeight: 700, transition: "all 0.15s",
                       border: form.size === s.value ? `2px solid ${s.color}` : "2px solid #E2E8F0",
                       background: form.size === s.value ? `${s.color}18` : "#F8FAFC",
                       color: form.size === s.value ? s.color : "#64748B",
-                    }}>
+                    }}
+                  >
                     {s.label}
                   </button>
                 ))}
@@ -211,8 +207,11 @@ function Modal({
             </Field>
 
             <Field label="Categoria *">
-              <select value={form.category} onChange={(e) => set("category", e.target.value)}
-                style={inputStyle}>
+              <select
+                value={form.category}
+                onChange={(e) => set("category", e.target.value)}
+                className={inputClass}
+              >
                 {CATEGORIES.map((c) => (
                   <option key={c.value} value={c.value}>{c.label}</option>
                 ))}
@@ -221,79 +220,110 @@ function Modal({
           </div>
 
           {/* Ícone + Peso */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <div className="grid grid-cols-2 gap-3">
             <Field label="Ícone">
-              <select value={form.icon} onChange={(e) => set("icon", e.target.value)}
-                style={inputStyle}>
+              <select
+                value={form.icon}
+                onChange={(e) => set("icon", e.target.value)}
+                className={inputClass}
+              >
                 {ICONS.map((i) => (
                   <option key={i.value} value={i.value}>{i.label}</option>
                 ))}
               </select>
             </Field>
             <Field label="Peso máximo (kg) *">
-              <input type="number" value={form.maxWeight}
+              <input
+                type="number"
+                value={form.maxWeight}
                 onChange={(e) => set("maxWeight", Number(e.target.value))}
-                min={0} placeholder="0" style={inputStyle} />
+                min={0}
+                placeholder="0"
+                className={inputClass}
+              />
             </Field>
           </div>
 
           {/* Descrição */}
           <Field label="Descrição">
-            <textarea value={form.description}
+            <textarea
+              value={form.description}
               onChange={(e) => set("description", e.target.value)}
-              rows={2} placeholder="Descreva o tipo de veículo…"
-              style={{ ...inputStyle, resize: "vertical" }} />
+              rows={2}
+              placeholder="Descreva o tipo de veículo…"
+              className={cn(inputClass, "resize-y")}
+            />
           </Field>
 
           {/* Preços */}
           <div>
-            <p style={{ margin: "0 0 10px", fontSize: 12, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+            <p className="m-0 mb-[10px] text-[12px] font-bold text-slate-400 uppercase tracking-[0.06em]">
               Precificação
             </p>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <div className="grid grid-cols-2 gap-3">
               <Field label="Preço base (R$)">
-                <input type="number" value={form.basePrice} min={0} step={0.01}
+                <input
+                  type="number"
+                  value={form.basePrice}
+                  min={0}
+                  step={0.01}
                   onChange={(e) => set("basePrice", Number(e.target.value))}
-                  style={inputStyle} />
+                  className={inputClass}
+                />
               </Field>
               <Field label="Preço por km (R$)">
-                <input type="number" value={form.pricePerKm} min={0} step={0.01}
+                <input
+                  type="number"
+                  value={form.pricePerKm}
+                  min={0}
+                  step={0.01}
                   onChange={(e) => set("pricePerKm", Number(e.target.value))}
-                  style={inputStyle} />
+                  className={inputClass}
+                />
               </Field>
               <Field label="Ajudante (R$)">
-                <input type="number" value={form.helperPrice} min={0} step={0.01}
+                <input
+                  type="number"
+                  value={form.helperPrice}
+                  min={0}
+                  step={0.01}
                   onChange={(e) => set("helperPrice", Number(e.target.value))}
-                  style={inputStyle} />
+                  className={inputClass}
+                />
               </Field>
               <Field label="Parada adicional (R$)">
-                <input type="number" value={form.additionalStopPrice} min={0} step={0.01}
+                <input
+                  type="number"
+                  value={form.additionalStopPrice}
+                  min={0}
+                  step={0.01}
                   onChange={(e) => set("additionalStopPrice", Number(e.target.value))}
-                  style={inputStyle} />
+                  className={inputClass}
+                />
               </Field>
             </div>
           </div>
         </div>
 
         {/* Footer */}
-        <div style={{
-          padding: "16px 24px", borderTop: "1px solid #F1F5F9",
-          display: "flex", gap: 10, justifyContent: "flex-end",
-        }}>
-          <button onClick={onClose} disabled={pending} style={{
-            padding: "10px 20px", borderRadius: 10,
-            border: "1px solid #E2E8F0", background: "#F8FAFC",
-            fontSize: 13.5, fontWeight: 600, color: "#475569", cursor: "pointer",
-          }}>
+        <div className="px-6 py-4 border-t border-slate-100 flex gap-[10px] justify-end">
+          <button
+            onClick={onClose}
+            disabled={pending}
+            className="px-5 py-[10px] rounded-[10px] border border-border bg-slate-50 text-[13.5px] font-semibold text-slate-600 cursor-pointer"
+          >
             Cancelar
           </button>
-          <button onClick={submit} disabled={pending || !form.name} style={{
-            padding: "10px 24px", borderRadius: 10, border: "none",
-            background: !form.name ? "#E2E8F0" : "linear-gradient(135deg,#0C6B64,#2EC4B6)",
-            fontSize: 13.5, fontWeight: 700, color: !form.name ? "#94A3B8" : "#fff",
-            cursor: !form.name ? "not-allowed" : "pointer",
-            boxShadow: form.name ? "0 4px 14px rgba(46,196,182,0.35)" : "none",
-          }}>
+          <button
+            onClick={submit}
+            disabled={pending || !form.name}
+            className={cn(
+              "px-6 py-[10px] rounded-[10px] border-none text-[13.5px] font-bold transition-all",
+              form.name
+                ? "bg-[linear-gradient(135deg,#0C6B64,#2EC4B6)] text-white cursor-pointer shadow-[0_4px_14px_rgba(46,196,182,0.35)]"
+                : "bg-border text-slate-400 cursor-not-allowed"
+            )}
+          >
             {pending ? "Salvando…" : isEdit ? "Salvar alterações" : "Criar tipo"}
           </button>
         </div>
@@ -304,18 +334,15 @@ function Modal({
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-      <label style={{ fontSize: 12.5, fontWeight: 600, color: "#475569" }}>{label}</label>
+    <div className="flex flex-col gap-[6px]">
+      <label className="text-[12.5px] font-semibold text-slate-600">{label}</label>
       {children}
     </div>
   );
 }
 
-const inputStyle: React.CSSProperties = {
-  width: "100%", padding: "9px 12px", borderRadius: 10,
-  border: "1.5px solid #E2E8F0", fontSize: 13.5, color: "#0F172A",
-  background: "#F8FAFC", outline: "none", boxSizing: "border-box",
-};
+const inputClass =
+  "w-full px-3 py-[9px] rounded-[10px] border-[1.5px] border-border text-[13.5px] text-foreground bg-slate-50 outline-none box-border";
 
 // ── Tabela principal ──────────────────────────────────────────────────────────
 
@@ -352,69 +379,64 @@ export function VehicleTypesClient({ initialData }: { initialData: VehicleTypeRo
   return (
     <>
       {/* Toolbar */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-        <p style={{ margin: 0, fontSize: 13, color: "#64748B" }}>
+      <div className="flex items-center justify-between gap-3">
+        <p className="m-0 text-[13px] text-muted-foreground">
           {rows.filter((r) => r.isActive).length} ativos · {rows.filter((r) => !r.isActive).length} inativos
         </p>
         <button
           onClick={() => setModal("create")}
-          style={{
-            display: "flex", alignItems: "center", gap: 7,
-            padding: "10px 18px", borderRadius: 11, border: "none",
-            background: "linear-gradient(135deg,#0C6B64,#2EC4B6)",
-            color: "#fff", fontSize: 13.5, fontWeight: 700, cursor: "pointer",
-            boxShadow: "0 4px 14px rgba(46,196,182,0.35)",
-          }}
+          className="flex items-center gap-[7px] px-[18px] py-[10px] rounded-[11px] border-none bg-[linear-gradient(135deg,#0C6B64,#2EC4B6)] text-white text-[13.5px] font-bold cursor-pointer shadow-[0_4px_14px_rgba(46,196,182,0.35)]"
         >
-          <Plus style={{ width: 15, height: 15 }} />
+          <Plus className="w-[15px] h-[15px]" />
           Novo tipo
         </button>
       </div>
 
       {/* Cards grid */}
-      <div style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-        gap: 16,
-        opacity: isPending ? 0.6 : 1,
-        transition: "opacity 0.2s",
-      }}>
+      <div
+        className={cn(
+          "grid gap-4 transition-opacity duration-200",
+          isPending ? "opacity-60" : "opacity-100"
+        )}
+        style={{ gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))" }}
+      >
         {rows.map((row) => (
-          <div key={row.id} style={{
-            background: "#fff", borderRadius: 16,
-            border: row.isActive ? "1.5px solid #E2E8F0" : "1.5px dashed #E2E8F0",
-            padding: "18px 20px",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
-            opacity: row.isActive ? 1 : 0.6,
-            transition: "all 0.2s",
-          }}>
+          <div
+            key={row.id}
+            className={cn(
+              "bg-white rounded-2xl px-5 py-[18px] shadow-[0_2px_8px_rgba(0,0,0,0.05)] transition-all duration-200",
+              row.isActive
+                ? "border-[1.5px] border-border opacity-100"
+                : "border-[1.5px] border-dashed border-border opacity-60"
+            )}
+          >
             {/* Card header */}
-            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 12 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <div style={{
-                  width: 44, height: 44, borderRadius: 13, flexShrink: 0,
-                  background: row.isActive
-                    ? "linear-gradient(135deg,#0C6B64,#2EC4B6)"
-                    : "#F1F5F9",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 22,
-                }}>
+            <div className="flex items-start justify-between mb-3">
+              <div className="flex items-center gap-3">
+                <div
+                  className={cn(
+                    "w-[44px] h-[44px] rounded-[13px] shrink-0 flex items-center justify-center text-[22px]",
+                    row.isActive
+                      ? "bg-[linear-gradient(135deg,#0C6B64,#2EC4B6)]"
+                      : "bg-slate-100"
+                  )}
+                >
                   {classEmoji(row.vehicleClass)}
                 </div>
                 <div>
-                  <p style={{ margin: 0, fontSize: 15, fontWeight: 800, color: "#0F172A" }}>
+                  <p className="m-0 text-[15px] font-extrabold text-foreground">
                     {row.name}
                   </p>
-                  <p style={{ margin: 0, fontSize: 12, color: "#94A3B8", marginTop: 1 }}>
+                  <p className="m-0 text-xs text-slate-400 mt-[1px]">
                     {classLabel(row.vehicleClass)}
                   </p>
                 </div>
               </div>
 
               {/* Ações */}
-              <div style={{ display: "flex", gap: 6 }}>
+              <div className="flex gap-[6px]">
                 <IconBtn title="Editar" onClick={() => setModal(row)}>
-                  <Pencil style={{ width: 13, height: 13 }} />
+                  <Pencil className="w-[13px] h-[13px]" />
                 </IconBtn>
                 <IconBtn
                   title={row.isActive ? "Desativar" : "Ativar"}
@@ -422,56 +444,47 @@ export function VehicleTypesClient({ initialData }: { initialData: VehicleTypeRo
                   color={row.isActive ? "#EF4444" : "#10B981"}
                 >
                   {row.isActive
-                    ? <PowerOff style={{ width: 13, height: 13 }} />
-                    : <Power    style={{ width: 13, height: 13 }} />
+                    ? <PowerOff className="w-[13px] h-[13px]" />
+                    : <Power    className="w-[13px] h-[13px]" />
                   }
                 </IconBtn>
                 <IconBtn title="Excluir" onClick={() => handleDelete(row)} color="#EF4444">
-                  <Trash2 style={{ width: 13, height: 13 }} />
+                  <Trash2 className="w-[13px] h-[13px]" />
                 </IconBtn>
               </div>
             </div>
 
             {/* Chips */}
-            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12 }}>
-              <Chip label={sizeLabel(row.size)}     color={sizeColor(row.size)} />
+            <div className="flex gap-[6px] flex-wrap mb-3">
+              <Chip label={sizeLabel(row.size)}         color={sizeColor(row.size)} />
               <Chip label={categoryLabel(row.category)} color={categoryColor(row.category)} />
               {!row.isActive && <Chip label="Inativo" color="#94A3B8" />}
             </div>
 
             {/* Stats */}
-            <div style={{
-              display: "grid", gridTemplateColumns: "1fr 1fr 1fr",
-              gap: 8, padding: "12px 0", borderTop: "1px solid #F1F5F9",
-            }}>
-              <Stat icon={<Weight style={{ width: 12, height: 12 }} />} label="Peso máx." value={`${row.maxWeight}kg`} />
-              <Stat icon={<Truck  style={{ width: 12, height: 12 }} />} label="Veículos" value={String(row._count.vehicles)} />
-              <Stat icon={<Package style={{ width: 12, height: 12 }} />} label="Fretes" value={String(row._count.deliveries)} />
+            <div className="grid grid-cols-3 gap-2 py-3 border-t border-slate-100">
+              <Stat icon={<Weight  className="w-3 h-3" />} label="Peso máx." value={`${row.maxWeight}kg`} />
+              <Stat icon={<Truck   className="w-3 h-3" />} label="Veículos"   value={String(row._count.vehicles)} />
+              <Stat icon={<Package className="w-3 h-3" />} label="Fretes"     value={String(row._count.deliveries)} />
             </div>
 
             {/* Preços */}
-            <div style={{
-              display: "grid", gridTemplateColumns: "1fr 1fr",
-              gap: 6, marginTop: 10,
-            }}>
-              <PriceRow label="Base"       value={row.basePrice} />
-              <PriceRow label="Por km"     value={row.pricePerKm} />
-              <PriceRow label="Ajudante"   value={row.helperPrice} />
-              <PriceRow label="Parada"     value={row.additionalStopPrice} />
+            <div className="grid grid-cols-2 gap-[6px] mt-[10px]">
+              <PriceRow label="Base"     value={row.basePrice} />
+              <PriceRow label="Por km"   value={row.pricePerKm} />
+              <PriceRow label="Ajudante" value={row.helperPrice} />
+              <PriceRow label="Parada"   value={row.additionalStopPrice} />
             </div>
           </div>
         ))}
 
         {rows.length === 0 && (
-          <div style={{
-            gridColumn: "1/-1", padding: "60px 0",
-            display: "flex", flexDirection: "column", alignItems: "center", gap: 12,
-          }}>
-            <Car style={{ width: 36, height: 36, color: "#CBD5E1" }} />
-            <p style={{ margin: 0, fontSize: 15, fontWeight: 700, color: "#0F172A" }}>
+          <div className="col-span-full py-[60px] flex flex-col items-center gap-3">
+            <Car className="w-9 h-9 text-slate-300" />
+            <p className="m-0 text-[15px] font-bold text-foreground">
               Nenhum tipo cadastrado
             </p>
-            <p style={{ margin: 0, fontSize: 13, color: "#64748B" }}>
+            <p className="m-0 text-[13px] text-muted-foreground">
               Clique em "Novo tipo" para começar.
             </p>
           </div>
@@ -497,12 +510,12 @@ function IconBtn({ children, onClick, title, color = "#475569" }: {
   color?: string;
 }) {
   return (
-    <button title={title} onClick={onClick} style={{
-      width: 30, height: 30, borderRadius: 8,
-      border: "1px solid #E2E8F0", background: "#F8FAFC",
-      display: "flex", alignItems: "center", justifyContent: "center",
-      cursor: "pointer", color, transition: "all 0.15s",
-    }}>
+    <button
+      title={title}
+      onClick={onClick}
+      className="w-[30px] h-[30px] rounded-lg border border-border bg-slate-50 flex items-center justify-center cursor-pointer transition-all duration-150"
+      style={{ color }}
+    >
       {children}
     </button>
   );
@@ -510,24 +523,21 @@ function IconBtn({ children, onClick, title, color = "#475569" }: {
 
 function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
-    <div style={{ textAlign: "center" }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 4, color: "#94A3B8", marginBottom: 2 }}>
+    <div className="text-center">
+      <div className="flex items-center justify-center gap-1 text-slate-400 mb-[2px]">
         {icon}
-        <span style={{ fontSize: 10.5, fontWeight: 600 }}>{label}</span>
+        <span className="text-[10.5px] font-semibold">{label}</span>
       </div>
-      <p style={{ margin: 0, fontSize: 14, fontWeight: 800, color: "#0F172A" }}>{value}</p>
+      <p className="m-0 text-[14px] font-extrabold text-foreground">{value}</p>
     </div>
   );
 }
 
 function PriceRow({ label, value }: { label: string; value: number }) {
   return (
-    <div style={{
-      display: "flex", justifyContent: "space-between", alignItems: "center",
-      padding: "5px 10px", borderRadius: 8, background: "#F8FAFC",
-    }}>
-      <span style={{ fontSize: 11.5, color: "#64748B", fontWeight: 500 }}>{label}</span>
-      <span style={{ fontSize: 12.5, fontWeight: 700, color: "#0F172A" }}>
+    <div className="flex justify-between items-center px-[10px] py-[5px] rounded-lg bg-slate-50">
+      <span className="text-[11.5px] text-muted-foreground font-medium">{label}</span>
+      <span className="text-[12.5px] font-bold text-foreground">
         {value > 0 ? `R$ ${value.toFixed(2)}` : "—"}
       </span>
     </div>
