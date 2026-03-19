@@ -28,18 +28,24 @@ export default async function proxy(req: NextRequest) {
       ? "__Secure-authjs.session-token"
       : "authjs.session-token";
 
-  const token = await decode({
-    token:  req.cookies.get(cookieName)?.value,
-    secret: process.env.AUTH_SECRET!,
-    salt:   cookieName,
-  });
+  let token = null;
+  try {
+    token = await decode({
+      token:  req.cookies.get(cookieName)?.value,
+      secret: process.env.AUTH_SECRET!,
+      salt:   cookieName,
+    });
+  } catch {
+    // Cookie inválido/corrompido — trata como não autenticado
+    token = null;
+  }
 
   const isLoggedIn  = !!token;
   const isDashboard = pathname.startsWith("/dashboard");
   const isAdmin     = pathname.startsWith("/dashboard/admin");
 
   // Usuário logado com status não-ativo → limpa cookie e redireciona ao login
-  if (isLoggedIn && token.status !== "ACTIVE") {
+  if (isLoggedIn && token!.status !== "ACTIVE") {
     const response = NextResponse.redirect(new URL("/", req.url));
     response.cookies.delete(cookieName);
     return response;
@@ -50,9 +56,11 @@ export default async function proxy(req: NextRequest) {
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 
-  // Dashboard sem sessão → login
+  // Dashboard sem sessão → login (apaga cookie possivelmente corrompido)
   if (isDashboard && !isLoggedIn) {
-    return NextResponse.redirect(new URL("/", req.url));
+    const response = NextResponse.redirect(new URL("/", req.url));
+    response.cookies.delete(cookieName);
+    return response;
   }
 
   // Rota admin sem role ADMIN → dashboard
