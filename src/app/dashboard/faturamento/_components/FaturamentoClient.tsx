@@ -8,6 +8,7 @@ import {
   ChevronLeft, ChevronRight,
   Wallet, ShieldOff, BadgeCheck,
 } from "lucide-react";
+import { toast }         from "sonner";
 import { tenantConfig } from "@/config/tenant";
 import { updateCompanyStatus, type CompanyRow } from "@/app/actions/companies";
 
@@ -241,10 +242,22 @@ export function FaturamentoClient({ initialData }: { initialData: CompanyRow[] }
   function handleFilter(v: string) { setFilter(v); setPage(1); }
   function handleSearch(v: string) { setSearch(v); setPage(1); }
 
+  const TOAST_MSG: Record<StatusKey, { label: string; fn: typeof toast.success }> = {
+    ACTIVE:   { label: "Empresa reativada com sucesso.",          fn: toast.success },
+    PENDING:  { label: "Empresa marcada como inadimplente.",      fn: toast.warning },
+    INACTIVE: { label: "Empresa bloqueada. Notificação enviada.", fn: toast.error   },
+  };
+
   function handleUpdate(userId: string, status: StatusKey) {
     startTrans(async () => {
       const res = await updateCompanyStatus(userId, status);
-      if (res.ok) setData((prev) => prev.map((c) => c.userId === userId ? { ...c, status } : c));
+      if (res.ok) {
+        setData((prev) => prev.map((c) => c.userId === userId ? { ...c, status } : c));
+        const msg = TOAST_MSG[status];
+        msg.fn(msg.label, { description: "O usuário receberá uma notificação." });
+      } else {
+        toast.error("Erro ao alterar situação.", { description: res.error ?? "Tente novamente." });
+      }
     });
   }
 

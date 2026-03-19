@@ -38,6 +38,26 @@ export async function getCompanies(): Promise<CompanyRow[]> {
   }));
 }
 
+const STATUS_NOTIFICATION: Record<"ACTIVE" | "PENDING" | "INACTIVE", {
+  type: string; title: string; body: string;
+}> = {
+  ACTIVE: {
+    type:  "ACCOUNT_ACTIVATED",
+    title: "Conta reativada ✅",
+    body:  "Sua conta foi reativada com sucesso. Você já pode utilizar a plataforma normalmente.",
+  },
+  PENDING: {
+    type:  "PAYMENT_PENDING",
+    title: "Pagamento pendente ⚠️",
+    body:  "Identificamos uma pendência no pagamento da sua mensalidade. Regularize para continuar usando a plataforma.",
+  },
+  INACTIVE: {
+    type:  "ACCOUNT_BLOCKED",
+    title: "Conta bloqueada 🚫",
+    body:  "Sua conta foi bloqueada por falta de pagamento da mensalidade. Entre em contato com o suporte para regularizar.",
+  },
+};
+
 export async function updateCompanyStatus(
   userId: string,
   status: "ACTIVE" | "PENDING" | "INACTIVE",
@@ -48,6 +68,19 @@ export async function updateCompanyStatus(
   }
 
   await db.user.update({ where: { id: userId }, data: { status } });
+
+  const notif = STATUS_NOTIFICATION[status];
+  await db.notification.create({
+    data: {
+      userId,
+      type:  notif.type,
+      title: notif.title,
+      body:  notif.body,
+      read:  false,
+    },
+  });
+
   revalidatePath("/dashboard/empresas");
+  revalidatePath("/dashboard/faturamento");
   return { ok: true };
 }
