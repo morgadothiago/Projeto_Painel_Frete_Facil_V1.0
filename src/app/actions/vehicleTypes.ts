@@ -70,13 +70,21 @@ export async function createVehicleType(
 ): Promise<{ ok: boolean; error?: string }> {
   try {
     await assertAdmin();
-    await db.vehicleType.create({ data: { ...data, isActive: true } });
+    await db.vehicleType.create({
+      data: {
+        ...data,
+        description: data.description || null,
+        isActive: true,
+      },
+    });
     revalidatePath("/dashboard/veiculos");
     return { ok: true };
   } catch (err: unknown) {
+    console.error("[createVehicleType]", err);
     const msg = err instanceof Error ? err.message : String(err);
-    if (msg.includes("Unique")) return { ok: false, error: "Já existe um tipo com esse nome." };
-    return { ok: false, error: "Erro ao criar tipo de veículo." };
+    if (msg.includes("Unique") || msg.includes("unique"))
+      return { ok: false, error: "Já existe um tipo com esse nome." };
+    return { ok: false, error: msg.slice(0, 120) };
   }
 }
 
@@ -86,10 +94,14 @@ export async function updateVehicleType(
 ): Promise<{ ok: boolean; error?: string }> {
   try {
     await assertAdmin();
-    await db.vehicleType.update({ where: { id }, data });
+    await db.vehicleType.update({
+      where: { id },
+      data: { ...data, description: data.description || null },
+    });
     revalidatePath("/dashboard/veiculos");
     return { ok: true };
-  } catch {
+  } catch (err: unknown) {
+    console.error("[updateVehicleType]", err);
     return { ok: false, error: "Erro ao atualizar tipo de veículo." };
   }
 }

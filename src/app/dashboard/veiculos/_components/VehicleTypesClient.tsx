@@ -9,6 +9,7 @@ import {
 import {
   type VehicleTypeRow,
   type VehicleTypePayload,
+  getVehicleTypes,
   createVehicleType,
   updateVehicleType,
   toggleVehicleTypeActive,
@@ -107,8 +108,11 @@ function Modal({
       const res = isEdit
         ? await updateVehicleType(editing.id, form)
         : await createVehicleType(form);
-      if (!res.ok) { toast.error(res.error ?? "Erro"); return; }
+      if (!res.ok) { toast.error(res.error ?? "Erro ao salvar"); return; }
       toast.success(isEdit ? "Tipo atualizado!" : "Tipo criado com sucesso!");
+      // Busca lista atualizada e repassa ao pai
+      const updated = await getVehicleTypes();
+      onSaved(updated);
       onClose();
     });
   }
@@ -324,10 +328,9 @@ export function VehicleTypesClient({ initialData }: { initialData: VehicleTypeRo
     start(async () => {
       const res = await toggleVehicleTypeActive(row.id, !row.isActive);
       if (res.ok) {
-        setRows((prev) => prev.map((r) =>
-          r.id === row.id ? { ...r, isActive: !r.isActive } : r,
-        ));
         toast.success(`${row.name} ${!row.isActive ? "ativado" : "desativado"}.`);
+        const updated = await getVehicleTypes();
+        setRows(updated);
       }
     });
   }
@@ -337,8 +340,9 @@ export function VehicleTypesClient({ initialData }: { initialData: VehicleTypeRo
     start(async () => {
       const res = await deleteVehicleType(row.id);
       if (res.ok) {
-        setRows((prev) => prev.filter((r) => r.id !== row.id));
         toast.success("Tipo excluído.");
+        const updated = await getVehicleTypes();
+        setRows(updated);
       } else {
         toast.error(res.error ?? "Erro ao excluir.");
       }
