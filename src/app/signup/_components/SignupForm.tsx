@@ -10,6 +10,7 @@ import {
 
 import { signupAction, type SignupState } from "@/app/actions/signup";
 import { InputField }                     from "@/components/ui/input-field";
+import { Stepper }                        from "@/components/ui/stepper";
 import { tenantConfig }                   from "@/config/tenant";
 
 const { theme: t } = tenantConfig;
@@ -43,62 +44,13 @@ const SEGMENTS = [
   "Outro",
 ];
 
-// ── Stepper ───────────────────────────────────────────────────────────────────
+// ── Steps ─────────────────────────────────────────────────────────────────────
 
-const STEPS = ["Empresa", "Responsável", "Acesso"];
-
-function Stepper({ current }: { current: number }) {
-  return (
-    <div style={{ display: "flex", alignItems: "center", marginBottom: 32 }}>
-      {STEPS.map((label, i) => {
-        const done   = i < current;
-        const active = i === current;
-        return (
-          <div key={label} style={{ display: "flex", alignItems: "center", flex: i < STEPS.length - 1 ? 1 : undefined }}>
-            {/* Círculo */}
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5 }}>
-              <div style={{
-                width: 34, height: 34, borderRadius: "50%",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                fontWeight: 700, fontSize: 13,
-                background: done
-                  ? t.primary
-                  : active
-                  ? "#fff"
-                  : "#F0F3F8",
-                border: active
-                  ? `2px solid ${t.primary}`
-                  : done
-                  ? `2px solid ${t.primary}`
-                  : "2px solid #DDE3EC",
-                color: done ? "#fff" : active ? t.primary : "#9CA8B8",
-                transition: "all 0.25s",
-                boxShadow: active ? `0 0 0 4px ${t.primary}18` : "none",
-              }}>
-                {done ? <Check style={{ width: 15, height: 15 }} /> : i + 1}
-              </div>
-              <span style={{
-                fontSize: 11, fontWeight: active ? 700 : 500,
-                color: active ? t.primary : done ? t.textPrimary : "#9CA8B8",
-                whiteSpace: "nowrap", transition: "color 0.2s",
-              }}>
-                {label}
-              </span>
-            </div>
-            {/* Linha */}
-            {i < STEPS.length - 1 && (
-              <div style={{
-                flex: 1, height: 2, marginBottom: 20, marginLeft: 8, marginRight: 8,
-                background: done ? t.primary : "#E8EDF2",
-                borderRadius: 2, transition: "background 0.3s",
-              }} />
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
+const SIGNUP_STEPS = [
+  { label: "Empresa"     },
+  { label: "Responsável" },
+  { label: "Acesso"      },
+];
 
 // ── Step 1: Empresa ───────────────────────────────────────────────────────────
 
@@ -424,7 +376,9 @@ export function SignupForm() {
       ))}
       <input type="hidden" name="terms" value={String(terms)} />
 
-      <Stepper current={step} />
+      <div style={{ marginBottom: 32 }}>
+        <Stepper steps={SIGNUP_STEPS} current={step} />
+      </div>
 
       {/* Conteúdo da etapa */}
       <div style={{ minHeight: 260 }}>

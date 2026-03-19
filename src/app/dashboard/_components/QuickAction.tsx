@@ -18,34 +18,37 @@ export function QuickAction({ icon, label, sub, href, color }: {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        display: "flex", alignItems: "center", gap: 12,
-        padding: "10px 12px",
-        borderRadius: 10,
+        display: "flex", alignItems: "center", gap: 14,
+        padding: "12px 14px",
+        borderRadius: 12,
         background: hovered ? "#F8FAFC" : "transparent",
         textDecoration: "none",
-        transition: "background 0.12s",
+        transition: "background 0.15s",
+        border: hovered ? "1px solid #E2E8F0" : "1px solid transparent",
       }}
     >
       <div style={{
-        width: 34, height: 34, borderRadius: 9,
-        background: hovered ? `${color}20` : `${color}12`,
+        width: 42, height: 42, borderRadius: 12,
+        background: hovered ? `${color}18` : `${color}10`,
         color,
         display: "flex", alignItems: "center", justifyContent: "center",
         flexShrink: 0,
-        transition: "background 0.12s",
+        transition: "background 0.15s, transform 0.15s",
+        transform: hovered ? "scale(1.05)" : "scale(1)",
       }}>
-        <span style={{ width: 16, height: 16, display: "flex" }}>{icon}</span>
+        <span style={{ width: 20, height: 20, display: "flex" }}>{icon}</span>
       </div>
 
       <div style={{ flex: 1 }}>
-        <p style={{ fontSize: 13, fontWeight: 600, color: "#0F172A", margin: 0 }}>{label}</p>
-        <p style={{ fontSize: 11.5, color: "#94A3B8", margin: "1px 0 0" }}>{sub}</p>
+        <p style={{ fontSize: 14, fontWeight: 600, color: "#1E293B", margin: 0 }}>{label}</p>
+        <p style={{ fontSize: 12, color: "#64748B", margin: "2px 0 0" }}>{sub}</p>
       </div>
 
       <ChevronRight style={{
-        width: 14, height: 14,
+        width: 16, height: 16,
         color: hovered ? color : "#CBD5E1",
-        transition: "color 0.12s",
+        transition: "color 0.15s, transform 0.15s",
+        transform: hovered ? "translateX(2px)" : "translateX(0)",
         flexShrink: 0,
       }} />
     </a>

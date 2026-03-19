@@ -65,7 +65,7 @@ export type VehicleTypePayload = {
   additionalStopPrice: number;
 };
 
-function validateVehiclePayload(data: VehicleTypePayload): string | null {
+export async function validateVehiclePayload(data: VehicleTypePayload): Promise<string | null> {
   if (!data.name?.trim())              return "Nome é obrigatório.";
   if (data.maxWeight <= 0)             return "Peso máximo deve ser maior que zero.";
   if (data.basePrice < 0)              return "Preço base não pode ser negativo.";
@@ -80,7 +80,7 @@ export async function createVehicleType(
 ): Promise<{ ok: boolean; error?: string }> {
   try {
     await assertAdmin();
-    const err = validateVehiclePayload(data);
+    const err = await validateVehiclePayload(data);
     if (err) return { ok: false, error: err };
     await db.vehicleType.create({
       data: {
@@ -106,7 +106,7 @@ export async function updateVehicleType(
 ): Promise<{ ok: boolean; error?: string }> {
   try {
     await assertAdmin();
-    const err = validateVehiclePayload(data);
+    const err = await validateVehiclePayload(data);
     if (err) return { ok: false, error: err };
     await db.vehicleType.update({
       where: { id },

@@ -1,7 +1,7 @@
 "use client";
 
 import { SessionProvider } from "next-auth/react";
-import { Toaster }         from "sonner";
+import { Toaster }         from "@/components/ui/sonner";
 import { TenantProvider }  from "./context/TenantContext";
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -12,8 +12,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
         <Toaster
           position="top-right"
           richColors
+          closeButton
           toastOptions={{
             style: { fontFamily: "var(--font-geist-sans)" },
+            duration: 5000,
           }}
         />
       </TenantProvider>

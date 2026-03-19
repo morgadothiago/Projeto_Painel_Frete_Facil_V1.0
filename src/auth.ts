@@ -45,6 +45,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.status           = (user as { status?: string }).status;
         token.statusCheckedAt  = Date.now();
         token.accessToken      = (user as { accessToken?: string }).accessToken;
+
+        // Buscar companyId se for COMPANY
+        const role = (user as { role?: string }).role;
+        if (role === "COMPANY") {
+          const company = await db.company.findFirst({
+            where: { userId: user.id },
+            select: { id: true },
+          });
+          if (company) token.companyId = company.id;
+        }
         return token;
       }
 
@@ -79,6 +89,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       session.user.role   = token.role as string;
       session.user.status = token.status as string;
       session.accessToken = token.accessToken as string;
+      if (token.companyId) {
+        session.user.company = { id: token.companyId };
+      }
       return session;
     },
   },

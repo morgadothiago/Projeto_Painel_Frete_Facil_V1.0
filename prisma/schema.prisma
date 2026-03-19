@@ -50,6 +50,8 @@ model Driver {
   rating          Float     @default(0)
   totalDeliveries Int       @default(0)
   balance         Decimal   @default(0)
+  autonomo        Boolean   @default(false)  // false = vinculado à empresa, true = autônomo
+  companyId       String?   // relação com empresa (se vinculado)
 
   user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   address     Address?

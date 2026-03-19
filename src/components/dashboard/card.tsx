@@ -13,9 +13,9 @@ export function Card({ children, title, icon, href, hrefLabel = "Ver todos", fil
   return (
     <div style={{
       background: "#fff",
-      borderRadius: 14,
-      border: "1px solid #F1F5F9",
-      boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+      borderRadius: 18,
+      border: "1px solid #E2E8F0",
+      boxShadow: "0 1px 3px rgba(0,0,0,0.02)",
       display: "flex", flexDirection: "column",
       overflow: "visible",
       ...(fill ? { flex: 1, minHeight: 0 } : {}),
@@ -23,23 +23,24 @@ export function Card({ children, title, icon, href, hrefLabel = "Ver todos", fil
       {title && (
         <div style={{
           display: "flex", alignItems: "center", justifyContent: "space-between",
-          padding: "16px 18px 14px",
-          borderBottom: "1px solid #F8FAFC",
+          padding: "18px 20px 12px",
+          borderBottom: "1px solid #F1F5F9",
           flexShrink: 0,
         }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            {icon && <span style={{ color: "#0C6B64", display: "flex" }}>{icon}</span>}
-            <span style={{ fontSize: 14, fontWeight: 700, color: "#0F172A", letterSpacing: "-0.2px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            {icon && <span style={{ color: "#0C6B64", display: "flex", opacity: 0.7 }}>{icon}</span>}
+            <span style={{ fontSize: 15, fontWeight: 600, color: "#1E293B", letterSpacing: "-0.2px" }}>
               {title}
             </span>
           </div>
           {href && (
             <a href={href} style={{
-              display: "flex", alignItems: "center", gap: 3,
-              fontSize: 12, fontWeight: 600, color: "#0C6B64",
-              textDecoration: "none",
+              display: "flex", alignItems: "center", gap: 4,
+              fontSize: 12.5, fontWeight: 600, color: "#0C6B64",
+              textDecoration: "none", padding: "4px 8px", borderRadius: 6,
+              transition: "background 0.15s",
             }}>
-              {hrefLabel} <ArrowUpRight style={{ width: 12, height: 12 }} />
+              {hrefLabel} <ArrowUpRight style={{ width: 13, height: 13 }} />
             </a>
           )}
         </div>

@@ -4,11 +4,12 @@
 export type LoginResponse = {
   access_token: string;
   user: {
-    id:     string;
-    name:   string;
-    email:  string;
-    role:   "ADMIN" | "COMPANY" | "DRIVER";
-    status: string;
+    id:         string;
+    name:       string;
+    email:      string;
+    role:       "ADMIN" | "COMPANY" | "DRIVER";
+    status:     string;
+    companyId?: string;
   };
 };
 
@@ -19,7 +20,7 @@ const MOCK_USERS: Record<string, LoginResponse> = {
   },
   "empresa@fretefacil.com": {
     access_token: "mock-token-company-xyz",
-    user: { id: "2", name: "Empresa Teste",   email: "empresa@fretefacil.com", role: "COMPANY", status: "ACTIVE" },
+    user: { id: "2", name: "Empresa Teste",   email: "empresa@fretefacil.com", role: "COMPANY", status: "ACTIVE", companyId: "mock-company-2" },
   },
   "motorista@fretefacil.com": {
     access_token: "mock-token-driver-xyz",

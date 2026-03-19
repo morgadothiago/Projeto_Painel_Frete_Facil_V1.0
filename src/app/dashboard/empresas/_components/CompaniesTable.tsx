@@ -3,38 +3,23 @@
 import { useState, useTransition, useMemo } from "react";
 import {
   Search, Building2, CheckCircle2, Clock, XCircle,
-  MoreHorizontal, UserCheck, UserX, ChevronUp, ChevronDown,
+  UserCheck, UserX, ChevronUp, ChevronDown,
   ChevronsUpDown, Mail, Phone, X,
 } from "lucide-react";
 import { tenantConfig }      from "@/config/tenant";
 import { updateCompanyStatus, type CompanyRow } from "@/app/actions/companies";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { ActionsDropdown } from "@/components/dashboard/actions-dropdown";
 
 const { theme: t } = tenantConfig;
 
 // ── Status config ─────────────────────────────────────────────────────────────
 
-const STATUS_CONFIG: Record<string, { label: string; color: string; dot: string; bg: string }> = {
+const COMPANY_STATUS_CONFIG = {
   ACTIVE:   { label: "Ativa",    color: "#059669", dot: "#10B981", bg: "#ECFDF5" },
   PENDING:  { label: "Pendente", color: "#B45309", dot: "#F59E0B", bg: "#FFFBEB" },
   INACTIVE: { label: "Inativa",  color: "#94A3B8", dot: "#CBD5E1", bg: "#F8FAFC" },
 };
-
-function StatusBadge({ status }: { status: string }) {
-  const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.INACTIVE;
-  return (
-    <span style={{
-      display: "inline-flex", alignItems: "center", gap: 6,
-      padding: "3px 10px 3px 7px",
-      borderRadius: 20,
-      background: cfg.bg,
-      fontSize: 12, fontWeight: 600, color: cfg.color,
-      whiteSpace: "nowrap",
-    }}>
-      <span style={{ width: 6, height: 6, borderRadius: "50%", background: cfg.dot, flexShrink: 0 }} />
-      {cfg.label}
-    </span>
-  );
-}
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -60,83 +45,32 @@ function avatarGradient(name: string) {
 
 // ── Actions dropdown ──────────────────────────────────────────────────────────
 
-function ActionsMenu({ company, onUpdate }: {
+function CompanyActionsMenu({ company, onUpdate }: {
   company:  CompanyRow;
   onUpdate: (userId: string, status: "ACTIVE" | "PENDING" | "INACTIVE") => void;
 }) {
-  const [open, setOpen] = useState(false);
-
   const items =
     company.status === "ACTIVE"
       ? [
-          { label: "Marcar como pendente", icon: <Clock size={13} />,    status: "PENDING"  as const, color: "#B45309", hoverBg: "#FFFBEB" },
-          { label: "Bloquear empresa",     icon: <UserX size={13} />,    status: "INACTIVE" as const, color: "#DC2626", hoverBg: "#FEF2F2" },
+          { label: "Marcar como pendente", icon: <Clock    size={13} />, status: "PENDING"  as const, color: "#B45309", hoverBg: "#FFFBEB" },
+          { label: "Bloquear empresa",     icon: <UserX    size={13} />, status: "INACTIVE" as const, color: "#DC2626", hoverBg: "#FEF2F2" },
         ]
       : company.status === "PENDING"
       ? [
-          { label: "Ativar empresa",       icon: <UserCheck size={13} />, status: "ACTIVE"   as const, color: "#059669", hoverBg: "#ECFDF5" },
-          { label: "Bloquear empresa",     icon: <UserX size={13} />,    status: "INACTIVE" as const, color: "#DC2626", hoverBg: "#FEF2F2" },
+          { label: "Ativar empresa",   icon: <UserCheck size={13} />, status: "ACTIVE"   as const, color: "#059669", hoverBg: "#ECFDF5" },
+          { label: "Bloquear empresa", icon: <UserX     size={13} />, status: "INACTIVE" as const, color: "#DC2626", hoverBg: "#FEF2F2" },
         ]
       : [
-          { label: "Reativar empresa",     icon: <UserCheck size={13} />, status: "ACTIVE"   as const, color: "#059669", hoverBg: "#ECFDF5" },
+          { label: "Reativar empresa", icon: <UserCheck size={13} />, status: "ACTIVE" as const, color: "#059669", hoverBg: "#ECFDF5" },
         ];
 
   return (
-    <div style={{ position: "relative" }}>
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        style={{
-          width: 30, height: 30, borderRadius: 8,
-          border: "none",
-          background: open ? "#F1F5F9" : "transparent",
-          cursor: "pointer",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          color: open ? t.primary : "#94A3B8",
-          transition: "all 0.12s",
-        }}
-        onMouseEnter={(e) => { e.currentTarget.style.background = "#F1F5F9"; e.currentTarget.style.color = t.primary; }}
-        onMouseLeave={(e) => { if (!open) { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#94A3B8"; } }}
-      >
-        <MoreHorizontal size={15} />
-      </button>
-
-      {open && (
-        <>
-          <div style={{ position: "fixed", inset: 0, zIndex: 10 }} onClick={() => setOpen(false)} />
-          <div style={{
-            position: "absolute", right: 0, top: "calc(100% + 4px)",
-            background: "#fff",
-            borderRadius: 12,
-            boxShadow: "0 4px 6px -1px rgba(0,0,0,0.07), 0 10px 30px -5px rgba(0,0,0,0.10)",
-            border: "1px solid #F1F5F9",
-            zIndex: 20, minWidth: 200, padding: 6,
-          }}>
-            {items.map((item) => (
-              <button
-                key={item.status}
-                type="button"
-                onClick={() => { onUpdate(company.userId, item.status); setOpen(false); }}
-                style={{
-                  display: "flex", alignItems: "center", gap: 9,
-                  width: "100%", padding: "8px 11px",
-                  border: "none", background: "transparent",
-                  fontSize: 13, fontWeight: 500, color: item.color,
-                  cursor: "pointer", borderRadius: 8,
-                  transition: "background 0.12s",
-                  textAlign: "left",
-                }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = item.hoverBg; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
-              >
-                {item.icon}
-                {item.label}
-              </button>
-            ))}
-          </div>
-        </>
-      )}
-    </div>
+    <ActionsDropdown
+      items={items.map((item) => ({
+        ...item,
+        onClick: () => onUpdate(company.userId, item.status),
+      }))}
+    />
   );
 }
 
@@ -457,7 +391,7 @@ export function CompaniesTable({ initialData }: { initialData: CompanyRow[] }) {
 
                     {/* Status */}
                     <td style={{ padding: "14px 20px" }}>
-                      <StatusBadge status={c.status} />
+                      <StatusBadge status={c.status} config={COMPANY_STATUS_CONFIG} />
                     </td>
 
                     {/* Data */}
@@ -469,7 +403,7 @@ export function CompaniesTable({ initialData }: { initialData: CompanyRow[] }) {
 
                     {/* Actions */}
                     <td style={{ padding: "14px 20px 14px 0" }}>
-                      <ActionsMenu company={c} onUpdate={handleUpdate} />
+                      <CompanyActionsMenu company={c} onUpdate={handleUpdate} />
                     </td>
                   </tr>
                 ))

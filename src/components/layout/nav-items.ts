@@ -38,9 +38,10 @@ export const NAV_BY_ROLE: Record<string, NavGroup[]> = {
       label: "Operacoes",
       items: [
         { title: "Fretes",           href: "/dashboard/fretes",       icon: Truck },
-        { title: "Empresas",         href: "/dashboard/empresas",     icon: Building2 },
-        { title: "Mapa",             href: "/dashboard/mapa",         icon: Map },
-        { title: "Tipos de Veiculo", href: "/dashboard/veiculos",     icon: Car },
+        { title: "Motoristas",        href: "/dashboard/motoristas",   icon: UserCircle },
+        { title: "Empresas",          href: "/dashboard/empresas",     icon: Building2 },
+        { title: "Mapa",              href: "/dashboard/mapa",        icon: Map },
+        { title: "Tipos de Veiculo",  href: "/dashboard/veiculos",    icon: Car },
       ],
     },
     {
@@ -72,6 +73,13 @@ export const NAV_BY_ROLE: Record<string, NavGroup[]> = {
         { title: "Meus Fretes",    href: "/dashboard/fretes",         icon: ClipboardList },
         { title: "Simular Frete",  href: "/dashboard/simular",        icon: MapPin },
         { title: "Rastrear",       href: "/dashboard/rastrear",       icon: Truck },
+        { title: "Mapa",          href: "/dashboard/mapa",          icon: Map },
+      ],
+    },
+    {
+      label: "Equipe",
+      items: [
+        { title: "Motoristas",     href: "/dashboard/motoristas",     icon: UserCircle },
       ],
     },
     {
@@ -96,6 +104,7 @@ export const NAV_BY_ROLE: Record<string, NavGroup[]> = {
         { title: "Disponiveis",    href: "/dashboard/disponiveis",    icon: PackageSearch },
         { title: "Meus Fretes",    href: "/dashboard/fretes",         icon: ClipboardList },
         { title: "Em andamento",   href: "/dashboard/em-andamento",   icon: Truck },
+        { title: "Mapa",           href: "/dashboard/mapa",          icon: Map },
       ],
     },
     {

@@ -79,3 +79,12 @@ export async function activateCompany(
   revalidatePath("/dashboard");
   return { ok: true };
 }
+
+export async function clearAllNotifications(): Promise<void> {
+  const session = await auth();
+  if (!session?.user?.id) return;
+
+  await db.notification.deleteMany({
+    where: { userId: session.user.id },
+  });
+}

@@ -1,5 +1,4 @@
 import { redirect }       from "next/navigation";
-import { Suspense }        from "react";
 import { auth }            from "@/auth";
 import { DashboardShell }  from "@/components/layout/DashboardShell";
 import { WelcomeToast }    from "@/components/layout/WelcomeToast";
@@ -17,9 +16,7 @@ export default async function DashboardLayout({
 
   return (
     <DashboardShell user={session.user} initials={initials}>
-      <Suspense>
-        <WelcomeToast userName={name} />
-      </Suspense>
+      <WelcomeToast userName={name} />
       {children}
     </DashboardShell>
   );

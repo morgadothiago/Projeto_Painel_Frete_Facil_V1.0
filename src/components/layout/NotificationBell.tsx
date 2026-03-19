@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
-import { Bell, Building2, CheckCheck, Loader2, BellOff, Sparkles, X } from "lucide-react";
+import { Bell, Building2, CheckCheck, Loader2, BellOff, Sparkles, X, Trash2 } from "lucide-react";
 import { toast }          from "sonner";
 import { tenantConfig }   from "@/config/tenant";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
@@ -9,6 +9,7 @@ import {
   getNotifications,
   markAllAsRead,
   activateCompany,
+  clearAllNotifications,
   type AppNotification,
 } from "@/app/actions/notifications";
 
@@ -211,6 +212,14 @@ export function NotificationBell() {
     });
   }
 
+  function handleClearAll() {
+    startTransition(async () => {
+      await clearAllNotifications();
+      setNotifs([]);
+      toast.success("Todas as notificações foram removidas.");
+    });
+  }
+
   function handleActivate(companyUserId: string, notificationId: string) {
     setActivating(notificationId);
     startTransition(async () => {
@@ -299,6 +308,27 @@ export function NotificationBell() {
               </div>
 
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                {/* Limpar todas */}
+                {notifs.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleClearAll}
+                    style={{
+                      display: "flex", alignItems: "center", gap: 5,
+                      padding: "6px 11px", borderRadius: 8,
+                      border: "1px solid rgba(255,255,255,0.3)",
+                      background: "rgba(255,255,255,0.15)",
+                      color: "#fff", fontSize: 12, fontWeight: 600,
+                      cursor: "pointer", backdropFilter: "blur(4px)",
+                      transition: "background 0.15s",
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.25)"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.15)"; }}
+                  >
+                    <Trash2 style={{ width: 12, height: 12 }} />
+                    Limpar
+                  </button>
+                )}
                 {/* Marcar todas */}
                 {unread > 0 && (
                   <button

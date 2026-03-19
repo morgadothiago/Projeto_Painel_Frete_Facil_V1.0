@@ -9,6 +9,7 @@ import { Card }        from "@/components/dashboard/card";
 import { EmptyState }  from "@/components/dashboard/empty-state";
 import { InfoCard }    from "@/components/dashboard/info-card";
 import { QuickAction } from "../_components/QuickAction";
+import { CompanyChart } from "../_components/CompanyChart";
 import { tenantConfig } from "@/config/tenant";
 
 const { theme: t } = tenantConfig;
@@ -47,36 +48,54 @@ export function CompanyDashboard({ userName }: Props) {
         actionHref="/dashboard/fretes"
       />
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: 12, flexShrink: 0 }}>
-        <StatCard icon={<Truck />}        label="Fretes Ativos" value="0"    sub="em andamento" accent={t.primary} />
-        <StatCard icon={<CheckCircle2 />} label="Concluídos"   value="0"    sub="este mês"     accent={t.success} />
-        <StatCard icon={<Clock />}        label="Aguardando"   value="0"    sub="pendentes"    accent={t.warning} />
-        <StatCard icon={<Wallet />}       label="Saldo"        value="R$ 0" sub="disponível"   accent="#6366F1"   />
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, flexShrink: 0 }}>
+        <StatCard 
+          icon={<Truck />} 
+          label="Fretes Ativos" 
+          value="0" 
+          sub="em andamento" 
+          accent={t.primary}
+          trend={null}
+        />
+        <StatCard 
+          icon={<CheckCircle2 />} 
+          label="Concluídos" 
+          value="0" 
+          sub="este mês" 
+          accent={t.success}
+          trend={null}
+        />
+        <StatCard 
+          icon={<Clock />} 
+          label="Aguardando" 
+          value="0" 
+          sub="pendentes" 
+          accent={t.warning}
+          trend={null}
+        />
+        <StatCard 
+          icon={<Wallet />} 
+          label="Saldo" 
+          value="R$ 0" 
+          sub="disponível" 
+          accent="#6366F1"
+          trend={null}
+        />
       </div>
 
       <div style={{
         display: "grid",
-        gridTemplateColumns: isMobile ? "1fr" : "1fr 280px",
+        gridTemplateColumns: isMobile ? "1fr" : "1fr 300px",
         gap: 14,
         flex: isMobile ? "none" : 1,
         minHeight: 0,
-        overflow: isMobile ? "visible" : "hidden",
+        overflow: "auto",
       }}>
 
-        <Card
-          title="Fretes Recentes"
-          icon={<Truck style={{ width: 15, height: 15 }} />}
-          href="/dashboard/fretes"
-          fill={!isMobile}
-        >
-          <EmptyState
-            icon={<TruckIllustration />}
-            title="Nenhum frete cadastrado"
-            subtitle="Crie seu primeiro frete e comece a operar"
-            actionLabel="Criar frete"
-            actionHref="/dashboard/fretes"
-          />
-        </Card>
+        {/* Gráfico */}
+        <div style={{ display: "flex", flexDirection: "column", minHeight: 300 }}>
+          <CompanyChart />
+        </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 12, minHeight: 0 }}>
           <Card title="Ações rápidas">

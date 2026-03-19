@@ -6,6 +6,7 @@ import { LogOut } from "lucide-react";
 import { NAV_BY_ROLE } from "./nav-items";
 import { tenantConfig } from "@/config/tenant";
 import { signoutAction } from "@/app/actions/auth";
+import { ROLE_LABEL } from "@/constants/roles";
 
 type Props = {
   user: {
@@ -16,12 +17,6 @@ type Props = {
   };
   collapsed: boolean;
   onClose?: () => void;
-};
-
-const ROLE_LABEL: Record<string, string> = {
-  ADMIN:   "Administrador",
-  COMPANY: "Empresa",
-  DRIVER:  "Motorista",
 };
 
 export function Sidebar({ user, collapsed, onClose }: Props) {
