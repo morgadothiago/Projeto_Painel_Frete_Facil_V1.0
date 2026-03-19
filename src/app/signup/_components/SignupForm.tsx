@@ -198,7 +198,7 @@ function StepResponsavel({
       <InputField
         label="E-mail corporativo"
         name="email"
-        type="email"
+        type="text"
         placeholder="nome@empresa.com.br"
         required
         value={data.email}

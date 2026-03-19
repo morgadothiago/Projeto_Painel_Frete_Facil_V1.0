@@ -20,7 +20,7 @@ export function LoginForm() {
       <InputField
         label="E-mail"
         name="email"
-        type="email"
+        type="text"
         placeholder="seu@email.com"
         required
         autoComplete="email"

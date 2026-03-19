@@ -9,71 +9,11 @@ import {
 import { Building2, UserCircle, Wallet } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { tenantConfig } from "@/config/tenant";
+import type { DashboardStats } from "@/app/actions/dashboard";
 
 const { theme: t } = tenantConfig;
 
-// ── Dados mock por aba ────────────────────────────────────────
-const DATA = {
-  empresas: {
-    monthly: [
-      { mes: "Out", novas: 2,  total: 2  },
-      { mes: "Nov", novas: 3,  total: 5  },
-      { mes: "Dez", novas: 1,  total: 6  },
-      { mes: "Jan", novas: 4,  total: 10 },
-      { mes: "Fev", novas: 6,  total: 16 },
-      { mes: "Mar", novas: 5,  total: 21 },
-    ],
-    status: [
-      { label: "Ativas",    qtd: 17 },
-      { label: "Pendentes", qtd: 3  },
-      { label: "Inativas",  qtd: 1  },
-    ],
-    areaKey:  { main: "total",       new: "novas"       },
-    areaName: { main: "Total",       new: "Novas"       },
-    color:    "#8B5CF6",
-    stat:     { value: "21", label: "empresas cadastradas", new: "+5 este mês" },
-  },
-  usuarios: {
-    monthly: [
-      { mes: "Out", novas: 4,  total: 8  },
-      { mes: "Nov", novas: 7,  total: 15 },
-      { mes: "Dez", novas: 3,  total: 18 },
-      { mes: "Jan", novas: 9,  total: 27 },
-      { mes: "Fev", novas: 11, total: 38 },
-      { mes: "Mar", novas: 8,  total: 46 },
-    ],
-    status: [
-      { label: "Admin",     qtd: 2  },
-      { label: "Empresa",   qtd: 21 },
-      { label: "Motorista", qtd: 23 },
-    ],
-    areaKey:  { main: "total",       new: "novas"       },
-    areaName: { main: "Total",       new: "Novos"       },
-    color:    "#3B82F6",
-    stat:     { value: "46", label: "usuários cadastrados", new: "+8 este mês" },
-  },
-  faturamento: {
-    monthly: [
-      { mes: "Out", novas: 1200, total: 1200  },
-      { mes: "Nov", novas: 2800, total: 4000  },
-      { mes: "Dez", novas: 1500, total: 5500  },
-      { mes: "Jan", novas: 3200, total: 8700  },
-      { mes: "Fev", novas: 4100, total: 12800 },
-      { mes: "Mar", novas: 3800, total: 16600 },
-    ],
-    status: [
-      { label: "Pago",      qtd: 14200 },
-      { label: "Pendente",  qtd: 1800  },
-      { label: "Cancelado", qtd: 600   },
-    ],
-    areaKey:  { main: "total",         new: "novas"           },
-    areaName: { main: "Acumulado (R$)", new: "No mês (R$)"    },
-    color:    t.success,
-    stat:     { value: "R$ 16.6k", label: "faturamento total", new: "+R$ 3.8k este mês" },
-  },
-};
-
-type Tab = keyof typeof DATA;
+type Tab = "empresas" | "usuarios" | "faturamento";
 
 const TABS: { key: Tab; label: string; icon: React.ReactNode }[] = [
   { key: "empresas",    label: "Empresas",    icon: <Building2  className="w-[13px] h-[13px]" /> },
@@ -105,11 +45,39 @@ function CustomTooltip({ active, payload, label }: {
   );
 }
 
+// ── Metadados estáticos por aba ───────────────────────────────
+const TAB_META: Record<Tab, {
+  areaKey:  { main: string; new: string };
+  areaName: { main: string; new: string };
+  color:    string;
+}> = {
+  empresas: {
+    areaKey:  { main: "total", new: "novas" },
+    areaName: { main: "Total", new: "Novas" },
+    color:    "#8B5CF6",
+  },
+  usuarios: {
+    areaKey:  { main: "total", new: "novas" },
+    areaName: { main: "Total", new: "Novos" },
+    color:    "#3B82F6",
+  },
+  faturamento: {
+    areaKey:  { main: "total",         new: "novas"        },
+    areaName: { main: "Acumulado (R$)", new: "No mês (R$)" },
+    color:    t.success,
+  },
+};
+
 // ── Componente principal ──────────────────────────────────────
-export function AdminChart() {
+export function AdminChart({ stats }: { stats?: DashboardStats | null }) {
   const [active, setActive] = useState<Tab>("empresas");
-  const data   = DATA[active];
-  const color  = data.color;
+  const meta  = TAB_META[active];
+  const color = meta.color;
+
+  const tabData = stats?.[active];
+  const monthly = tabData?.monthly ?? [];
+  const status  = tabData?.status  ?? [];
+  const stat    = tabData?.stat    ?? { value: "—", label: "", new: "" };
 
   return (
     <div className="bg-white rounded-[20px] shadow-[0_2px_12px_rgba(0,0,0,0.055),0_1px_3px_rgba(0,0,0,0.03)] px-5 pt-[18px] pb-4 flex flex-col flex-1 min-h-0">
@@ -148,10 +116,10 @@ export function AdminChart() {
         {/* Stat rápido */}
         <div className="text-right">
           <p className="text-[20px] font-extrabold text-foreground m-0 leading-none tracking-[-0.5px]">
-            {data.stat.value}
+            {stat.value}
           </p>
           <p className="text-[11.5px] font-semibold mt-0.5 mb-0" style={{ color }}>
-            {data.stat.new}
+            {stat.new}
           </p>
         </div>
       </div>
@@ -166,7 +134,7 @@ export function AdminChart() {
           </p>
           <div className="flex-1 min-h-0">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={data.monthly} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+              <AreaChart data={monthly} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="gradMain" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%"  stopColor={color} stopOpacity={0.18} />
@@ -182,8 +150,8 @@ export function AdminChart() {
                 <YAxis tick={{ fontSize: 10.5, fill: t.textSecondary }} axisLine={false} tickLine={false} allowDecimals={false} />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend iconType="circle" iconSize={6} wrapperStyle={{ fontSize: 11.5, paddingTop: 6, color: t.textSecondary }} />
-                <Area type="monotone" dataKey={data.areaKey.main} name={data.areaName.main} stroke={color} strokeWidth={2.5} fill="url(#gradMain)" dot={false} activeDot={{ r: 4 }} />
-                <Area type="monotone" dataKey={data.areaKey.new}  name={data.areaName.new}  stroke={t.primary} strokeWidth={2} fill="url(#gradNew)" dot={false} activeDot={{ r: 4 }} />
+                <Area type="monotone" dataKey={meta.areaKey.main} name={meta.areaName.main} stroke={color} strokeWidth={2.5} fill="url(#gradMain)" dot={false} activeDot={{ r: 4 }} />
+                <Area type="monotone" dataKey={meta.areaKey.new}  name={meta.areaName.new}  stroke={t.primary} strokeWidth={2} fill="url(#gradNew)" dot={false} activeDot={{ r: 4 }} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -196,7 +164,7 @@ export function AdminChart() {
           </p>
           <div className="flex-1 min-h-0">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={data.status} margin={{ top: 4, right: 4, left: -20, bottom: 0 }} barSize={28}>
+              <BarChart data={status} margin={{ top: 4, right: 4, left: -20, bottom: 0 }} barSize={28}>
                 <CartesianGrid strokeDasharray="3 3" stroke={t.border} vertical={false} />
                 <XAxis dataKey="label" tick={{ fontSize: 10, fill: t.textSecondary }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 10, fill: t.textSecondary }} axisLine={false} tickLine={false} allowDecimals={false} />

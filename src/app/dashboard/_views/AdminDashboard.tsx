@@ -1,12 +1,9 @@
-"use client";
-
 import {
   Building2, Truck, TrendingUp,
   Settings, UserCircle, BarChart3,
   CheckCircle2,
 } from "lucide-react";
 
-import { useIsMobile } from "@/hooks/use-mobile";
 import { PageHeader }  from "@/components/dashboard/page-header";
 import { StatCard }    from "@/components/dashboard/stat-card";
 import { Card }        from "@/components/dashboard/card";
@@ -14,13 +11,14 @@ import { InfoCard }    from "@/components/dashboard/info-card";
 import { QuickAction } from "../_components/QuickAction";
 import { AdminChart }  from "../_components/CompaniesChart";
 import { tenantConfig } from "@/config/tenant";
+import { getDashboardStats } from "@/app/actions/dashboard";
 
 const { theme: t } = tenantConfig;
 
 type Props = { userName: string };
 
-export function AdminDashboard({ userName }: Props) {
-  const isMobile = useIsMobile();
+export async function AdminDashboard({ userName }: Props) {
+  const stats = await getDashboardStats();
 
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 16, overflow: "hidden", minHeight: 0 }}>
@@ -36,7 +34,7 @@ export function AdminDashboard({ userName }: Props) {
 
       {/* ── Métricas ─────────────────────────────────────── */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: 12, flexShrink: 0 }}>
-        <StatCard icon={<Building2 />}  label="Empresas"  value="21"     sub="cadastradas"    accent="#8B5CF6" />
+        <StatCard icon={<Building2 />}  label="Empresas"  value={stats?.empresas.stat.value ?? "0"}  sub="cadastradas"    accent="#8B5CF6" />
         <StatCard icon={<Truck />}      label="Fretes"    value="0"      sub="na plataforma"  accent={t.primary} />
         <StatCard icon={<TrendingUp />} label="Receita"   value="R$ 0"   sub="este mês"       accent={t.success} />
       </div>
@@ -44,19 +42,16 @@ export function AdminDashboard({ userName }: Props) {
       {/* ── Corpo ────────────────────────────────────────── */}
       <div style={{
         display: "grid",
-        gridTemplateColumns: isMobile ? "1fr" : "1fr 280px",
+        gridTemplateColumns: "1fr 280px",
         gap: 14,
-        flex: isMobile ? "none" : 1,
+        flex: 1,
         minHeight: 0,
-        overflow: isMobile ? "visible" : "hidden",
+        overflow: "hidden",
       }}>
 
         {/* Coluna principal: gráfico com tabs */}
-        <div style={{
-          display: "flex", flexDirection: "column", gap: 14,
-          overflow: "hidden", minHeight: isMobile ? 320 : 0,
-        }}>
-          <AdminChart />
+        <div style={{ display: "flex", flexDirection: "column", gap: 14, overflow: "hidden", minHeight: 0 }}>
+          <AdminChart stats={stats} />
         </div>
 
         {/* Coluna direita */}

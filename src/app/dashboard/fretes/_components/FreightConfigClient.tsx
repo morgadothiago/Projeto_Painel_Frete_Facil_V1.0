@@ -447,7 +447,7 @@ function NumField({ label, hint, value, onChange, suffix, prefix }: {
           }}>{prefix}</span>
         )}
         <input
-          type="number" value={value} min={0} step={0.1}
+          type="text" inputMode="decimal" value={value}
           onChange={(e) => onChange(Number(e.target.value))}
           style={{
             ...inputStyle,
@@ -473,7 +473,7 @@ function MiniNumField({ label, value, onChange }: {
     <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
       <label style={{ fontSize: 11, fontWeight: 600, color: "#64748B" }}>{label}</label>
       <input
-        type="number" value={value} min={0} step={0.01}
+        type="text" inputMode="decimal" value={value}
         onChange={(e) => onChange(Number(e.target.value))}
         style={{ ...inputStyle, fontSize: 12.5, padding: "7px 8px" }}
       />

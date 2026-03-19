@@ -231,9 +231,9 @@ function Modal({
               </select>
             </Field>
             <Field label="Peso máximo (kg) *">
-              <input type="number" value={form.maxWeight}
+              <input type="text" inputMode="decimal" value={form.maxWeight}
                 onChange={(e) => set("maxWeight", Number(e.target.value))}
-                min={0} placeholder="0" style={inputStyle} />
+                placeholder="0" style={inputStyle} />
             </Field>
           </div>
 
@@ -252,22 +252,22 @@ function Modal({
             </p>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
               <Field label="Preço base (R$)">
-                <input type="number" value={form.basePrice} min={0} step={0.01}
+                <input type="text" inputMode="decimal" value={form.basePrice}
                   onChange={(e) => set("basePrice", Number(e.target.value))}
                   style={inputStyle} />
               </Field>
               <Field label="Preço por km (R$)">
-                <input type="number" value={form.pricePerKm} min={0} step={0.01}
+                <input type="text" inputMode="decimal" value={form.pricePerKm}
                   onChange={(e) => set("pricePerKm", Number(e.target.value))}
                   style={inputStyle} />
               </Field>
               <Field label="Ajudante (R$)">
-                <input type="number" value={form.helperPrice} min={0} step={0.01}
+                <input type="text" inputMode="decimal" value={form.helperPrice}
                   onChange={(e) => set("helperPrice", Number(e.target.value))}
                   style={inputStyle} />
               </Field>
               <Field label="Parada adicional (R$)">
-                <input type="number" value={form.additionalStopPrice} min={0} step={0.01}
+                <input type="text" inputMode="decimal" value={form.additionalStopPrice}
                   onChange={(e) => set("additionalStopPrice", Number(e.target.value))}
                   style={inputStyle} />
               </Field>
