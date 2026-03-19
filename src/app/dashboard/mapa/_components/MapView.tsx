@@ -11,73 +11,113 @@ import { Truck, Package, RefreshCw, Users, MapPin, FlaskConical } from "lucide-r
 
 // ── Ícones personalizados ──────────────────────────────────────────────────────
 
-// SVG do carro top-down (aponta para cima = norte = heading 0°)
-function carSvg(color1: string, color2: string) {
-  return `
-  <svg viewBox="0 0 40 72" xmlns="http://www.w3.org/2000/svg" width="40" height="72">
-    <defs>
-      <linearGradient id="cg" x1="0%" y1="0%" x2="100%" y2="0%">
-        <stop offset="0%"  stop-color="${color1}"/>
-        <stop offset="50%" stop-color="${color2}"/>
-        <stop offset="100%" stop-color="${color1}"/>
-      </linearGradient>
-    </defs>
-    <!-- Sombra no chão -->
-    <ellipse cx="20" cy="68" rx="13" ry="3.5" fill="rgba(0,0,0,0.18)"/>
-    <!-- Rodas traseiras -->
-    <rect x="2"  y="44" width="8" height="13" rx="3.5" fill="#111827"/>
-    <rect x="30" y="44" width="8" height="13" rx="3.5" fill="#111827"/>
-    <rect x="3.5" y="46" width="5" height="9" rx="2" fill="#374151"/>
-    <rect x="31.5" y="46" width="5" height="9" rx="2" fill="#374151"/>
-    <!-- Rodas dianteiras -->
-    <rect x="2"  y="15" width="8" height="13" rx="3.5" fill="#111827"/>
-    <rect x="30" y="15" width="8" height="13" rx="3.5" fill="#111827"/>
-    <rect x="3.5" y="17" width="5" height="9" rx="2" fill="#374151"/>
-    <rect x="31.5" y="17" width="5" height="9" rx="2" fill="#374151"/>
-    <!-- Carroceria -->
-    <path d="M8,58 Q8,64 20,64 Q32,64 32,58 L32,14 Q32,6 20,6 Q8,6 8,14 Z" fill="url(#cg)"/>
-    <!-- Cabine/teto (mais escuro) -->
-    <path d="M11,48 L11,20 Q11,15 20,15 Q29,15 29,20 L29,48 Q29,52 20,52 Q11,52 11,48 Z"
-          fill="rgba(0,0,0,0.18)"/>
+// Carro top-down estilo Uber — aponta para cima (norte) por padrão
+const CAR_TOP_DOWN = `
+<svg viewBox="0 0 52 96" xmlns="http://www.w3.org/2000/svg" width="52" height="96">
+  <defs>
+    <linearGradient id="body" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%"   stop-color="#1f2937"/>
+      <stop offset="45%"  stop-color="#374151"/>
+      <stop offset="100%" stop-color="#1f2937"/>
+    </linearGradient>
+    <linearGradient id="roof" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%"   stop-color="#d1d5db"/>
+      <stop offset="50%"  stop-color="#f3f4f6"/>
+      <stop offset="100%" stop-color="#d1d5db"/>
+    </linearGradient>
+    <linearGradient id="hood" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%"   stop-color="#111827"/>
+      <stop offset="50%"  stop-color="#1f2937"/>
+      <stop offset="100%" stop-color="#111827"/>
+    </linearGradient>
+    <filter id="cshadow" x="-30%" y="-10%" width="160%" height="130%">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="rgba(0,0,0,0.45)"/>
+    </filter>
+  </defs>
+
+  <!-- Sombra no chão -->
+  <ellipse cx="26" cy="91" rx="17" ry="4.5" fill="rgba(0,0,0,0.22)"/>
+
+  <g filter="url(#cshadow)">
+    <!-- === Rodas === -->
+    <!-- Dianteiras -->
+    <rect x="1"  y="16" width="11" height="17" rx="4" fill="#0f172a"/>
+    <rect x="40" y="16" width="11" height="17" rx="4" fill="#0f172a"/>
+    <rect x="3"  y="19" width="7"  height="11" rx="2.5" fill="#1e293b"/>
+    <rect x="42" y="19" width="7"  height="11" rx="2.5" fill="#1e293b"/>
+    <!-- Traseiras -->
+    <rect x="1"  y="63" width="11" height="17" rx="4" fill="#0f172a"/>
+    <rect x="40" y="63" width="11" height="17" rx="4" fill="#0f172a"/>
+    <rect x="3"  y="66" width="7"  height="11" rx="2.5" fill="#1e293b"/>
+    <rect x="42" y="66" width="7"  height="11" rx="2.5" fill="#1e293b"/>
+
+    <!-- === Carroceria principal === -->
+    <path d="M10,78 Q10,86 26,86 Q42,86 42,78 L42,18 Q42,10 26,10 Q10,10 10,18 Z"
+          fill="url(#body)"/>
+
+    <!-- Capô dianteiro -->
+    <path d="M12,18 Q12,10 26,10 Q40,10 40,18 L40,30 Q33,26 26,26 Q19,26 12,30 Z"
+          fill="url(#hood)"/>
+
+    <!-- Tampa do porta-malas traseiro -->
+    <path d="M12,66 L40,66 L40,78 Q40,86 26,86 Q12,86 12,78 Z"
+          fill="url(#hood)"/>
+
+    <!-- === Teto (cabin) === -->
+    <path d="M14,62 Q14,66 26,66 Q38,66 38,62 L38,34 Q38,30 26,30 Q14,30 14,34 Z"
+          fill="url(#roof)"/>
+
     <!-- Para-brisa dianteiro -->
-    <path d="M12,21 L12,31 Q12,33 14,33 L26,33 Q28,33 28,31 L28,21 Q24,18 16,18 Z"
-          fill="rgba(190,240,255,0.88)"/>
-    <!-- Vidro traseiro -->
-    <path d="M13,39 L13,48 L27,48 L27,39 Z"
-          fill="rgba(180,230,255,0.65)"/>
+    <path d="M14,34 L14,44 Q14,46 16,46 L36,46 Q38,46 38,44 L38,34 Q33,30 26,30 Q19,30 14,34 Z"
+          fill="#374151" opacity="0.92"/>
     <!-- Reflexo no para-brisa -->
-    <path d="M14,22 L18,22 L16,32 L12,30 Z" fill="rgba(255,255,255,0.22)"/>
-    <!-- Linha de porta -->
-    <rect x="11" y="34" width="18" height="1" rx="0.5" fill="rgba(0,0,0,0.15)"/>
-    <!-- Faróis dianteiros -->
-    <rect x="10" y="7"  width="8" height="6" rx="2" fill="#FFFDE7"/>
-    <rect x="22" y="7"  width="8" height="6" rx="2" fill="#FFFDE7"/>
-    <rect x="10" y="7"  width="8" height="6" rx="2" fill="rgba(255,255,150,0.5)"/>
-    <rect x="22" y="7"  width="8" height="6" rx="2" fill="rgba(255,255,150,0.5)"/>
-    <!-- Lanternas traseiras -->
-    <rect x="10" y="58" width="8" height="5" rx="2" fill="#EF4444"/>
-    <rect x="22" y="58" width="8" height="5" rx="2" fill="#EF4444"/>
-    <!-- Brilho lateral do capô -->
-    <rect x="18" y="8"  width="4" height="28" rx="2" fill="rgba(255,255,255,0.1)"/>
-  </svg>`;
-}
+    <path d="M16,35 L20,35 L18,45 L14,43 Z" fill="rgba(255,255,255,0.12)"/>
+
+    <!-- Linha central do teto -->
+    <rect x="24" y="30" width="4" height="36" rx="2" fill="rgba(0,0,0,0.08)"/>
+
+    <!-- Vidro traseiro -->
+    <path d="M14,52 L38,52 L38,62 Q38,66 26,66 Q14,66 14,62 Z"
+          fill="#374151" opacity="0.85"/>
+
+    <!-- Janelas laterais (linhas de porta) -->
+    <rect x="14" y="46" width="24" height="1.5" rx="0.75" fill="rgba(0,0,0,0.25)"/>
+    <rect x="14" y="52" width="24" height="1.5" rx="0.75" fill="rgba(0,0,0,0.25)"/>
+
+    <!-- Brilho no teto -->
+    <ellipse cx="22" cy="48" rx="5" ry="8" fill="rgba(255,255,255,0.14)"/>
+
+    <!-- === Faróis === -->
+    <path d="M13,11 L22,11 L22,16 Q17,16 13,18 Z" fill="#fef9c3"/>
+    <path d="M39,11 L30,11 L30,16 Q35,16 39,18 Z" fill="#fef9c3"/>
+    <!-- Glow dos faróis -->
+    <path d="M13,11 L22,11 L22,16 Q17,16 13,18 Z" fill="rgba(255,255,200,0.6)"/>
+    <path d="M39,11 L30,11 L30,16 Q35,16 39,18 Z" fill="rgba(255,255,200,0.6)"/>
+
+    <!-- === Lanternas traseiras === -->
+    <path d="M13,78 Q13,85 26,85 Q22,85 13,80 Z" fill="#ef4444"/>
+    <path d="M39,78 Q39,85 26,85 Q30,85 39,80 Z" fill="#ef4444"/>
+    <rect x="13" y="78" width="10" height="5" rx="1.5" fill="#ef4444"/>
+    <rect x="29" y="78" width="10" height="5" rx="1.5" fill="#ef4444"/>
+  </g>
+</svg>`;
 
 function createCarIcon(heading: number): L.DivIcon {
   return L.divIcon({
     className: "",
     html: `
       <div style="
-        width:40px; height:72px;
+        width: 52px;
+        height: 96px;
         transform: rotate(${heading}deg);
-        transform-origin: center 85%;
-        transition: transform 0.6s ease;
-        filter: drop-shadow(0 3px 6px rgba(0,0,0,0.35));
+        transform-origin: 50% 83%;
+        transition: transform 0.7s cubic-bezier(0.25,0.46,0.45,0.94);
       ">
-        ${carSvg("#0C6B64", "#2EC4B6")}
+        ${CAR_TOP_DOWN}
       </div>`,
-    iconSize:   [40, 72],
-    iconAnchor: [20, 61],
-    popupAnchor:[0, -64],
+    iconSize:   [52, 96],
+    iconAnchor: [26, 80],
+    popupAnchor:[0, -82],
   });
 }
 
