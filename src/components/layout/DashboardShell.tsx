@@ -48,7 +48,7 @@ export function DashboardShell({ user, initials, children }: Props) {
         <div
           onClick={() => setMobileOpen(false)}
           style={{
-            position: "fixed", inset: 0, zIndex: 90,
+            position: "fixed", inset: 0, zIndex: 9990,
             background: "rgba(0,0,0,0.45)",
           }}
         />
@@ -56,7 +56,7 @@ export function DashboardShell({ user, initials, children }: Props) {
 
       {/* ── Sidebar ─────────────────────────────────────── */}
       <div style={isMobile ? {
-        position: "fixed", top: 0, left: 0, bottom: 0, zIndex: 100,
+        position: "fixed", top: 0, left: 0, bottom: 0, zIndex: 9999,
         transform: mobileOpen ? "translateX(0)" : "translateX(-100%)",
         transition: "transform 0.24s cubic-bezier(0.4,0,0.2,1)",
       } : {}}>

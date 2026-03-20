@@ -8,6 +8,7 @@ import { getMapData, type MapData } from "@/app/actions/map";
 import { simulateDriverNear }       from "@/app/actions/dev";
 import { toast }                    from "sonner";
 import { Truck, Package, RefreshCw, MapPin, FlaskConical } from "lucide-react";
+import { useIsMobile }              from "@/hooks/use-mobile";
 
 // ── Ícones personalizados ──────────────────────────────────────────────────────
 // NOTE: L.divIcon uses innerHTML HTML strings — Tailwind classes have no effect
@@ -128,6 +129,7 @@ export function MapView() {
   const [locating,    setLocating]    = useState(false);
   const [simulating,  setSimulating]  = useState(false);
   const knownDriverIds = useRef<Set<string>>(new Set());
+  const isMobile       = useIsMobile();
 
   async function refresh() {
     const result = await getMapData();
@@ -147,86 +149,93 @@ export function MapView() {
     <div style={{ display: "flex", flexDirection: "column", gap: 14, flex: 1, minHeight: 0 }}>
 
       {/* ── Barra de controles ── */}
-      <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", flexShrink: 0 }}>
+      <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", alignItems: isMobile ? "stretch" : "center", gap: 10, flexShrink: 0 }}>
 
         {/* Stats */}
-        <MapStatCard
-          icon={<Truck style={{ width: 15, height: 15, color: "#0C6B64" }} />}
-          label="Motoristas livres"
-          value={data.drivers.length}
-          color="#0C6B64"
-        />
-        <MapStatCard
-          icon={<Package style={{ width: 15, height: 15, color: "#D97706" }} />}
-          label="Entregas pendentes"
-          value={data.deliveries.length}
-          color="#D97706"
-        />
+        <div style={{ display: "flex", gap: 10 }}>
+          <MapStatCard
+            icon={<Truck style={{ width: 15, height: 15, color: "#0C6B64" }} />}
+            label="Motoristas livres"
+            value={data.drivers.length}
+            color="#0C6B64"
+            isMobile={isMobile}
+          />
+          <MapStatCard
+            icon={<Package style={{ width: 15, height: 15, color: "#D97706" }} />}
+            label="Entregas pendentes"
+            value={data.deliveries.length}
+            color="#D97706"
+            isMobile={isMobile}
+          />
+        </div>
 
         {/* Separador */}
-        <div style={{ flex: 1 }} />
+        {!isMobile && <div style={{ flex: 1 }} />}
 
-        {/* Botão me localizar */}
-        <ActionButton
-          onClick={() => {
-            if (!navigator.geolocation) return;
-            setLocating(true);
-            navigator.geolocation.getCurrentPosition(
-              (pos) => {
-                setMyLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-                setLocating(false);
-              },
-              () => setLocating(false),
-              { enableHighAccuracy: true },
-            );
-          }}
-          icon={<MapPin style={{ width: 13, height: 13 }} />}
-          label={locating ? "Buscando…" : myLocation ? "Localizado" : "Me localizar"}
-          active={!!myLocation}
-          activeColor="#1D4ED8"
-          activeBg="#EFF6FF"
-          activeBorder="#BFDBFE"
-        />
-
-        {/* Simular motorista */}
-        {myLocation && (
+        {/* Botões container */}
+        <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8 }}>
+          {/* Botão me localizar */}
           <ActionButton
-            onClick={async () => {
-              setSimulating(true);
-              const res = await simulateDriverNear(myLocation.lat, myLocation.lng);
-              if (res.ok) {
-                toast.success("Motorista simulado perto de você!", {
-                  description: `${res.name} aparecerá no mapa em instantes.`,
-                });
-                await refresh();
-              } else {
-                toast.error("Nenhum motorista encontrado no banco para simular.");
-              }
-              setSimulating(false);
+            onClick={() => {
+              if (!navigator.geolocation) return;
+              setLocating(true);
+              navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                  setMyLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+                  setLocating(false);
+                },
+                () => setLocating(false),
+                { enableHighAccuracy: true },
+              );
             }}
-            icon={<FlaskConical style={{ width: 13, height: 13 }} />}
-            label={simulating ? "Simulando…" : "Simular motorista"}
-            disabled={simulating}
-            activeColor="#7C3AED"
-            activeBg="#FAF5FF"
-            activeBorder="#DDD6FE"
-            active
+            icon={<MapPin style={{ width: 13, height: 13 }} />}
+            label={locating ? "Buscando…" : myLocation ? "Localizado" : "Me localizar"}
+            active={!!myLocation}
+            activeColor="#1D4ED8"
+            activeBg="#EFF6FF"
+            activeBorder="#BFDBFE"
           />
-        )}
 
-        {/* Atualizar */}
-        <ActionButton
-          onClick={refresh}
-          icon={<RefreshCw style={{ width: 13, height: 13 }} />}
-          label="Atualizar"
-        />
+          {/* Simular motorista */}
+          {myLocation && (
+            <ActionButton
+              onClick={async () => {
+                setSimulating(true);
+                const res = await simulateDriverNear(myLocation.lat, myLocation.lng);
+                if (res.ok) {
+                  toast.success("Motorista simulado perto de você!", {
+                    description: `${res.name} aparecerá no mapa em instantes.`,
+                  });
+                  await refresh();
+                } else {
+                  toast.error("Nenhum motorista encontrado no banco para simular.");
+                }
+                setSimulating(false);
+              }}
+              icon={<FlaskConical style={{ width: 13, height: 13 }} />}
+              label={simulating ? "Simulando…" : "Simular motorista"}
+              disabled={simulating}
+              activeColor="#7C3AED"
+              activeBg="#FAF5FF"
+              activeBorder="#DDD6FE"
+              active
+            />
+          )}
 
-        {/* Timestamp */}
-        {lastSync && (
-          <span suppressHydrationWarning style={{ fontSize: 11.5, color: "#94A3B8", whiteSpace: "nowrap" }}>
-            Atualizado às {lastSync.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
-          </span>
-        )}
+          {/* Atualizar */}
+          <ActionButton
+            onClick={refresh}
+            icon={<RefreshCw style={{ width: 13, height: 13 }} />}
+            label="Atualizar"
+          />
+
+          {/* Timestamp */}
+          {lastSync && (
+            <span suppressHydrationWarning style={{ fontSize: 11.5, color: "#94A3B8", whiteSpace: "nowrap", marginLeft: isMobile ? 0 : "auto", marginTop: isMobile ? 4 : 0 }}>
+              Atualizado às {lastSync.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* ── Card do mapa ── */}
@@ -245,9 +254,10 @@ export function MapView() {
         {/* Legenda no topo do card */}
         <div style={{
           display: "flex",
+          flexWrap: "wrap",
           alignItems: "center",
-          gap: 18,
-          padding: "10px 16px",
+          gap: isMobile ? 12 : 18,
+          padding: isMobile ? "10px 12px" : "10px 16px",
           borderBottom: "1px solid #F8FAFC",
           flexShrink: 0,
         }}>
@@ -374,30 +384,33 @@ export function MapView() {
 
 // ── Sub-componentes ─────────────────────────────────────────────────────────
 
-function MapStatCard({ icon, label, value, color }: {
+function MapStatCard({ icon, label, value, color, isMobile }: {
   icon:  React.ReactNode;
   label: string;
   value: number;
   color: string;
+  isMobile?: boolean;
 }) {
   return (
     <div style={{
-      display: "flex", alignItems: "center", gap: 10,
-      padding: "10px 16px",
+      display: "flex", alignItems: isMobile ? "flex-start" : "center", gap: isMobile ? 8 : 10,
+      flexDirection: isMobile ? "column" : "row",
+      padding: isMobile ? "12px" : "10px 16px",
       background: "#fff",
       borderRadius: 12,
       border: "1px solid #F1F5F9",
       boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+      flex: 1,
     }}>
       <div style={{
-        width: 34, height: 34, borderRadius: 9, flexShrink: 0,
+        width: isMobile ? 28 : 34, height: isMobile ? 28 : 34, borderRadius: 9, flexShrink: 0,
         background: `${color}12`,
         display: "flex", alignItems: "center", justifyContent: "center",
       }}>
-        {icon}
+        <div style={{ transform: isMobile ? "scale(0.85)" : "none", display: "flex" }}>{icon}</div>
       </div>
       <div>
-        <p style={{ margin: 0, fontSize: 11, fontWeight: 600, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.07em" }}>
+        <p style={{ margin: 0, fontSize: isMobile ? 10 : 11, fontWeight: 600, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.07em", lineHeight: 1.1 }}>
           {label}
         </p>
         <p style={{ margin: "2px 0 0", fontSize: 22, fontWeight: 800, color: "#0F172A", lineHeight: 1.1, letterSpacing: "-0.5px" }}>

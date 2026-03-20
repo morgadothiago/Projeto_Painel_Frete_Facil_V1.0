@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { toast }                   from "sonner";
+import { useIsMobile }             from "@/hooks/use-mobile";
 import { Save, Percent, DollarSign, Truck, Eye, Info } from "lucide-react";
 import {
   type FreightConfigData,
@@ -136,6 +137,7 @@ export function FreightConfigClient({
   const [previewDist,  setPreviewDist]  = useState(50);
   const [editingPrices, setEditingPrices] = useState<Record<string, VehicleTypePricing>>({});
   const [isPending, start] = useTransition();
+  const isMobile = useIsMobile();
 
   function setConf<K extends keyof FreightConfigData>(k: K, v: FreightConfigData[K]) {
     setConfig((p) => ({ ...p, [k]: v }));
@@ -178,14 +180,14 @@ export function FreightConfigClient({
   }
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: 24, alignItems: "start" }}>
+    <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 340px", gap: 24, alignItems: "start" }}>
 
       {/* ── Coluna esquerda: configurações ──────────────────────────────── */}
       <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
 
         {/* Taxas globais */}
         <Card title="Taxas Globais" icon={<Percent style={{ width: 16, height: 16, color: "#0C6B64" }} />}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 14 }}>
             <NumField
               label="Comissão da plataforma (%)"
               hint="% cobrada sobre o valor do frete"
@@ -336,7 +338,7 @@ export function FreightConfigClient({
                     </div>
 
                     {/* Campos de preço */}
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 10 }}>
+                    <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "1fr 1fr 1fr 1fr", gap: 10 }}>
                       <MiniNumField label="Base (R$)"       value={cur.basePrice}           onChange={(v) => { startEditVt(vt); setVtField(vt.id, "basePrice", v); }} />
                       <MiniNumField label="Por km (R$)"     value={cur.pricePerKm}          onChange={(v) => { startEditVt(vt); setVtField(vt.id, "pricePerKm", v); }} />
                       <MiniNumField label="Ajudante (R$)"   value={cur.helperPrice}         onChange={(v) => { startEditVt(vt); setVtField(vt.id, "helperPrice", v); }} />
@@ -351,7 +353,7 @@ export function FreightConfigClient({
       </div>
 
       {/* ── Coluna direita: preview ──────────────────────────────────────── */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 16, position: "sticky", top: 24 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 16, position: isMobile ? "static" : "sticky", top: 24 }}>
         <Card title="Preview — Como o motorista vê" icon={<Eye style={{ width: 16, height: 16, color: "#0C6B64" }} />}>
           {/* Seletor de veículo para preview */}
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>

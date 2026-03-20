@@ -27,7 +27,7 @@ export function PageHeader({
       paddingBottom: 8,
     }}>
       {/* Esquerda */}
-      <div>
+      <div style={{ flex: 1, minWidth: 0 }}>
         {label && (
           <p style={{
             margin: "0 0 6px",
@@ -42,6 +42,7 @@ export function PageHeader({
           margin: subtitle ? "0 0 6px" : 0,
           fontSize: 28, fontWeight: 700,
           color: "#0F172A", letterSpacing: "-0.6px", lineHeight: 1.2,
+          whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
         }}>
           {adjustedTitle}
         </h1>
