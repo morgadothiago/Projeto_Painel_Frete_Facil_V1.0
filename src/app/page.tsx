@@ -1,6 +1,6 @@
 import { Zap, MapPin, ShieldCheck, CheckCircle2, ArrowRight } from "lucide-react";
 import { tenantConfig } from "@/config/tenant";
-import { LoginForm }    from "@/app/_components/LoginForm";
+import { LoginForm } from "@/app/_components/LoginForm";
 import { SuccessBanner } from "@/app/_components/SuccessBanner";
 
 export default function LoginPage({
@@ -11,7 +11,7 @@ export default function LoginPage({
   const { name, shortName, theme: t } = tenantConfig;
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", fontFamily: "inherit" }}>
+    <div style={{ minHeight: "100dvh", display: "flex", fontFamily: "inherit" }}>
 
       {/* ── Esquerda: Brand ──────────────────────────────────────── */}
       <div
@@ -96,9 +96,9 @@ export default function LoginPage({
           {/* Features */}
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             {[
-              { Icon: Zap,         text: "Cotação de fretes em tempo real"    },
-              { Icon: MapPin,      text: "Rastreamento GPS integrado"          },
-              { Icon: ShieldCheck, text: "Pagamentos online com segurança"     },
+              { Icon: Zap, text: "Cotação de fretes em tempo real" },
+              { Icon: MapPin, text: "Rastreamento GPS integrado" },
+              { Icon: ShieldCheck, text: "Pagamentos online com segurança" },
             ].map(({ Icon, text }) => (
               <div key={text} style={{ display: "flex", alignItems: "center", gap: 12 }}>
                 <div style={{
@@ -125,9 +125,9 @@ export default function LoginPage({
           paddingTop: 28,
         }}>
           {[
-            { value: "21+",   label: "Empresas"    },
-            { value: "100%",  label: "Online"      },
-            { value: "GPS",   label: "Integrado"   },
+            { value: "21+", label: "Empresas" },
+            { value: "100%", label: "Online" },
+            { value: "GPS", label: "Integrado" },
           ].map(({ value, label }, i) => (
             <div
               key={label}
@@ -152,7 +152,9 @@ export default function LoginPage({
         flex: 1,
         display: "flex", flexDirection: "column",
         alignItems: "center", justifyContent: "center",
-        padding: "48px 32px",
+        minHeight: "100dvh",
+        padding: "48px 20px",
+        boxSizing: "border-box",
         background: "#FAFAFA",
         /* dot grid sutil */
         backgroundImage: `radial-gradient(${t.border} 1.2px, transparent 1.2px)`,
@@ -178,34 +180,14 @@ export default function LoginPage({
         {/* Form container — sem card, conteúdo flutuante */}
         <div style={{
           width: "100%", maxWidth: 380,
+          boxSizing: "border-box",
           background: "#fff",
           borderRadius: 20,
-          padding: "40px 36px 36px",
+          padding: "40px 24px 36px",
           boxShadow: "0 4px 6px -1px rgba(0,0,0,0.04), 0 20px 60px -10px rgba(0,0,0,0.08)",
         }}>
 
-          {/* Cabeçalho */}
-          <div style={{ marginBottom: 30 }}>
-            <div style={{
-              display: "inline-flex", alignItems: "center", gap: 6,
-              background: t.primaryLight, borderRadius: 8,
-              padding: "4px 10px", marginBottom: 16,
-            }}>
-              <CheckCircle2 style={{ width: 12, height: 12, color: t.primary }} />
-              <span style={{ fontSize: 11.5, fontWeight: 700, color: t.primary, letterSpacing: "0.05em" }}>
-                ACESSO SEGURO
-              </span>
-            </div>
-            <h2 style={{
-              fontSize: 24, fontWeight: 800, color: t.textPrimary,
-              margin: "0 0 6px", letterSpacing: "-0.5px", lineHeight: 1.25,
-            }}>
-              Bem-vindo de volta
-            </h2>
-            <p style={{ fontSize: 14, color: t.textSecondary, margin: 0, lineHeight: 1.55 }}>
-              Entre com suas credenciais para acessar o painel
-            </p>
-          </div>
+
 
           <SuccessBanner searchParams={searchParams} />
           <LoginForm />
