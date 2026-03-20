@@ -30,7 +30,7 @@ export function DriverDashboard({ userName }: Props) {
         actionHref="/dashboard/disponiveis"
       />
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, flexShrink: 0 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(100px, 1fr))", gap: 16, flexShrink: 0 }}>
         <StatCard 
           icon={<PackageSearch />} 
           label="Disponíveis" 
@@ -75,9 +75,11 @@ export function DriverDashboard({ userName }: Props) {
       }}>
 
         {/* Gráfico */}
-        <div style={{ display: "flex", flexDirection: "column", minHeight: 280 }}>
-          <DriverChart />
-        </div>
+        {!isMobile && (
+          <div style={{ display: "flex", flexDirection: "column", minHeight: 0, overflow: "hidden" }}>
+            <DriverChart />
+          </div>
+        )}
 
         <div style={{ display: "flex", flexDirection: "column", gap: 12, minHeight: 0 }}>
           <Card title="Ações rápidas">

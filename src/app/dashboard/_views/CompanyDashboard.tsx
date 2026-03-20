@@ -48,36 +48,40 @@ export function CompanyDashboard({ userName }: Props) {
         actionHref="/dashboard/fretes"
       />
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, flexShrink: 0 }}>
-        <StatCard 
-          icon={<Truck />} 
-          label="Fretes Ativos" 
-          value="0" 
-          sub="em andamento" 
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: isMobile ? "1fr" : "repeat(4, 1fr)",
+        gap: 12, flexShrink: 0,
+      }}>
+        <StatCard
+          icon={<Truck />}
+          label="Fretes Ativos"
+          value="0"
+          sub="em andamento"
           accent={t.primary}
           trend={null}
         />
-        <StatCard 
-          icon={<CheckCircle2 />} 
-          label="Concluídos" 
-          value="0" 
-          sub="este mês" 
+        <StatCard
+          icon={<CheckCircle2 />}
+          label="Concluídos"
+          value="0"
+          sub="este mês"
           accent={t.success}
           trend={null}
         />
-        <StatCard 
-          icon={<Clock />} 
-          label="Aguardando" 
-          value="0" 
-          sub="pendentes" 
+        <StatCard
+          icon={<Clock />}
+          label="Aguardando"
+          value="0"
+          sub="pendentes"
           accent={t.warning}
           trend={null}
         />
-        <StatCard 
-          icon={<Wallet />} 
-          label="Saldo" 
-          value="R$ 0" 
-          sub="disponível" 
+        <StatCard
+          icon={<Wallet />}
+          label="Saldo"
+          value="R$ 0"
+          sub="disponível"
           accent="#6366F1"
           trend={null}
         />
@@ -86,18 +90,19 @@ export function CompanyDashboard({ userName }: Props) {
       <div style={{
         display: "grid",
         gridTemplateColumns: isMobile ? "1fr" : "1fr 300px",
+        gridTemplateRows: isMobile ? "auto auto" : "auto",
         gap: 14,
-        flex: isMobile ? "none" : 1,
-        minHeight: 0,
-        overflow: "auto",
+        flex: 1, minHeight: 0,
       }}>
 
         {/* Gráfico */}
-        <div style={{ display: "flex", flexDirection: "column", minHeight: 300 }}>
-          <CompanyChart />
-        </div>
+        {!isMobile && (
+          <div style={{ display: "flex", flexDirection: "column", minHeight: 0, overflow: "hidden" }}>
+            <CompanyChart />
+          </div>
+        )}
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 12, minHeight: 0 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           <Card title="Ações rápidas">
             <div style={{ padding: "8px" }}>
               <QuickAction icon={<Truck />}  label="Novo Frete"    sub="Criar uma entrega"     href="/dashboard/fretes"     color={t.primary} />

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import {
   AreaChart, Area, BarChart, Bar,
-  XAxis, YAxis, CartesianGrid, Tooltip,
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend,
   ResponsiveContainer,
 } from "recharts";
 import { Truck, Package, CheckCircle2, UserCheck, Wifi } from "lucide-react";
@@ -142,7 +142,7 @@ export function CompanyChart() {
       border: "1px solid #E2E8F0",
       boxShadow: "0 2px 8px rgba(0,0,0,0.03)",
       display: "flex", flexDirection: "column",
-      flex: 1, minHeight: 260,
+      flex: 1, height: 360,
       overflow: "hidden",
     }}>
 
@@ -202,7 +202,7 @@ export function CompanyChart() {
       }}>
 
         {/* Área */}
-        <div style={{ display: "flex", flexDirection: "column", minHeight: 0 }}>
+        <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
           <p style={{
             fontSize: 11, fontWeight: 600, color: "#94A3B8",
             textTransform: "uppercase", letterSpacing: "0.06em",
@@ -210,9 +210,9 @@ export function CompanyChart() {
           }}>
             Evolução mensal
           </p>
-          <div style={{ flex: 1, minHeight: 0 }}>
+          <div style={{ height: 240, width: "100%" }}>
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={monthly} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
+              <AreaChart data={monthly} margin={{ top: 4, right: 8, left: -20, bottom: 24 }}>
                 <defs>
                   <linearGradient id={`grad-company-${active}`} x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%"  stopColor={color} stopOpacity={0.2} />
@@ -225,14 +225,18 @@ export function CompanyChart() {
                   tick={{ fontSize: 11, fill: "#94A3B8" }}
                   axisLine={false}
                   tickLine={false}
+                  height={24}
                 />
                 <YAxis
                   tick={{ fontSize: 10.5, fill: "#94A3B8" }}
                   axisLine={false}
                   tickLine={false}
                   allowDecimals={false}
+                  width={28}
+                  domain={[0, (max: number) => Math.max(max, 5)]}
                 />
                 <Tooltip content={<ChartTooltip />} />
+                <Legend verticalAlign="top" height={32} iconType="circle" wrapperStyle={{ fontSize: 11, color: "#94A3B8" }} />
                 <Area
                   type="monotone"
                   dataKey="total"
@@ -249,7 +253,7 @@ export function CompanyChart() {
         </div>
 
         {/* Barras */}
-        <div style={{ display: "flex", flexDirection: "column", minHeight: 0 }}>
+        <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
           <p style={{
             fontSize: 11, fontWeight: 600, color: "#94A3B8",
             textTransform: "uppercase", letterSpacing: "0.06em",
@@ -257,9 +261,9 @@ export function CompanyChart() {
           }}>
             Status atual
           </p>
-          <div style={{ flex: 1, minHeight: 0 }}>
+          <div style={{ height: 240, width: "100%" }}>
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={status} margin={{ top: 4, right: 4, left: -16, bottom: 0 }} barSize={28}>
+              <BarChart data={status} margin={{ top: 4, right: 4, left: -16, bottom: 24 }} barSize={28}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
                 <XAxis
                   dataKey="label"
@@ -274,6 +278,7 @@ export function CompanyChart() {
                   allowDecimals={false}
                 />
                 <Tooltip content={<ChartTooltip />} />
+                <Legend verticalAlign="top" height={32} iconType="circle" wrapperStyle={{ fontSize: 11, color: "#94A3B8" }} />
                 <Bar
                   dataKey="qtd"
                   name="Total"

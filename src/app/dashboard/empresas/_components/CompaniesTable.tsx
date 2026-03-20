@@ -5,6 +5,7 @@ import {
   Search, Building2, CheckCircle2, Clock, XCircle,
   UserCheck, UserX, ChevronUp, ChevronDown,
   ChevronsUpDown, Mail, Phone, X,
+  Calendar,
 } from "lucide-react";
 import { tenantConfig }      from "@/config/tenant";
 import { updateCompanyStatus, type CompanyRow } from "@/app/actions/companies";
@@ -109,6 +110,135 @@ function Th({ label, sortKey, current, dir, onSort, right }: {
   );
 }
 
+// ── Mobile Card ───────────────────────────────────────────────────────────────
+
+function CompanyCard({ company, onUpdate }: {
+  company:  CompanyRow;
+  onUpdate: (userId: string, status: "ACTIVE" | "PENDING" | "INACTIVE") => void;
+}) {
+  const cfg  = COMPANY_STATUS_CONFIG[company.status as keyof typeof COMPANY_STATUS_CONFIG];
+  const name = company.tradeName ?? company.name;
+
+  return (
+    <div style={{
+      background: "#fff",
+      border: "1px solid #EEF2F7",
+      borderRadius: 16,
+      padding: "16px",
+      display: "flex",
+      flexDirection: "column",
+      gap: 14,
+      boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+      position: "relative",
+    }}>
+      {/* Card Top: Avatar + Name + Actions Menu */}
+      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <div style={{
+          width: 44, height: 44, borderRadius: 12, flexShrink: 0,
+          background: avatarGradient(name),
+          display: "flex", alignItems: "center", justifyContent: "center",
+          color: "#fff", fontSize: 16, fontWeight: 800,
+          boxShadow: "0 4px 10px rgba(0,0,0,0.12)",
+        }}>
+          {name.charAt(0).toUpperCase()}
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p style={{
+            margin: 0, fontSize: 14, fontWeight: 700,
+            color: "#0F172A", lineHeight: 1.3,
+            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+          }}>
+            {name}
+          </p>
+          <p style={{ margin: "2px 0 0", fontSize: 11.5, color: "#94A3B8", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {company.name}
+          </p>
+        </div>
+        <div style={{ flexShrink: 0 }}>
+          <CompanyActionsMenu company={company} onUpdate={onUpdate} />
+        </div>
+      </div>
+
+      {/* Divider */}
+      <div style={{ height: 1, background: "#F1F5F9", margin: "0 -16px" }} />
+
+      {/* Info Grid */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
+
+        {/* CNPJ */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <span style={{
+            fontSize: 10, fontWeight: 700, color: "#CBD5E1",
+            textTransform: "uppercase", letterSpacing: "0.1em",
+          }}>
+            CNPJ
+          </span>
+          <span style={{ fontSize: 12, color: "#334155", fontFamily: "monospace", letterSpacing: "0.02em" }}>
+            {formatCNPJ(company.cnpj)}
+          </span>
+        </div>
+
+        {/* Email */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+          <span style={{ fontSize: 10, fontWeight: 700, color: "#CBD5E1", textTransform: "uppercase", letterSpacing: "0.1em", flexShrink: 0 }}>
+            E-mail
+          </span>
+          <span style={{
+            display: "flex", alignItems: "center", gap: 5,
+            fontSize: 12, color: "#334155",
+            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+          }}>
+            <Mail size={11} style={{ color: "#CBD5E1", flexShrink: 0 }} />
+            <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {company.email}
+            </span>
+          </span>
+        </div>
+
+        {/* Phone */}
+        {company.phone && (
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+            <span style={{ fontSize: 10, fontWeight: 700, color: "#CBD5E1", textTransform: "uppercase", letterSpacing: "0.1em", flexShrink: 0 }}>
+              Telefone
+            </span>
+            <span style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, color: "#64748B" }}>
+              <Phone size={11} style={{ color: "#CBD5E1", flexShrink: 0 }} />
+              {company.phone}
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Card Footer: Status + Date */}
+      <div style={{
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        paddingTop: 12, borderTop: "1px solid #F1F5F9",
+      }}>
+        {/* Status badge */}
+        <div style={{
+          display: "inline-flex", alignItems: "center", gap: 5,
+          background: cfg.bg,
+          borderRadius: 20, padding: "4px 10px",
+        }}>
+          <span style={{ width: 6, height: 6, borderRadius: "50%", background: cfg.dot, flexShrink: 0 }} />
+          <span style={{ fontSize: 11.5, fontWeight: 700, color: cfg.color }}>
+            {cfg.label}
+          </span>
+        </div>
+
+        {/* Date */}
+        <span style={{
+          display: "flex", alignItems: "center", gap: 4,
+          fontSize: 11.5, color: "#94A3B8",
+        }}>
+          <Calendar size={11} style={{ flexShrink: 0 }} />
+          {formatDate(company.createdAt)}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 // ── Main component ────────────────────────────────────────────────────────────
 
 const FILTERS = [
@@ -173,21 +303,21 @@ export function CompaniesTable({ initialData }: { initialData: CompanyRow[] }) {
   }, [data, search, filter, sortKey, sortDir]);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 20, height: "100%", minHeight: 0 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
 
       {/* ── Stats ─────────────────────────────────────────────────── */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10 }}>
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
         {STAT_CARDS(counts).map((card) => (
           <div key={card.label} style={{
             background: "#fff",
             border: "1px solid #F1F5F9",
             borderRadius: 14,
-            padding: "16px 18px",
-            display: "flex", alignItems: "center", gap: 14,
+            padding: "14px 16px",
+            display: "flex", alignItems: "center", gap: 12,
             boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
           }}>
             <div style={{
-              width: 36, height: 36, borderRadius: 10, flexShrink: 0,
+              width: 34, height: 34, borderRadius: 10, flexShrink: 0,
               background: card.light,
               display: "flex", alignItems: "center", justifyContent: "center",
               color: card.accent,
@@ -195,10 +325,10 @@ export function CompaniesTable({ initialData }: { initialData: CompanyRow[] }) {
               {card.icon}
             </div>
             <div>
-              <p style={{ margin: 0, fontSize: 11, fontWeight: 600, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.07em" }}>
+              <p style={{ margin: 0, fontSize: 10, fontWeight: 600, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.07em" }}>
                 {card.label}
               </p>
-              <p style={{ margin: "1px 0 0", fontSize: 24, fontWeight: 800, color: "#0F172A", lineHeight: 1.1 }}>
+              <p style={{ margin: "1px 0 0", fontSize: 22, fontWeight: 800, color: "#0F172A", lineHeight: 1.1 }}>
                 {card.value}
               </p>
             </div>
@@ -206,12 +336,11 @@ export function CompaniesTable({ initialData }: { initialData: CompanyRow[] }) {
         ))}
       </div>
 
-      {/* ── Tabela ────────────────────────────────────────────────── */}
+      {/* ── Panel ─────────────────────────────────────────────────── */}
       <div style={{
         background: "#fff",
         border: "1px solid #F1F5F9",
         borderRadius: 16,
-        flex: 1, minHeight: 0,
         display: "flex", flexDirection: "column",
         overflow: "hidden",
         boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
@@ -221,17 +350,18 @@ export function CompaniesTable({ initialData }: { initialData: CompanyRow[] }) {
 
         {/* Toolbar */}
         <div style={{
-          padding: "14px 20px",
-          display: "flex", alignItems: "center", gap: 10,
+          padding: "14px 16px",
+          display: "flex", flexDirection: "column", gap: 8,
           flexShrink: 0,
         }}>
-          {/* Search */}
+          {/* Search — full width */}
           <div style={{
             display: "flex", alignItems: "center", gap: 8,
             background: "#F8FAFC",
             borderRadius: 10, padding: "8px 12px",
-            flex: 1, minWidth: 0,
+            width: "100%",
             border: "1px solid #EEF2F7",
+            boxSizing: "border-box",
           }}>
             <Search size={13} style={{ color: "#CBD5E1", flexShrink: 0 }} />
             <input
@@ -255,13 +385,15 @@ export function CompaniesTable({ initialData }: { initialData: CompanyRow[] }) {
             )}
           </div>
 
-          {/* Filter tabs */}
+          {/* Filter tabs — row below */}
           <div style={{
             display: "flex", alignItems: "center",
             background: "#F8FAFC",
             borderRadius: 10, padding: 3,
             border: "1px solid #EEF2F7",
-            flexShrink: 0,
+            overflowX: "auto",
+            width: "100%",
+            boxSizing: "border-box",
           }}>
             {FILTERS.map((f) => {
               const active = filter === f.value;
@@ -271,15 +403,17 @@ export function CompaniesTable({ initialData }: { initialData: CompanyRow[] }) {
                   type="button"
                   onClick={() => setFilter(f.value)}
                   style={{
-                    padding: "5px 13px", borderRadius: 8,
+                    flex: 1,
+                    padding: "6px 8px", borderRadius: 8,
                     border: "none",
-                    fontSize: 12.5, fontWeight: active ? 600 : 500,
+                    fontSize: 12, fontWeight: active ? 600 : 500,
                     background: active ? "#fff" : "transparent",
                     color: active ? "#0F172A" : "#94A3B8",
                     cursor: "pointer",
                     transition: "all 0.15s",
                     boxShadow: active ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
                     whiteSpace: "nowrap",
+                    textAlign: "center",
                   }}
                 >
                   {f.label}
@@ -289,9 +423,42 @@ export function CompaniesTable({ initialData }: { initialData: CompanyRow[] }) {
           </div>
         </div>
 
-        {/* Table */}
-        <div style={{ overflowY: "auto", flex: 1 }}>
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        {/* ── Mobile Cards (hidden on sm+) ─────────────────────────── */}
+        <div className="block sm:hidden">
+          {rows.length === 0 ? (
+            <div style={{
+              display: "flex", flexDirection: "column",
+              alignItems: "center", gap: 10,
+              padding: "50px 24px",
+            }}>
+              <div style={{
+                width: 48, height: 48, borderRadius: 14,
+                background: "#F8FAFC",
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                <Building2 size={20} style={{ color: "#CBD5E1" }} />
+              </div>
+              <div style={{ textAlign: "center" }}>
+                <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: "#0F172A" }}>
+                  Nenhuma empresa encontrada
+                </p>
+                <p style={{ margin: "4px 0 0", fontSize: 13, color: "#94A3B8" }}>
+                  {search || filter !== "ALL" ? "Tente ajustar os filtros." : "Empresas cadastradas aparecerão aqui."}
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, padding: "0 12px 12px" }}>
+              {rows.map((c) => (
+                <CompanyCard key={c.id} company={c} onUpdate={handleUpdate} />
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* ── Desktop Table (hidden below sm) ─────────────────────── */}
+        <div className="hidden sm:block overflow-x-auto">
+          <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 800 }}>
             <thead>
               <tr>
                 <th style={{ padding: "0 20px 12px", width: 1, borderBottom: "1px solid #F1F5F9" }} />
@@ -336,12 +503,12 @@ export function CompaniesTable({ initialData }: { initialData: CompanyRow[] }) {
                 rows.map((c) => (
                   <tr
                     key={c.id}
-                    style={{ transition: "background 0.1s" }}
-                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "#FAFBFC"; }}
-                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
+                    style={{ borderBottom: "1px solid #F8FAFC", transition: "background 0.15s" }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = "#FAFBFC")}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                   >
-                    {/* Avatar coluna estreita */}
-                    <td style={{ padding: "14px 0 14px 20px", width: 1 }}>
+                    {/* Avatar */}
+                    <td style={{ padding: "14px 20px 14px 20px", width: 1 }}>
                       <div style={{
                         width: 36, height: 36, borderRadius: 10, flexShrink: 0,
                         background: avatarGradient(c.tradeName ?? c.name),
@@ -364,11 +531,7 @@ export function CompaniesTable({ initialData }: { initialData: CompanyRow[] }) {
 
                     {/* CNPJ */}
                     <td style={{ padding: "14px 20px" }}>
-                      <span style={{
-                        fontSize: 12, color: "#64748B",
-                        fontFamily: "monospace",
-                        letterSpacing: "0.02em",
-                      }}>
+                      <span style={{ fontSize: 12, color: "#64748B", fontFamily: "monospace", letterSpacing: "0.02em" }}>
                         {formatCNPJ(c.cnpj)}
                       </span>
                     </td>
@@ -415,7 +578,7 @@ export function CompaniesTable({ initialData }: { initialData: CompanyRow[] }) {
         {/* Footer */}
         {rows.length > 0 && (
           <div style={{
-            padding: "10px 20px",
+            padding: "10px 16px",
             borderTop: "1px solid #F8FAFC",
             display: "flex", alignItems: "center", justifyContent: "space-between",
             flexShrink: 0,
