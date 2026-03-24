@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { decode } from "next-auth/jwt";
 
-const PUBLIC_PATHS = ["/", "/signup", "/forgot-password"];
+const PUBLIC_PATHS = ["/", "/signup", "/forgot-password", "/activate"];
 
 function isPublic(pathname: string) {
   return PUBLIC_PATHS.some(

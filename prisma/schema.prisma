@@ -17,13 +17,14 @@ model User {
   password  String
   phone     String?
   role      String   @default("COMPANY") // ADMIN | COMPANY | DRIVER
-  status    String   @default("ACTIVE")
+  status    String   @default("INACTIVE") // INACTIVE | ACTIVE | PENDING | BLOCKED
   photo     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  company Company?
-  driver  Driver?
+  company         Company?
+  driver          Driver?
+  activationToken ActivationToken?
 
   @@map("users")
 }
@@ -277,4 +278,19 @@ model Notification {
   createdAt DateTime @default(now())
 
   @@map("notifications")
+}
+
+// ─── Account Activation ──────────────────────────────────────────────────────
+
+model ActivationToken {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  token     String   @unique
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("activation_tokens")
 }

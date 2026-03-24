@@ -1,26 +1,21 @@
 "use server";
 
-import { redirect }                from "next/navigation";
-import bcrypt                       from "bcryptjs";
-import { db }                      from "@/lib/db";
+import { redirect } from "next/navigation";
 import { rateLimit, isValidEmail } from "@/lib/rate-limit";
+
+const API_BASE_URL = process.env.API_BASE_URL || "http://localhost:3001";
 
 export type SignupState = {
   error?: string;
 } | null;
 
 export type SignupPayload = {
-  // Empresa
   companyName: string;
-  cnpj:        string;
-  phone:       string;
-  segment:     string;
-  // Responsável
-  fullName:    string;
-  email:       string;
-  position:    string;
-  // Acesso
-  password:    string;
+  cnpj: string;
+  phone: string;
+  fullName: string;
+  email: string;
+  password: string;
 };
 
 export async function signupAction(
@@ -31,13 +26,13 @@ export async function signupAction(
   const password    = formData.get("password")    as string;
   const fullName    = (formData.get("fullName")    as string).trim();
   const companyName = (formData.get("companyName") as string).trim();
-  const cnpj        = (formData.get("cnpj")        as string).replace(/\D/g, "");
+  const cnpjRaw     = (formData.get("cnpj")        as string).replace(/\D/g, "");
   const phone       = (formData.get("phone")       as string).trim();
 
   // ── Validações básicas ────────────────────────────────────────────────────
   if (!isValidEmail(email))       return { error: "E-mail inválido." };
-  if (password.length < 8)        return { error: "A senha deve ter ao menos 8 caracteres." };
-  if (!/^\d{14}$/.test(cnpj))     return { error: "CNPJ inválido." };
+  if (password.length < 6)        return { error: "A senha deve ter ao menos 6 caracteres." };
+  if (!/^\d{14}$/.test(cnpjRaw))  return { error: "CNPJ inválido." };
   if (!fullName || !companyName)  return { error: "Preencha todos os campos obrigatórios." };
 
   // Rate limit: máx 3 cadastros por hora por e-mail
@@ -45,72 +40,59 @@ export async function signupAction(
     return { error: "Muitas tentativas. Aguarde antes de tentar novamente." };
   }
 
-  // ── Mock ──────────────────────────────────────────────────────────────────
-  const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === "true";
+  // Formata CNPJ para o padrão da API (00.000.000/0000-00)
+  const cnpj = cnpjRaw.replace(
+    /^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,
+    "$1.$2.$3/$4-$5",
+  );
 
-  if (USE_MOCK) {
-    await new Promise((r) => setTimeout(r, 900));
+  // ── Cria empresa via API ──────────────────────────────────────────────────
+  try {
+    // 1. Login como admin para obter token
+    const loginRes = await fetch(`${API_BASE_URL}/api/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: process.env.ADMIN_API_EMAIL || "admin@fretefacil.com",
+        password: process.env.ADMIN_API_PASSWORD || "admin123",
+      }),
+    });
 
-    const existingEmails = [
-      "admin@fretefacil.com",
-      "empresa@fretefacil.com",
-      "motorista@fretefacil.com",
-    ];
-
-    if (existingEmails.includes(email)) {
-      return { error: "Este e-mail já está cadastrado." };
+    if (!loginRes.ok) {
+      console.error("[signup] Admin login failed:", await loginRes.text());
+      return { error: "Erro ao processar cadastro. Tente novamente." };
     }
 
-    redirect("/?cadastro=sucesso");
-  }
+    const { access_token } = await loginRes.json();
 
-  // ── Banco real (Prisma) ───────────────────────────────────────────────────
-  let existing;
-  try {
-    existing = await db.user.findUnique({ where: { email } });
-  } catch (err) {
-    console.error("[signup] DB error:", err);
-    return { error: "Erro ao verificar cadastro. Tente novamente." };
-  }
-  if (existing) {
-    return { error: "Este e-mail já está cadastrado." };
-  }
-
-  const hashed = await bcrypt.hash(password, 12);
-
-  const user = await db.user.create({
-    data: {
-      name:     fullName,
-      email,
-      password: hashed,
-      phone,
-      role:     "COMPANY",
-      status:   "PENDING",
-      company: {
-        create: {
-          cnpj,
-          tradeName: companyName,
-        },
+    // 2. Cria empresa via API (já cria notificação para admins internamente)
+    const createRes = await fetch(`${API_BASE_URL}/api/companies`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${access_token}`,
       },
-    },
-  });
-
-  // Notifica todos os admins
-  const admins = await db.user.findMany({
-    where: { role: "ADMIN" },
-    select: { id: true },
-  });
-
-  if (admins.length > 0) {
-    await db.notification.createMany({
-      data: admins.map((admin) => ({
-        userId: admin.id,
-        title:  "Nova empresa aguardando ativação",
-        body:   `${companyName} solicitou acesso à plataforma e está aguardando aprovação.`,
-        type:   "COMPANY_PENDING",
-        data:   JSON.stringify({ companyUserId: user.id, companyName }),
-      })),
+      body: JSON.stringify({
+        name: fullName,
+        email,
+        password,
+        phone: phone || undefined,
+        tradeName: companyName,
+        cnpj,
+      }),
     });
+
+    if (!createRes.ok) {
+      const err = await createRes.json().catch(() => null);
+      const msg = Array.isArray(err?.message) ? err.message[0] : err?.message;
+      if (msg?.includes("E-mail já cadastrado")) return { error: "Este e-mail já está cadastrado." };
+      if (msg?.includes("CNPJ já cadastrado")) return { error: "Este CNPJ já está cadastrado." };
+      console.error("[signup] Create company failed:", err);
+      return { error: msg ?? "Erro ao cadastrar empresa." };
+    }
+  } catch (err) {
+    console.error("[signup] API error:", err);
+    return { error: "Erro ao conectar com o servidor. Tente novamente." };
   }
 
   redirect("/?cadastro=sucesso");

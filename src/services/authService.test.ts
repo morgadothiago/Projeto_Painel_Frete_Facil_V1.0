@@ -13,25 +13,25 @@ describe("authService - loginRequest with mock", () => {
     const { loginRequest } = await import("@/services/authService");
     const result = await loginRequest("admin@fretefacil.com", "password123");
     
-    expect(result).not.toBeNull();
-    expect(result?.user.role).toBe("ADMIN");
+    expect(result.data).not.toBeUndefined();
+    expect(result.data?.user.role).toBe("ADMIN");
   });
 
-  it("should return null for invalid credentials with mock", async () => {
+  it("should return error for invalid credentials with mock", async () => {
     process.env.NEXT_PUBLIC_USE_MOCK = "true";
     
     const { loginRequest } = await import("@/services/authService");
     const result = await loginRequest("invalid@email.com", "password");
     
-    expect(result).toBeNull();
+    expect(result.error).toBeDefined();
   });
 
-  it("should return null for short password with mock", async () => {
+  it("should return error for short password with mock", async () => {
     process.env.NEXT_PUBLIC_USE_MOCK = "true";
     
     const { loginRequest } = await import("@/services/authService");
     const result = await loginRequest("admin@fretefacil.com", "ab");
     
-    expect(result).toBeNull();
+    expect(result.error).toBeDefined();
   });
 });

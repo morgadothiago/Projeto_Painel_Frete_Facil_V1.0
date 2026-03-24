@@ -151,10 +151,8 @@ describe("SignupPayload type", () => {
       companyName: "Empresa Teste",
       cnpj: "12345678000190",
       phone: "11999999999",
-      segment: "tech",
       fullName: "João Silva",
       email: "joao@empresa.com",
-      position: "Gerente",
       password: "password123",
     };
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
-import { Bell, Building2, CheckCheck, Loader2, BellOff, Sparkles, X, Trash2 } from "lucide-react";
+import { Bell, Building2, CheckCheck, Loader2, BellOff, Sparkles, X, Trash2, AlertCircle } from "lucide-react";
 import { toast }          from "sonner";
 import { tenantConfig }   from "@/config/tenant";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
@@ -35,7 +35,9 @@ function NotificationItem({
   activatingId: string | null;
   onActivate:   (userId: string, notifId: string) => void;
 }) {
-  const isPending = notification.type === "COMPANY_PENDING";
+  const isCompanyPending = notification.type === "COMPANY_PENDING";
+  const isPaymentPending = notification.type === "PAYMENT_PENDING";
+  const isPending = isCompanyPending || isPaymentPending;
   const data      = notification.data ? JSON.parse(notification.data) : {};
   const isLoading = activatingId === notification.id;
   const isDone    = activated.has(notification.id);
@@ -65,25 +67,31 @@ function NotificationItem({
           display: "flex", alignItems: "center", justifyContent: "center",
           background: isDone
             ? "linear-gradient(135deg, #DCFCE7, #BBF7D0)"
-            : isPending
+            : isPaymentPending
+            ? "linear-gradient(135deg, #FEF3C7, #FDE68A)"
+            : isCompanyPending
             ? "linear-gradient(135deg, #EDE9FE, #C4B5FD)"
             : "#F1F5F9",
         }}>
           {isDone
             ? <CheckCheck style={{ width: 17, height: 17, color: "#16A34A" }} />
-            : <Building2  style={{ width: 17, height: 17, color: isPending ? "#7C3AED" : "#94A3B8" }} />
+            : isPaymentPending
+            ? <AlertCircle style={{ width: 17, height: 17, color: "#B45309" }} />
+            : <Building2  style={{ width: 17, height: 17, color: isCompanyPending ? "#7C3AED" : "#94A3B8" }} />
           }
         </div>
 
-        {/* Conteúdo */}
+          {/* Conteúdo */}
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 6 }}>
             <p style={{
               margin: 0, fontSize: 13, lineHeight: 1.4,
               fontWeight: isUnread ? 700 : 600,
-              color: isDone ? "#16A34A" : "#0F172A",
+              color: isDone ? "#16A34A" : isPaymentPending ? "#B45309" : "#0F172A",
             }}>
-              {isDone ? "Empresa ativada!" : notification.title}
+              {isDone 
+                ? (isCompanyPending ? "Empresa ativada!" : "Pagamento confirmado!")
+                : notification.title}
             </p>
             <span suppressHydrationWarning style={{
               fontSize: 11, color: "#94A3B8", whiteSpace: "nowrap",
@@ -97,7 +105,9 @@ function NotificationItem({
             margin: "3px 0 0", fontSize: 12.5, color: "#64748B", lineHeight: 1.55,
           }}>
             {isDone
-              ? `${data.companyName ?? "A empresa"} já pode acessar a plataforma.`
+              ? (isCompanyPending 
+                  ? `${data.companyName ?? "A empresa"} já pode acessar a plataforma.`
+                  : "O pagamento foi processado com sucesso.")
               : notification.body
             }
           </p>
@@ -107,7 +117,8 @@ function NotificationItem({
             <span style={{
               display: "inline-flex", alignItems: "center", gap: 4,
               marginTop: 7, padding: "2px 9px", borderRadius: 20,
-              background: "#F3F0FF", color: "#7C3AED",
+              background: isPaymentPending ? "#FEF3C7" : "#F3F0FF",
+              color: isPaymentPending ? "#B45309" : "#7C3AED",
               fontSize: 11.5, fontWeight: 600,
             }}>
               <Building2 style={{ width: 10, height: 10 }} />
@@ -116,7 +127,7 @@ function NotificationItem({
           )}
 
           {/* Botão ativar */}
-          {isPending && data.companyUserId && !isDone && (
+          {isCompanyPending && data.companyUserId && !isDone && (
             <button
               type="button"
               disabled={isLoading}

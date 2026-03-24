@@ -6,7 +6,7 @@ import { SuccessBanner } from "@/app/_components/SuccessBanner";
 export default function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ cadastro?: string }>;
+  searchParams: Promise<{ cadastro?: string; error?: string }>;
 }) {
   const { name, shortName, theme: t } = tenantConfig;
 

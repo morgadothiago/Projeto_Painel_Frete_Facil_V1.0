@@ -4,12 +4,12 @@ import { ResetPasswordForm } from "./_components/ResetPasswordForm";
 export default async function ResetPasswordPage({
   searchParams,
 }: {
-  searchParams: Promise<{ email?: string }>;
+  searchParams: Promise<{ email?: string; code?: string }>;
 }) {
-  const { email } = await searchParams;
+  const { email, code } = await searchParams;
   const { name, shortName, theme: t } = tenantConfig;
 
-  if (!email) {
+  if (!email || !code) {
     return (
       <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
         <p>Link inválido. <a href="/forgot-password">Tente novamente.</a></p>
@@ -97,7 +97,7 @@ export default async function ResetPasswordPage({
           padding: "40px 36px 36px",
           boxShadow: "0 4px 6px -1px rgba(0,0,0,0.04), 0 20px 60px -10px rgba(0,0,0,0.08)",
         }}>
-          <ResetPasswordForm email={email} />
+          <ResetPasswordForm email={email} code={code} />
         </div>
       </div>
     </div>

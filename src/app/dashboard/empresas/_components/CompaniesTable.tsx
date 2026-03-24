@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useTransition, useMemo } from "react";
+import Link from "next/link";
 import {
   Search, Building2, CheckCircle2, Clock, XCircle,
   UserCheck, UserX, ChevronUp, ChevronDown,
   ChevronsUpDown, Mail, Phone, X,
-  Calendar,
+  Calendar, Eye, MapPin, Truck,
 } from "lucide-react";
 import { tenantConfig }      from "@/config/tenant";
 import { updateCompanyStatus, type CompanyRow } from "@/app/actions/companies";
@@ -29,7 +30,7 @@ function formatCNPJ(v: string) {
   return `${d.slice(0,2)}.${d.slice(2,5)}.${d.slice(5,8)}/${d.slice(8,12)}-${d.slice(12,14)}`;
 }
 
-function formatDate(d: Date) {
+function formatDate(d: string | Date) {
   return new Date(d).toLocaleDateString("pt-BR", {
     day: "2-digit", month: "short", year: "numeric",
   });
@@ -44,34 +45,55 @@ function avatarGradient(name: string) {
   return `linear-gradient(135deg, ${palettes[name.charCodeAt(0) % palettes.length][0]}, ${palettes[name.charCodeAt(0) % palettes.length][1]})`;
 }
 
+function DetailRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 0", borderBottom: "1px solid #F1F5F9" }}>
+      <span style={{ color: "#94A3B8", flexShrink: 0 }}>{icon}</span>
+      <span style={{ fontSize: 12, color: "#94A3B8", minWidth: 100 }}>{label}</span>
+      <span style={{ fontSize: 13, fontWeight: 600, color: "#0F172A" }}>{value}</span>
+    </div>
+  );
+}
+
 // ── Actions dropdown ──────────────────────────────────────────────────────────
 
 function CompanyActionsMenu({ company, onUpdate }: {
   company:  CompanyRow;
-  onUpdate: (userId: string, status: "ACTIVE" | "PENDING" | "INACTIVE") => void;
+  onUpdate: (companyId: string, status: "ACTIVE" | "PENDING" | "INACTIVE") => void;
 }) {
-  const items =
-    company.status === "ACTIVE"
-      ? [
-          { label: "Marcar como pendente", icon: <Clock    size={13} />, status: "PENDING"  as const, color: "#B45309", hoverBg: "#FFFBEB" },
-          { label: "Bloquear empresa",     icon: <UserX    size={13} />, status: "INACTIVE" as const, color: "#DC2626", hoverBg: "#FEF2F2" },
-        ]
-      : company.status === "PENDING"
-      ? [
-          { label: "Ativar empresa",   icon: <UserCheck size={13} />, status: "ACTIVE"   as const, color: "#059669", hoverBg: "#ECFDF5" },
-          { label: "Bloquear empresa", icon: <UserX     size={13} />, status: "INACTIVE" as const, color: "#DC2626", hoverBg: "#FEF2F2" },
-        ]
-      : [
-          { label: "Reativar empresa", icon: <UserCheck size={13} />, status: "ACTIVE" as const, color: "#059669", hoverBg: "#ECFDF5" },
-        ];
+  const items = [
+    ...(
+      company.status === "ACTIVE"
+        ? [
+            { label: "Marcar como pendente", icon: <Clock    size={13} />, onClick: () => onUpdate(company.id, "PENDING"),  color: "#B45309", hoverBg: "#FFFBEB" },
+            { label: "Bloquear empresa",     icon: <UserX    size={13} />, onClick: () => onUpdate(company.id, "INACTIVE"), color: "#DC2626", hoverBg: "#FEF2F2" },
+          ]
+        : company.status === "PENDING"
+        ? [
+            { label: "Ativar empresa",   icon: <UserCheck size={13} />, onClick: () => onUpdate(company.id, "ACTIVE"),   color: "#059669", hoverBg: "#ECFDF5" },
+            { label: "Bloquear empresa", icon: <UserX     size={13} />, onClick: () => onUpdate(company.id, "INACTIVE"), color: "#DC2626", hoverBg: "#FEF2F2" },
+          ]
+        : [
+            { label: "Reativar empresa", icon: <UserCheck size={13} />, onClick: () => onUpdate(company.id, "ACTIVE"), color: "#059669", hoverBg: "#ECFDF5" },
+          ]
+    ),
+  ];
 
   return (
-    <ActionsDropdown
-      items={items.map((item) => ({
-        ...item,
-        onClick: () => onUpdate(company.userId, item.status),
-      }))}
-    />
+    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+      <Link
+        href={`/dashboard/empresas/${company.id}`}
+        title="Detalhes"
+        style={{
+          display: "flex", alignItems: "center", justifyContent: "center",
+          width: 30, height: 30, borderRadius: 8,
+          color: "#64748B", transition: "all 0.15s",
+        }}
+      >
+        <Eye size={15} />
+      </Link>
+      <ActionsDropdown items={items} />
+    </div>
   );
 }
 
@@ -114,7 +136,7 @@ function Th({ label, sortKey, current, dir, onSort, right }: {
 
 function CompanyCard({ company, onUpdate }: {
   company:  CompanyRow;
-  onUpdate: (userId: string, status: "ACTIVE" | "PENDING" | "INACTIVE") => void;
+  onUpdate: (companyId: string, status: "ACTIVE" | "PENDING" | "INACTIVE") => void;
 }) {
   const cfg  = COMPANY_STATUS_CONFIG[company.status as keyof typeof COMPANY_STATUS_CONFIG];
   const name = company.tradeName ?? company.name;
@@ -268,10 +290,10 @@ export function CompaniesTable({ initialData }: { initialData: CompanyRow[] }) {
     else { setSortKey(key); setSortDir("asc"); }
   }
 
-  function handleUpdate(userId: string, status: "ACTIVE" | "PENDING" | "INACTIVE") {
+  function handleUpdate(companyId: string, status: "ACTIVE" | "PENDING" | "INACTIVE") {
     startTrans(async () => {
-      const res = await updateCompanyStatus(userId, status);
-      if (res.ok) setData((prev) => prev.map((c) => c.userId === userId ? { ...c, status } : c));
+      const res = await updateCompanyStatus(companyId, status);
+      if (res.ok) setData((prev) => prev.map((c) => c.id === companyId ? { ...c, status } : c));
     });
   }
 
@@ -295,8 +317,8 @@ export function CompaniesTable({ initialData }: { initialData: CompanyRow[] }) {
     }
     if (filter !== "ALL") r = r.filter((c) => c.status === filter);
     r.sort((a, b) => {
-      const va = a[sortKey] instanceof Date ? (a[sortKey] as Date).toISOString() : String(a[sortKey]);
-      const vb = b[sortKey] instanceof Date ? (b[sortKey] as Date).toISOString() : String(b[sortKey]);
+      const va = String(a[sortKey] ?? "");
+      const vb = String(b[sortKey] ?? "");
       return sortDir === "asc" ? va.localeCompare(vb) : vb.localeCompare(va);
     });
     return r;

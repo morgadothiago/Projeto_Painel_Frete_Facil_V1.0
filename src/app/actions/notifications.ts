@@ -1,16 +1,17 @@
 "use server";
 
-import { db }          from "@/lib/db";
-import { auth }        from "@/auth";
+import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 
+const API_BASE_URL = process.env.API_BASE_URL || "http://localhost:3001";
+
 export type AppNotification = {
-  id:        string;
-  title:     string;
-  body:      string;
-  type:      string;
-  read:      boolean;
-  data:      string | null;
+  id: string;
+  title: string;
+  body: string;
+  type: string;
+  read: boolean;
+  data: string | null;
   createdAt: Date;
 };
 
@@ -19,11 +20,21 @@ export async function getNotifications(): Promise<AppNotification[]> {
     const session = await auth();
     if (!session?.user?.id) return [];
 
-    return await db.notification.findMany({
-      where:   { userId: session.user.id },
-      orderBy: { createdAt: "desc" },
-      take:    30,
+    const token = (session as any).accessToken;
+    if (!token) return [];
+
+    const res = await fetch(`${API_BASE_URL}/api/notifications`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
     });
+
+    if (!res.ok) return [];
+
+    const result = await res.json();
+    return (result.data ?? []).map((n: any) => ({
+      ...n,
+      createdAt: new Date(n.createdAt),
+    }));
   } catch (err) {
     console.error("[notifications] getNotifications error:", err);
     return [];
@@ -31,13 +42,20 @@ export async function getNotifications(): Promise<AppNotification[]> {
 }
 
 export async function markAllAsRead(): Promise<void> {
-  const session = await auth();
-  if (!session?.user?.id) return;
+  try {
+    const session = await auth();
+    if (!session?.user?.id) return;
 
-  await db.notification.updateMany({
-    where: { userId: session.user.id, read: false },
-    data:  { read: true },
-  });
+    const token = (session as any).accessToken;
+    if (!token) return;
+
+    await fetch(`${API_BASE_URL}/api/notifications/read-all`, {
+      method: "PATCH",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  } catch (err) {
+    console.error("[notifications] markAllAsRead error:", err);
+  }
 }
 
 export async function activateCompany(
@@ -49,42 +67,49 @@ export async function activateCompany(
     return { ok: false, error: "Sem permissão" };
   }
 
-  // Valida que a notificação existe e pertence ao companyUserId (evita IDOR)
-  const notification = await db.notification.findUnique({
-    where: { id: notificationId },
-  });
-  if (!notification || notification.userId !== companyUserId) {
-    return { ok: false, error: "Notificação inválida." };
+  const token = (session as any).accessToken;
+
+  try {
+    // Ativa o usuário via API
+    const res = await fetch(`${API_BASE_URL}/api/users/${companyUserId}/status`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ status: "ACTIVE" }),
+    });
+
+    if (!res.ok) return { ok: false, error: "Erro ao ativar empresa" };
+
+    // Marca notificação como lida
+    await fetch(`${API_BASE_URL}/api/notifications/read-all`, {
+      method: "PATCH",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    revalidatePath("/dashboard");
+    return { ok: true };
+  } catch (err) {
+    console.error("[notifications] activateCompany error:", err);
+    return { ok: false, error: "Erro ao conectar com o servidor" };
   }
-
-  // Valida que o usuário alvo tem role COMPANY
-  const targetUser = await db.user.findUnique({
-    where:  { id: companyUserId },
-    select: { role: true },
-  });
-  if (!targetUser || targetUser.role !== "COMPANY") {
-    return { ok: false, error: "Usuário não é uma empresa." };
-  }
-
-  await db.user.update({
-    where: { id: companyUserId },
-    data:  { status: "ACTIVE" },
-  });
-
-  await db.notification.update({
-    where: { id: notificationId },
-    data:  { read: true },
-  });
-
-  revalidatePath("/dashboard");
-  return { ok: true };
 }
 
 export async function clearAllNotifications(): Promise<void> {
-  const session = await auth();
-  if (!session?.user?.id) return;
+  try {
+    const session = await auth();
+    if (!session?.user?.id) return;
 
-  await db.notification.deleteMany({
-    where: { userId: session.user.id },
-  });
+    const token = (session as any).accessToken;
+    if (!token) return;
+
+    // API não tem endpoint de deletar todas, então marca como lidas
+    await fetch(`${API_BASE_URL}/api/notifications/read-all`, {
+      method: "PATCH",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  } catch (err) {
+    console.error("[notifications] clearAllNotifications error:", err);
+  }
 }

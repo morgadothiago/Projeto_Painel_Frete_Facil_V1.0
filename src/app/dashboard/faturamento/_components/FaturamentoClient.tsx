@@ -24,7 +24,7 @@ function formatCNPJ(v: string) {
   return `${d.slice(0,2)}.${d.slice(2,5)}.${d.slice(5,8)}/${d.slice(8,12)}-${d.slice(12,14)}`;
 }
 
-function formatDate(d: Date) {
+function formatDate(d: string | Date) {
   return new Date(d).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" });
 }
 
@@ -283,8 +283,8 @@ export function FaturamentoClient({ initialData }: { initialData: CompanyRow[] }
     }
     if (filter !== "ALL") r = r.filter((c) => c.status === filter);
     r.sort((a, b) => {
-      const va = a[sortKey] instanceof Date ? (a[sortKey] as Date).toISOString() : String(a[sortKey]);
-      const vb = b[sortKey] instanceof Date ? (b[sortKey] as Date).toISOString() : String(b[sortKey]);
+      const va = String(a[sortKey] ?? "");
+      const vb = String(b[sortKey] ?? "");
       return sortDir === "asc" ? va.localeCompare(vb) : vb.localeCompare(va);
     });
     return r;

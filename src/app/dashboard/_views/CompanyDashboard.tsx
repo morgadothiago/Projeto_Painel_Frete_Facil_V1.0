@@ -1,6 +1,6 @@
 "use client";
 
-import { Truck, CheckCircle2, Wallet, Clock, MapPin } from "lucide-react";
+import { Truck, CheckCircle2, Wallet, Clock, MapPin, AlertTriangle } from "lucide-react";
 
 import { useIsMobile } from "@/hooks/use-mobile";
 import { PageHeader }  from "@/components/dashboard/page-header";
@@ -11,10 +11,11 @@ import { InfoCard }    from "@/components/dashboard/info-card";
 import { QuickAction } from "../_components/QuickAction";
 import { CompanyChart } from "../_components/CompanyChart";
 import { tenantConfig } from "@/config/tenant";
+import type { PendingPayment } from "@/app/actions/billing";
 
 const { theme: t } = tenantConfig;
 
-type Props = { userName: string };
+type Props = { userName: string; pendingPayment?: PendingPayment | null };
 
 function TruckIllustration() {
   return (
@@ -34,8 +35,12 @@ function TruckIllustration() {
   );
 }
 
-export function CompanyDashboard({ userName }: Props) {
+export function CompanyDashboard({ userName, pendingPayment }: Props) {
   const isMobile = useIsMobile();
+
+  const dueDateStr = pendingPayment
+    ? new Date(pendingPayment.dueDate).toLocaleDateString("pt-BR", { day: "2-digit", month: "long" })
+    : "";
 
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 16, overflow: "hidden", minHeight: 0 }}>
@@ -47,6 +52,34 @@ export function CompanyDashboard({ userName }: Props) {
         actionLabel="Novo Frete"
         actionHref="/dashboard/fretes"
       />
+
+      {/* Banner de pagamento pendente */}
+      {pendingPayment && (
+        <div style={{
+          display: "flex", alignItems: "center", gap: 12,
+          padding: "14px 18px", borderRadius: 14,
+          background: pendingPayment.daysUntilDue <= 1 ? "#FEF2F2" : "#FFFBEB",
+          border: `1px solid ${pendingPayment.daysUntilDue <= 1 ? "#FECACA" : "#FDE68A"}`,
+        }}>
+          <AlertTriangle size={18} color={pendingPayment.daysUntilDue <= 1 ? "#DC2626" : "#B45309"} />
+          <div style={{ flex: 1 }}>
+            <p style={{
+              margin: 0, fontSize: 13.5, fontWeight: 700,
+              color: pendingPayment.daysUntilDue <= 1 ? "#DC2626" : "#B45309",
+            }}>
+              {pendingPayment.daysUntilDue <= 0
+                ? "Pagamento vence hoje!"
+                : pendingPayment.daysUntilDue === 1
+                ? "Pagamento vence amanhã!"
+                : `Pagamento vence em ${pendingPayment.daysUntilDue} dias`}
+            </p>
+            <p style={{ margin: "2px 0 0", fontSize: 12, color: "#64748B" }}>
+              R$ {pendingPayment.amount.toFixed(2).replace(".", ",")} — vencimento {dueDateStr}.
+              Efetue o pagamento para manter o acesso.
+            </p>
+          </div>
+        </div>
+      )}
 
       <div style={{
         display: "grid",

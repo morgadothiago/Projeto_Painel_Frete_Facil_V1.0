@@ -58,12 +58,13 @@ function PasswordInput({ name, placeholder }: { name: string; placeholder: strin
   );
 }
 
-export function ResetPasswordForm({ email }: { email: string }) {
+export function ResetPasswordForm({ email, code }: { email: string; code: string }) {
   const [state, action, pending] = useActionState(resetPassword, null);
 
   return (
     <form action={action}>
       <input type="hidden" name="email" value={email} />
+      <input type="hidden" name="code" value={code} />
 
       <div style={{ marginBottom: 28 }}>
         <h2 style={{ fontSize: 22, fontWeight: 800, color: "#0F172A", margin: "0 0 6px", letterSpacing: "-0.4px" }}>

@@ -12,7 +12,7 @@ describe("CompanyRow type", () => {
       name: "Empresa Teste LTDA",
       email: "test@empresa.com",
       phone: "11999999999",
-      createdAt: new Date(),
+      createdAt: new Date().toISOString(),
     };
 
     expect(company.id).toBe("company-123");
@@ -31,7 +31,7 @@ describe("CompanyRow type", () => {
       name: "Empresa Teste",
       email: "test@empresa.com",
       phone: null,
-      createdAt: new Date(),
+      createdAt: new Date().toISOString(),
     };
 
     expect(company.tradeName).toBeNull();

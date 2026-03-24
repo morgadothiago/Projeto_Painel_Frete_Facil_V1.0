@@ -225,3 +225,48 @@ export async function sendAccountActivatedEmail(to: string, name: string) {
     html:    baseLayout(content),
   });
 }
+
+export async function sendAccountActivationEmail(to: string, name: string, activationToken: string) {
+  const safeName = escapeHtml(name);
+  const baseUrl = process.env.NEXTAUTH_URL ?? "http://localhost:3000";
+  const activationUrl = `${baseUrl}/activate?token=${activationToken}`;
+  
+  const content = `
+    <div style="text-align:center;margin-bottom:28px;">
+      <div style="display:inline-flex;align-items:center;justify-content:center;width:64px;height:64px;border-radius:18px;background:#EFF6FF;margin-bottom:16px;">
+        <span style="font-size:32px;">🎉</span>
+      </div>
+      <h2 style="margin:0;font-size:22px;font-weight:800;color:#0F172A;letter-spacing:-0.3px;">Bem-vindo ao FreteFácil!</h2>
+      <p style="margin:8px 0 0;font-size:14px;color:#64748B;">Olá, <strong>${safeName}</strong></p>
+    </div>
+
+    <p style="margin:0 0 16px;font-size:15px;color:#334155;line-height:1.7;">
+      Sua conta foi criada com sucesso! Para começar a usar a plataforma, você precisa <strong style="color:#0C6B64;">ativar sua conta</strong> clicando no botão abaixo.
+    </p>
+
+    <div style="text-align:center;margin:28px 0;">
+      <a href="${activationUrl}"
+        style="display:inline-block;padding:14px 36px;background:linear-gradient(135deg,#0C6B64,#2EC4B6);color:#fff;text-decoration:none;border-radius:12px;font-size:15px;font-weight:700;letter-spacing:0.01em;box-shadow:0 4px 14px rgba(12,107,100,0.30);">
+        Ativar minha conta
+      </a>
+    </div>
+
+    <div style="background:#EFF6FF;border-left:4px solid #3B82F6;border-radius:0 10px 10px 0;padding:14px 18px;margin:20px 0;">
+      <p style="margin:0;font-size:13px;color:#1D4ED8;line-height:1.6;">
+        ⏱ Este link expira em <strong>24 horas</strong>.<br/>
+        Se você não criou uma conta, ignore este e-mail.
+      </p>
+    </div>
+
+    <p style="margin:20px 0 0;font-size:13px;color:#94A3B8;text-align:center;">
+      Se o botão não funcionar, copie e cole este link no seu navegador:<br/>
+      <a href="${activationUrl}" style="color:#0C6B64;word-break:break-all;">${activationUrl}</a>
+    </p>`;
+
+  await transporter.sendMail({
+    from:    FROM,
+    to,
+    subject: "🎉 Ative sua conta — FreteFácil",
+    html:    baseLayout(content),
+  });
+}

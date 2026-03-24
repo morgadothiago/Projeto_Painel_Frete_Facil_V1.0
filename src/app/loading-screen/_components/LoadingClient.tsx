@@ -14,16 +14,28 @@ const { theme: t, shortName } = tenantConfig;
 
 type Role = "ADMIN" | "COMPANY" | "DRIVER";
 
-export function LoadingClient({ role }: { role: Role }) {
+export function LoadingClient({ role, profileComplete, accessDenied, denyReason }: {
+  role: Role;
+  profileComplete: boolean;
+  accessDenied: boolean;
+  denyReason: string;
+}) {
   const router = useRouter();
 
   useEffect(() => {
     const timer = setTimeout(() => {
       sessionStorage.setItem("showWelcome", "1");
-      router.push("/dashboard");
+      if (role === "COMPANY" && accessDenied) {
+        // Acesso negado — força logout com motivo
+        router.push(`/?error=${denyReason.toLowerCase()}`);
+      } else if (role === "COMPANY" && !profileComplete) {
+        router.push("/dashboard/onboarding");
+      } else {
+        router.push("/dashboard");
+      }
     }, 2800);
     return () => clearTimeout(timer);
-  }, [router]);
+  }, [router, role, profileComplete, accessDenied, denyReason]);
 
   if (role === "ADMIN")  return <AdminLoading />;
   if (role === "DRIVER") return <DriverLoading />;
