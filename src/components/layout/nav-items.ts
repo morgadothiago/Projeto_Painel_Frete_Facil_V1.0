@@ -70,10 +70,10 @@ export const NAV_BY_ROLE: Record<string, NavGroup[]> = {
     {
       label: "Fretes",
       items: [
-        { title: "Meus Fretes",    href: "/dashboard/fretes",         icon: ClipboardList },
+        { title: "Minhas Entregas", href: "/dashboard/minhas-entregas", icon: ClipboardList },
+        { title: "Meus Fretes",    href: "/dashboard/fretes",         icon: Settings },
         { title: "Simular Frete",  href: "/dashboard/simular",        icon: MapPin },
-        { title: "Rastrear",       href: "/dashboard/rastrear",       icon: Truck },
-        { title: "Mapa",          href: "/dashboard/mapa",          icon: Map },
+        { title: "Mapa Tempo Real", href: "/dashboard/minhas-entregas/mapa", icon: Map },
       ],
     },
     {
