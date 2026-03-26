@@ -90,7 +90,7 @@ export function FretesHistoricoClient({
 
   const [loading, setLoading] = useState(false);
 
-  const [statusFilter, setStatusFilter] = useState("ALL");
+  const [statusFilter, setStatusFilter] = useState("COMPLETED");
   const [searchQuery, setSearchQuery]   = useState("");
   const [page, setPage]                 = useState(1);
   const limit = 10;
@@ -145,7 +145,6 @@ export function FretesHistoricoClient({
       }}>
         <div style={{ display: "flex", gap: 6 }}>
           {[
-            { key: "ALL",       label: "Todos",          icon: null },
             { key: "COMPLETED", label: "Finalizados",    icon: CheckCircle2 },
             { key: "CANCELLED", label: "Cancelados",     icon: XCircle },
           ].map(tab => {

@@ -1,15 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   AreaChart, Area, BarChart, Bar,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend,
   ResponsiveContainer,
 } from "recharts";
-import { Users, MapPin, Package } from "lucide-react";
+import { DollarSign, Package, TrendingUp } from "lucide-react";
 import { ChartTooltip } from "./ChartTooltip";
+import type { DriverDashboardStats } from "@/app/actions/dashboard";
 
-type Tab = "motores" | "online" | "entregas";
+type Tab = "entregas" | "ganhos" | "performance";
 
 const TAB_META: Record<Tab, {
   label:    string;
@@ -17,49 +18,109 @@ const TAB_META: Record<Tab, {
   color:    string;
   areaName: string;
 }> = {
-  motores: {
-    label:    "Motoristas",
-    icon:     <Users     style={{ width: 13, height: 13 }} />,
+  entregas: {
+    label:    "Entregas",
+    icon:     <Package    style={{ width: 13, height: 13 }} />,
     color:    "#0C6B64",
     areaName: "Total",
   },
-  online: {
-    label:    "Online",
-    icon:     <MapPin    style={{ width: 13, height: 13 }} />,
+  ganhos: {
+    label:    "Ganhos",
+    icon:     <DollarSign style={{ width: 13, height: 13 }} />,
     color:    "#10B981",
-    areaName: "Ativos",
+    areaName: "R$",
   },
-  entregas: {
-    label:    "Entregas",
-    icon:     <Package   style={{ width: 13, height: 13 }} />,
+  performance: {
+    label:    "Performance",
+    icon:     <TrendingUp style={{ width: 13, height: 13 }} />,
     color:    "#3B82F6",
-    areaName: "Feitas",
+    areaName: "Taxa",
   },
 };
 
-const MOCK_DATA = {
-  monthly: [
-    { mes: "Jan", total: 45, novas: 12 },
-    { mes: "Fev", total: 52, novas: 18 },
-    { mes: "Mar", total: 48, novas: 14 },
-    { mes: "Abr", total: 61, novas: 22 },
-    { mes: "Mai", total: 55, novas: 16 },
-    { mes: "Jun", total: 68, novas: 25 },
-  ],
-  status: [
-    { label: "Ativos", qtd: 42 },
-    { label: "Ocupados", qtd: 18 },
-    { label: "Offline", qtd: 8 },
-  ],
-};
+const MONTH_NAMES = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
 
-export function DriverChart() {
-  const [active, setActive] = useState<Tab>("motores");
+function buildMonthlyFromEarnings(
+  daily: Array<{ date: string; total: number }>,
+): Array<{ mes: string; total: number; novas: number }> {
+  const now = new Date();
+  const months = Array.from({ length: 6 }, (_, i) => {
+    const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
+    return { year: d.getFullYear(), month: d.getMonth(), label: MONTH_NAMES[d.getMonth()] };
+  });
+
+  const windowStart = new Date(months[0].year, months[0].month, 1);
+  const sums: Record<string, number> = {};
+  months.forEach(m => (sums[`${m.year}-${m.month}`] = 0));
+
+  let totalBefore = 0;
+  for (const entry of daily) {
+    const dt = new Date(entry.date);
+    if (dt < windowStart) {
+      totalBefore += entry.total;
+    } else {
+      const key = `${dt.getFullYear()}-${dt.getMonth()}`;
+      if (key in sums) sums[key] += entry.total;
+    }
+  }
+
+  let running = totalBefore;
+  return months.map(m => {
+    const novas = Math.round(sums[`${m.year}-${m.month}`] ?? 0);
+    running += novas;
+    return { mes: m.label, novas, total: Math.round(running) };
+  });
+}
+
+type Props = { stats?: DriverDashboardStats | null };
+
+export function DriverChart({ stats }: Props) {
+  const [active, setActive] = useState<Tab>("entregas");
   const meta = TAB_META[active];
   const color = meta.color;
 
-  const monthly = MOCK_DATA.monthly;
-  const status = MOCK_DATA.status;
+  const overview = stats?.overview;
+  const earnings = stats?.earnings;
+  const earningsMonthly = useMemo(
+    () => buildMonthlyFromEarnings(stats?.earningsLast30Days ?? []),
+    [stats],
+  );
+
+  const chartData = useMemo(() => {
+    if (active === "entregas") {
+      // Simplified monthly data from overview
+      const completed = overview?.completed ?? 0;
+      const cancelled = overview?.cancelled ?? 0;
+      const total = completed + cancelled + (overview?.inProgress ?? 0);
+      return {
+        monthly: earningsMonthly.length > 0 ? earningsMonthly : [{ mes: "Atual", total, novas: completed }],
+        status: [
+          { label: "Concluídas", qtd: completed },
+          { label: "Em Curso", qtd: overview?.inProgress ?? 0 },
+          { label: "Canceladas", qtd: cancelled },
+        ],
+      };
+    }
+    if (active === "ganhos") {
+      return {
+        monthly: earningsMonthly,
+        status: [
+          { label: "Pago", qtd: Math.round(earnings?.totalPaid ?? 0) },
+          { label: "Bruto", qtd: Math.round(earnings?.totalGross ?? 0) },
+        ],
+      };
+    }
+    // performance
+    const totalDel = overview?.totalDeliveries ?? 0;
+    const rating = overview?.rating ?? 0;
+    return {
+      monthly: earningsMonthly,
+      status: [
+        { label: "Entregas", qtd: totalDel },
+        { label: "Rating", qtd: Math.round(rating * 20) }, // scale 0-5 to 0-100
+      ],
+    };
+  }, [active, earningsMonthly, overview, earnings]);
 
   return (
     <div style={{
@@ -86,7 +147,7 @@ export function DriverChart() {
           padding: 4,
           gap: 2,
         }}>
-          {(["motoristas", "online", "entregas"] as Tab[]).map((key) => {
+          {(["entregas", "ganhos", "performance"] as Tab[]).map((key) => {
             const m = TAB_META[key];
             const isActive = active === key;
             return (
@@ -138,7 +199,7 @@ export function DriverChart() {
           </p>
           <div style={{ height: 240, width: "100%" }}>
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={monthly} margin={{ top: 4, right: 8, left: -20, bottom: 24 }}>
+              <AreaChart data={chartData.monthly} margin={{ top: 4, right: 8, left: -20, bottom: 24 }}>
                 <defs>
                   <linearGradient id={`grad-driver-${active}`} x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%"  stopColor={color} stopOpacity={0.2} />
@@ -189,7 +250,7 @@ export function DriverChart() {
           </p>
           <div style={{ height: 240, width: "100%" }}>
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={status} margin={{ top: 4, right: 4, left: -16, bottom: 24 }} barSize={28}>
+              <BarChart data={chartData.status} margin={{ top: 4, right: 4, left: -16, bottom: 24 }} barSize={28}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
                 <XAxis
                   dataKey="label"

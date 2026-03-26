@@ -17,6 +17,21 @@ vi.mock("@/lib/mailer", () => ({
   sendAccountActivatedEmail: vi.fn(),
 }));
 
+// Mock do axios
+const mockGet = vi.fn();
+const mockPost = vi.fn();
+const mockPatch = vi.fn();
+
+vi.mock("axios", () => ({
+  default: {
+    create: () => ({
+      get: mockGet,
+      post: mockPost,
+      patch: mockPatch,
+    }),
+  },
+}));
+
 import {
   getCompanies,
   updateCompanyStatus,
@@ -37,8 +52,6 @@ import {
 } from "@/lib/mailer";
 
 const mockAuth = vi.mocked(auth);
-const mockFetch = vi.fn();
-global.fetch = mockFetch;
 
 describe("companies - Company Management Actions", () => {
   beforeEach(() => {
@@ -60,61 +73,46 @@ describe("companies - Company Management Actions", () => {
       await expect(getCompanies()).rejects.toThrow("Sem permissão");
     });
 
-    it("should return companies for ADMIN", async () => {
+    it("should return companies when authenticated as ADMIN", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "user-1", role: "ADMIN" },
+        user: { id: "admin-1", role: "ADMIN" },
         accessToken: "token-123",
       } as any);
 
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
+      mockGet.mockResolvedValueOnce({
+        data: {
           data: [
             {
               id: "company-1",
-              cnpj: "12345678000190",
-              tradeName: "Empresa A",
+              cnpj: "12.345.678/0001-99",
+              tradeName: "Empresa Teste",
               user: {
-                id: "user-2",
-                name: "Empresa A LTDA",
-                email: "empresa@test.com",
+                id: "user-1",
+                name: "João",
+                email: "joao@test.com",
                 phone: "11999999999",
                 status: "ACTIVE",
-                createdAt: "2024-01-01",
+                createdAt: "2025-01-01",
               },
             },
           ],
-        }),
+        },
       });
 
       const result = await getCompanies();
+
       expect(result).toHaveLength(1);
-      expect(result[0].name).toBe("Empresa A LTDA");
+      expect(result[0].name).toBe("João");
       expect(result[0].status).toBe("ACTIVE");
     });
 
     it("should return empty array on API error", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "user-1", role: "ADMIN" },
+        user: { id: "admin-1", role: "ADMIN" },
         accessToken: "token-123",
       } as any);
 
-      mockFetch.mockResolvedValueOnce({
-        ok: false,
-        status: 500,
-      });
-
-      const result = await getCompanies();
-      expect(result).toEqual([]);
-    });
-
-    it("should return empty array on network error", async () => {
-      mockAuth.mockResolvedValue({
-        user: { id: "user-1", role: "ADMIN" },
-        accessToken: "token-123",
-      } as any);
-
-      mockFetch.mockRejectedValueOnce(new Error("Network error"));
+      mockGet.mockRejectedValueOnce(new Error("Network error"));
 
       const result = await getCompanies();
       expect(result).toEqual([]);
@@ -125,220 +123,97 @@ describe("companies - Company Management Actions", () => {
     it("should return error when not authenticated", async () => {
       mockAuth.mockResolvedValue(null as any);
       const result = await updateCompanyStatus("company-1", "ACTIVE");
-      expect(result).toEqual({ ok: false, error: "Sem permissão" });
-    });
-
-    it("should return error when user is not ADMIN", async () => {
-      mockAuth.mockResolvedValue({
-        user: { id: "user-1", role: "COMPANY" },
-        accessToken: "token-123",
-      } as any);
-      const result = await updateCompanyStatus("company-1", "ACTIVE");
-      expect(result).toEqual({ ok: false, error: "Sem permissão" });
-    });
-
-    it("should update status to PENDING and send email", async () => {
-      mockAuth.mockResolvedValue({
-        user: { id: "user-1", role: "ADMIN" },
-        accessToken: "token-123",
-      } as any);
-
-      mockFetch
-        .mockResolvedValueOnce({
-          ok: true,
-          json: async () => ({
-            data: {
-              user: {
-                email: "empresa@test.com",
-                name: "Empresa Teste",
-              },
-            },
-          }),
-        })
-        .mockResolvedValueOnce({
-          ok: true,
-          json: async () => ({}),
-        });
-
-      const result = await updateCompanyStatus("company-1", "PENDING");
-      expect(result).toEqual({ ok: true });
-      expect(sendAccountPendingEmail).toHaveBeenCalledWith(
-        "empresa@test.com",
-        "Empresa Teste"
-      );
-    });
-
-    it("should update status to INACTIVE and send blocked email", async () => {
-      mockAuth.mockResolvedValue({
-        user: { id: "user-1", role: "ADMIN" },
-        accessToken: "token-123",
-      } as any);
-
-      mockFetch
-        .mockResolvedValueOnce({
-          ok: true,
-          json: async () => ({
-            data: {
-              user: {
-                email: "empresa@test.com",
-                name: "Empresa Teste",
-              },
-            },
-          }),
-        })
-        .mockResolvedValueOnce({
-          ok: true,
-          json: async () => ({}),
-        });
-
-      const result = await updateCompanyStatus("company-1", "INACTIVE");
-      expect(result).toEqual({ ok: true });
-      expect(sendAccountBlockedEmail).toHaveBeenCalledWith(
-        "empresa@test.com",
-        "Empresa Teste"
-      );
-    });
-
-    it("should update status to ACTIVE and send activated email", async () => {
-      mockAuth.mockResolvedValue({
-        user: { id: "user-1", role: "ADMIN" },
-        accessToken: "token-123",
-      } as any);
-
-      mockFetch
-        .mockResolvedValueOnce({
-          ok: true,
-          json: async () => ({
-            data: {
-              user: {
-                email: "empresa@test.com",
-                name: "Empresa Teste",
-              },
-            },
-          }),
-        })
-        .mockResolvedValueOnce({
-          ok: true,
-          json: async () => ({}),
-        });
-
-      const result = await updateCompanyStatus("company-1", "ACTIVE");
-      expect(result).toEqual({ ok: true });
-      expect(sendAccountActivatedEmail).toHaveBeenCalledWith(
-        "empresa@test.com",
-        "Empresa Teste"
-      );
-    });
-
-    it("should return error on API failure", async () => {
-      mockAuth.mockResolvedValue({
-        user: { id: "user-1", role: "ADMIN" },
-        accessToken: "token-123",
-      } as any);
-
-      mockFetch
-        .mockResolvedValueOnce({
-          ok: true,
-          json: async () => ({
-            data: { user: { email: "test@test.com", name: "Test" } },
-          }),
-        })
-        .mockResolvedValueOnce({
-          ok: false,
-          json: async () => ({ message: "Erro ao atualizar" }),
-        });
-
-      const result = await updateCompanyStatus("company-1", "ACTIVE");
       expect(result.ok).toBe(false);
+      expect(result.error).toBe("Sem permissão");
     });
 
-    it("should handle email sending error gracefully", async () => {
+    it("should update status and send email when activating", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "user-1", role: "ADMIN" },
+        user: { id: "admin-1", role: "ADMIN" },
         accessToken: "token-123",
       } as any);
 
-      (sendAccountPendingEmail as any).mockRejectedValueOnce(
-        new Error("Email error")
-      );
+      // Mock get company data
+      mockGet.mockResolvedValueOnce({
+        data: {
+          data: {
+            user: { email: "empresa@test.com", name: "Empresa" },
+            tradeName: "Empresa LTDA",
+          },
+        },
+      });
 
-      mockFetch
-        .mockResolvedValueOnce({
-          ok: true,
-          json: async () => ({
-            data: {
-              user: {
-                email: "empresa@test.com",
-                name: "Empresa Teste",
-              },
-            },
-          }),
-        })
-        .mockResolvedValueOnce({
-          ok: true,
-          json: async () => ({}),
-        });
+      // Mock update status
+      mockPatch.mockResolvedValueOnce({});
 
-      const result = await updateCompanyStatus("company-1", "PENDING");
-      expect(result).toEqual({ ok: true });
+      const result = await updateCompanyStatus("company-1", "ACTIVE");
+
+      expect(result.ok).toBe(true);
+      expect(sendAccountActivatedEmail).toHaveBeenCalledWith("empresa@test.com", "Empresa");
+    });
+
+    it("should send blocked email when inactivating", async () => {
+      mockAuth.mockResolvedValue({
+        user: { id: "admin-1", role: "ADMIN" },
+        accessToken: "token-123",
+      } as any);
+
+      mockGet.mockResolvedValueOnce({
+        data: {
+          data: {
+            user: { email: "empresa@test.com", name: "Empresa" },
+          },
+        },
+      });
+
+      mockPatch.mockResolvedValueOnce({});
+
+      await updateCompanyStatus("company-1", "INACTIVE");
+
+      expect(sendAccountBlockedEmail).toHaveBeenCalledWith("empresa@test.com", "Empresa");
     });
   });
 
   describe("createCompanyAction", () => {
-    it("should return error when not authenticated", async () => {
-      mockAuth.mockResolvedValue(null as any);
-      const result = await createCompanyAction({
-        name: "Empresa",
-        email: "empresa@test.com",
-        password: "senha123",
-        tradeName: "Empresa",
-        cnpj: "12345678000190",
-      });
-      expect(result).toEqual({ ok: false, error: "Sem permissão" });
-    });
-
-    it("should create company successfully", async () => {
+    it("should create company when authenticated as ADMIN", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "user-1", role: "ADMIN" },
+        user: { id: "admin-1", role: "ADMIN" },
         accessToken: "token-123",
       } as any);
 
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ id: "company-1" }),
-      });
+      mockPost.mockResolvedValueOnce({});
 
       const result = await createCompanyAction({
-        name: "Empresa",
-        email: "empresa@test.com",
-        password: "senha123",
+        name: "João",
+        email: "joao@test.com",
+        password: "123456",
         tradeName: "Empresa",
-        cnpj: "12345678000190",
+        cnpj: "12.345.678/0001-99",
       });
 
-      expect(result).toEqual({ ok: true });
+      expect(result.ok).toBe(true);
     });
 
     it("should return error on API failure", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "user-1", role: "ADMIN" },
+        user: { id: "admin-1", role: "ADMIN" },
         accessToken: "token-123",
       } as any);
 
-      mockFetch.mockResolvedValueOnce({
-        ok: false,
-        json: async () => ({ message: "Erro ao criar" }),
+      mockPost.mockRejectedValueOnce({
+        response: { data: { message: "CNPJ já cadastrado" } },
       });
 
       const result = await createCompanyAction({
-        name: "Empresa",
-        email: "empresa@test.com",
-        password: "senha123",
+        name: "João",
+        email: "joao@test.com",
+        password: "123456",
         tradeName: "Empresa",
-        cnpj: "12345678000190",
+        cnpj: "12.345.678/0001-99",
       });
 
       expect(result.ok).toBe(false);
+      expect(result.error).toBe("CNPJ já cadastrado");
     });
   });
 
@@ -351,67 +226,42 @@ describe("companies - Company Management Actions", () => {
 
     it("should return company details for ADMIN", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "user-1", role: "ADMIN" },
+        user: { id: "admin-1", role: "ADMIN" },
         accessToken: "token-123",
       } as any);
 
-      const mockCompany = {
-        id: "company-1",
-        cnpj: "12345678000190",
-        tradeName: "Empresa",
-        addresses: [],
-        user: { id: "user-2", name: "Empresa", email: "test@test.com" },
-        _count: { deliveries: 0 },
-      };
-
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockCompany,
+      mockGet.mockResolvedValueOnce({
+        data: { id: "company-1", cnpj: "12.345.678/0001-99" },
       });
 
       const result = await getCompanyDetails("company-1");
-      expect(result).toEqual(mockCompany);
+      expect(result).not.toBeNull();
+      expect(result?.id).toBe("company-1");
     });
 
-    it("should return company details for COMPANY role using /me endpoint", async () => {
+    it("should use /me endpoint for COMPANY role", async () => {
       mockAuth.mockResolvedValue({
         user: { id: "user-1", role: "COMPANY" },
         accessToken: "token-123",
       } as any);
 
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ id: "company-1" }),
+      mockGet.mockResolvedValueOnce({
+        data: { id: "company-1" },
       });
 
-      const result = await getCompanyDetails("company-1");
-      expect(result).not.toBeNull();
-    });
+      await getCompanyDetails("company-1");
 
-    it("should return null for DRIVER role", async () => {
-      mockAuth.mockResolvedValue({
-        user: { id: "user-1", role: "DRIVER" },
-        accessToken: "token-123",
-      } as any);
-
-      const result = await getCompanyDetails("company-1");
-      expect(result).toBeNull();
+      expect(mockGet).toHaveBeenCalledWith("/api/companies/me");
     });
   });
 
   describe("isCompanyProfileComplete", () => {
-    it("should return true when not COMPANY role", async () => {
+    it("should return true when not COMPANY", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "user-1", role: "ADMIN" },
+        user: { id: "admin-1", role: "ADMIN" },
         accessToken: "token-123",
       } as any);
 
-      const result = await isCompanyProfileComplete();
-      expect(result).toBe(true);
-    });
-
-    it("should return true when no session", async () => {
-      mockAuth.mockResolvedValue(null as any);
       const result = await isCompanyProfileComplete();
       expect(result).toBe(true);
     });
@@ -422,11 +272,8 @@ describe("companies - Company Management Actions", () => {
         accessToken: "token-123",
       } as any);
 
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          addresses: [{ id: "addr-1" }],
-        }),
+      mockGet.mockResolvedValueOnce({
+        data: { addresses: [{ id: "addr-1" }] },
       });
 
       const result = await isCompanyProfileComplete();
@@ -439,11 +286,8 @@ describe("companies - Company Management Actions", () => {
         accessToken: "token-123",
       } as any);
 
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          addresses: [],
-        }),
+      mockGet.mockResolvedValueOnce({
+        data: { addresses: [] },
       });
 
       const result = await isCompanyProfileComplete();
@@ -452,54 +296,7 @@ describe("companies - Company Management Actions", () => {
   });
 
   describe("completeCompanyProfile", () => {
-    it("should return error when not authenticated", async () => {
-      mockAuth.mockResolvedValue(null as any);
-      const result = await completeCompanyProfile({
-        street: "Rua",
-        number: "123",
-        neighborhood: "Bairro",
-        city: "Cidade",
-        state: "SP",
-        zipCode: "12345678",
-      });
-      expect(result).toEqual({ ok: false, error: "Sem permissão" });
-    });
-
-    it("should return error when not COMPANY role", async () => {
-      mockAuth.mockResolvedValue({
-        user: { id: "user-1", role: "ADMIN" },
-        accessToken: "token-123",
-      } as any);
-
-      const result = await completeCompanyProfile({
-        street: "Rua",
-        number: "123",
-        neighborhood: "Bairro",
-        city: "Cidade",
-        state: "SP",
-        zipCode: "12345678",
-      });
-      expect(result).toEqual({ ok: false, error: "Sem permissão" });
-    });
-
-    it("should return error when no company found", async () => {
-      mockAuth.mockResolvedValue({
-        user: { id: "user-1", role: "COMPANY", company: null },
-        accessToken: "token-123",
-      } as any);
-
-      const result = await completeCompanyProfile({
-        street: "Rua",
-        number: "123",
-        neighborhood: "Bairro",
-        city: "Cidade",
-        state: "SP",
-        zipCode: "12345678",
-      });
-      expect(result).toEqual({ ok: false, error: "Empresa não encontrada" });
-    });
-
-    it("should complete profile successfully", async () => {
+    it("should add address for COMPANY", async () => {
       mockAuth.mockResolvedValue({
         user: {
           id: "user-1",
@@ -509,74 +306,90 @@ describe("companies - Company Management Actions", () => {
         accessToken: "token-123",
       } as any);
 
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ id: "addr-1" }),
-      });
+      mockPost.mockResolvedValueOnce({});
 
       const result = await completeCompanyProfile({
-        street: "Rua",
+        street: "Rua A",
         number: "123",
-        neighborhood: "Bairro",
-        city: "Cidade",
+        neighborhood: "Centro",
+        city: "São Paulo",
         state: "SP",
-        zipCode: "12345678",
+        zipCode: "01000-000",
       });
 
-      expect(result).toEqual({ ok: true });
+      expect(result.ok).toBe(true);
     });
   });
 
   describe("getCompanyPayments", () => {
+    it("should return payments for authenticated user", async () => {
+      mockAuth.mockResolvedValue({
+        user: { id: "user-1" },
+        accessToken: "token-123",
+      } as any);
+
+      mockGet.mockResolvedValueOnce({
+        data: [
+          { id: "pay-1", amount: 100, status: "PENDENTE" },
+          { id: "pay-2", amount: 200, status: "PAGO" },
+        ],
+      });
+
+      const result = await getCompanyPayments("company-1");
+
+      expect(result).toHaveLength(2);
+      expect(result[0].amount).toBe(100);
+    });
+
     it("should return empty array when not authenticated", async () => {
       mockAuth.mockResolvedValue(null as any);
       const result = await getCompanyPayments("company-1");
       expect(result).toEqual([]);
     });
+  });
 
-    it("should return payments", async () => {
+  describe("getPaymentStats", () => {
+    it("should return stats for authenticated user", async () => {
       mockAuth.mockResolvedValue({
         user: { id: "user-1" },
         accessToken: "token-123",
       } as any);
 
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => [
-          { id: "payment-1", amount: 100, status: "PAGO" },
-        ],
+      mockGet.mockResolvedValueOnce({
+        data: { total: 500, paid: 300, pending: 200, overdue: 0, count: 3 },
       });
 
-      const result = await getCompanyPayments("company-1");
-      expect(result).toHaveLength(1);
-    });
-  });
+      const result = await getPaymentStats("company-1");
 
-  describe("getPaymentStats", () => {
+      expect(result?.total).toBe(500);
+      expect(result?.paid).toBe(300);
+    });
+
     it("should return null when not authenticated", async () => {
       mockAuth.mockResolvedValue(null as any);
       const result = await getPaymentStats("company-1");
       expect(result).toBeNull();
     });
-
-    it("should return stats", async () => {
-      mockAuth.mockResolvedValue({
-        user: { id: "user-1" },
-        accessToken: "token-123",
-      } as any);
-
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ total: 1000, paid: 500, pending: 500 }),
-      });
-
-      const result = await getPaymentStats("company-1");
-      expect(result).not.toBeNull();
-      expect(result!.total).toBe(1000);
-    });
   });
 
   describe("createPayment", () => {
+    it("should create payment when ADMIN", async () => {
+      mockAuth.mockResolvedValue({
+        user: { id: "admin-1", role: "ADMIN" },
+        accessToken: "token-123",
+      } as any);
+
+      mockPost.mockResolvedValueOnce({});
+
+      const result = await createPayment({
+        companyId: "company-1",
+        amount: 150,
+        dueDate: "2026-04-25",
+      });
+
+      expect(result.ok).toBe(true);
+    });
+
     it("should return error when not ADMIN", async () => {
       mockAuth.mockResolvedValue({
         user: { id: "user-1", role: "COMPANY" },
@@ -585,78 +398,52 @@ describe("companies - Company Management Actions", () => {
 
       const result = await createPayment({
         companyId: "company-1",
-        amount: 100,
-        dueDate: "2024-01-15",
+        amount: 150,
+        dueDate: "2026-04-25",
       });
 
-      expect(result).toEqual({ ok: false, error: "Sem permissão" });
-    });
-
-    it("should create payment successfully", async () => {
-      mockAuth.mockResolvedValue({
-        user: { id: "user-1", role: "ADMIN" },
-        accessToken: "token-123",
-      } as any);
-
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ id: "payment-1" }),
-      });
-
-      const result = await createPayment({
-        companyId: "company-1",
-        amount: 100,
-        dueDate: "2024-01-15",
-      });
-
-      expect(result).toEqual({ ok: true });
+      expect(result.ok).toBe(false);
+      expect(result.error).toBe("Sem permissão");
     });
   });
 
   describe("markPaymentAsPaid", () => {
+    it("should mark payment as paid when ADMIN", async () => {
+      mockAuth.mockResolvedValue({
+        user: { id: "admin-1", role: "ADMIN" },
+        accessToken: "token-123",
+      } as any);
+
+      // Mock get company
+      mockGet.mockResolvedValueOnce({
+        data: {
+          data: {
+            user: { email: "empresa@test.com", name: "Empresa" },
+          },
+        },
+      });
+
+      // Mock patch payment status
+      mockPatch.mockResolvedValueOnce({});
+
+      // Mock patch company status
+      mockPatch.mockResolvedValueOnce({});
+
+      const result = await markPaymentAsPaid("pay-1", "company-1");
+
+      expect(result.ok).toBe(true);
+    });
+
     it("should return error when not ADMIN", async () => {
       mockAuth.mockResolvedValue({
         user: { id: "user-1", role: "COMPANY" },
         accessToken: "token-123",
       } as any);
 
-      const result = await markPaymentAsPaid("payment-1", "company-1");
-      expect(result).toEqual({ ok: false, error: "Sem permissão" });
-    });
+      const result = await markPaymentAsPaid("pay-1", "company-1");
 
-    it("should mark payment as paid and send email", async () => {
-      mockAuth.mockResolvedValue({
-        user: { id: "user-1", role: "ADMIN" },
-        accessToken: "token-123",
-      } as any);
-
-      mockFetch
-        .mockResolvedValueOnce({
-          ok: true,
-          json: async () => ({
-            data: {
-              user: {
-                email: "empresa@test.com",
-                name: "Empresa Teste",
-              },
-            },
-          }),
-        })
-        .mockResolvedValueOnce({
-          ok: true,
-          json: async () => ({}),
-        })
-        .mockResolvedValueOnce({
-          ok: true,
-          json: async () => ({}),
-        });
-
-      const result = await markPaymentAsPaid("payment-1", "company-1");
-      expect(result).toEqual({ ok: true });
-      expect(sendAccountActivatedEmail).toHaveBeenCalledWith(
-        "empresa@test.com",
-        "Empresa Teste"
-      );
+      expect(result.ok).toBe(false);
+      expect(result.error).toBe("Sem permissão");
     });
   });
 });

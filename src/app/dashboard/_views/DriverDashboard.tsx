@@ -11,13 +11,17 @@ import { InfoCard }    from "@/components/dashboard/info-card";
 import { QuickAction } from "../_components/QuickAction";
 import { DriverChart } from "../_components/DriverChart";
 import { tenantConfig } from "@/config/tenant";
+import type { DriverDashboardStats } from "@/app/actions/dashboard";
 
 const { theme: t } = tenantConfig;
 
-type Props = { userName: string };
+type Props = { userName: string; stats?: DriverDashboardStats | null };
 
-export function DriverDashboard({ userName }: Props) {
+export function DriverDashboard({ userName, stats }: Props) {
   const isMobile = useIsMobile();
+
+  const overview = stats?.overview;
+  const earnings = stats?.earnings;
 
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 16, overflow: "hidden", minHeight: 0 }}>
@@ -33,32 +37,32 @@ export function DriverDashboard({ userName }: Props) {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(100px, 1fr))", gap: 16, flexShrink: 0 }}>
         <StatCard 
           icon={<PackageSearch />} 
-          label="Disponíveis" 
-          value="0" 
-          sub="para aceitar" 
+          label="Em Andamento" 
+          value={String(overview?.inProgress ?? 0)}
+          sub="agora" 
           accent="#F59E0B"
           trend={null}
         />
         <StatCard 
           icon={<Truck />} 
-          label="Em Andamento" 
-          value="0" 
-          sub="agora" 
+          label="Concluídos" 
+          value={String(overview?.completed ?? 0)}
+          sub="total" 
           accent={t.primary}
           trend={null}
         />
         <StatCard 
           icon={<CheckCircle2 />} 
-          label="Concluídos" 
-          value="0" 
-          sub="este mês" 
+          label="Avaliação" 
+          value={Number(overview?.rating ?? 0).toFixed(1)}
+          sub="★ média" 
           accent={t.success}
-          trend={{ value: 12, isPositive: true }}
+          trend={null}
         />
         <StatCard 
           icon={<Wallet />} 
           label="Saldo" 
-          value="R$ 0" 
+          value={`R$ ${Number(overview?.balance ?? 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
           sub="disponível" 
           accent="#6366F1"
           trend={null}
@@ -77,7 +81,7 @@ export function DriverDashboard({ userName }: Props) {
         {/* Gráfico */}
         {!isMobile && (
           <div style={{ display: "flex", flexDirection: "column", minHeight: 0, overflow: "hidden" }}>
-            <DriverChart />
+            <DriverChart stats={stats} />
           </div>
         )}
 

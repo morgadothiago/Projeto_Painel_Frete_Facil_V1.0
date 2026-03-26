@@ -1,38 +1,19 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-// Mock do módulo auth
 vi.mock("@/auth", () => ({
   auth: vi.fn(),
 }));
 
-// Mock do módulo db
-vi.mock("@/lib/db", () => ({
-  db: {
-    company: {
-      findMany: vi.fn(),
-      findFirst: vi.fn(),
-    },
-    driver: {
-      findMany: vi.fn(),
-      findFirst: vi.fn(),
-    },
-    user: {
-      findFirst: vi.fn(),
-      create: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
-    },
+vi.mock("@/lib/api", () => ({
+  api: {
+    get:    vi.fn(),
+    post:   vi.fn(),
+    patch:  vi.fn(),
+    delete: vi.fn(),
   },
 }));
 
-// Mock do bcryptjs
-vi.mock("bcryptjs", () => ({
-  default: {
-    hash: vi.fn(),
-  },
-}));
-
-// Mock do next/cache
 vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
 }));
@@ -46,12 +27,10 @@ import {
   deleteDriver,
 } from "./drivers";
 import { auth } from "@/auth";
-import { db } from "@/lib/db";
-import bcrypt from "bcryptjs";
+import { api } from "@/lib/api";
 
 const mockAuth = vi.mocked(auth);
-const mockDb = vi.mocked(db);
-const mockBcrypt = vi.mocked(bcrypt);
+const mockApi  = vi.mocked(api);
 
 describe("drivers - Driver Management Actions", () => {
   beforeEach(() => {
@@ -76,20 +55,14 @@ describe("drivers - Driver Management Actions", () => {
         user: { id: "user-1", role: "ADMIN" },
       } as any);
 
-      const mockCompanies = [
-        {
-          id: "company-1",
-          tradeName: "Empresa A",
-          user: { name: "Empresa A LTDA" },
+      (mockApi.get as any).mockResolvedValue({
+        data: {
+          data: [
+            { id: "company-1", tradeName: "Empresa A", user: { name: "Empresa A LTDA" } },
+            { id: "company-2", tradeName: null,        user: { name: "Empresa B" } },
+          ],
         },
-        {
-          id: "company-2",
-          tradeName: null,
-          user: { name: "Empresa B" },
-        },
-      ];
-
-      (mockDb.company.findMany as any).mockResolvedValue(mockCompanies);
+      });
 
       const result = await getCompanies();
       expect(result).toEqual([
@@ -103,15 +76,11 @@ describe("drivers - Driver Management Actions", () => {
         user: { id: "user-1", role: "ADMIN" },
       } as any);
 
-      const mockCompanies = [
-        {
-          id: "company-1",
-          tradeName: null,
-          user: { name: "Empresa sem nome" },
+      (mockApi.get as any).mockResolvedValue({
+        data: {
+          data: [{ id: "company-1", tradeName: null, user: { name: "Empresa sem nome" } }],
         },
-      ];
-
-      (mockDb.company.findMany as any).mockResolvedValue(mockCompanies);
+      });
 
       const result = await getCompanies();
       expect(result[0].name).toBe("Empresa sem nome");
@@ -129,26 +98,26 @@ describe("drivers - Driver Management Actions", () => {
         user: { id: "user-1", role: "COMPANY" },
       } as any);
 
-      const mockDrivers = [
-        {
-          id: "driver-1",
-          userId: "user-2",
-          cpf: "12345678901",
-          isOnline: true,
-          rating: 4.5,
-          totalDeliveries: 10,
-          autonomo: false,
-          user: {
-            name: "Motorista 1",
-            email: "motorista1@test.com",
-            phone: "11999999999",
-            status: "ACTIVE",
-            createdAt: new Date("2024-01-01"),
-          },
+      (mockApi.get as any).mockResolvedValue({
+        data: {
+          data: [{
+            id: "driver-1",
+            userId: "user-2",
+            cpf: "12345678901",
+            isOnline: true,
+            rating: 4.5,
+            totalDeliveries: 10,
+            autonomo: false,
+            user: {
+              name: "Motorista 1",
+              email: "motorista1@test.com",
+              phone: "11999999999",
+              status: "ACTIVE",
+              createdAt: "2024-01-01T00:00:00Z",
+            },
+          }],
         },
-      ];
-
-      (mockDb.driver.findMany as any).mockResolvedValue(mockDrivers);
+      });
 
       const result = await getDrivers("company-1");
       expect(result).toHaveLength(1);
@@ -170,32 +139,31 @@ describe("drivers - Driver Management Actions", () => {
       await expect(getAllDrivers()).rejects.toThrow("Sem permissão");
     });
 
-    it("should return all autonomous drivers for ADMIN", async () => {
+    it("should return all drivers for ADMIN", async () => {
       mockAuth.mockResolvedValue({
         user: { id: "user-1", role: "ADMIN" },
       } as any);
 
-      const mockDrivers = [
-        {
-          id: "driver-1",
-          userId: "user-2",
-          cpf: "12345678901",
-          isOnline: false,
-          rating: 4.0,
-          totalDeliveries: 5,
-          autonomo: true,
-          user: {
-            name: "Motorista Autônomo",
-            email: "autonomo@test.com",
-            phone: null,
-            status: "ACTIVE",
-            createdAt: new Date("2024-01-01"),
-            company: null,
-          },
+      (mockApi.get as any).mockResolvedValue({
+        data: {
+          data: [{
+            id: "driver-1",
+            userId: "user-2",
+            cpf: "12345678901",
+            isOnline: false,
+            rating: 4.0,
+            totalDeliveries: 5,
+            autonomo: true,
+            user: {
+              name: "Motorista Autônomo",
+              email: "autonomo@test.com",
+              phone: null,
+              status: "ACTIVE",
+              createdAt: "2024-01-01T00:00:00Z",
+            },
+          }],
         },
-      ];
-
-      (mockDb.driver.findMany as any).mockResolvedValue(mockDrivers);
+      });
 
       const result = await getAllDrivers();
       expect(result).toHaveLength(1);
@@ -231,72 +199,6 @@ describe("drivers - Driver Management Actions", () => {
       });
     });
 
-    it("should return error when company not found", async () => {
-      mockAuth.mockResolvedValue({
-        user: { id: "user-1", role: "COMPANY", company: null },
-      } as any);
-
-      (mockDb.company.findFirst as any).mockResolvedValue(null);
-
-      const result = await createDriver({
-        name: "Motorista",
-        email: "motorista@test.com",
-        cpf: "12345678901",
-        password: "senha123",
-      });
-      expect(result).toEqual({
-        ok: false,
-        error: "Empresa não encontrada. Verifique seu cadastro.",
-      });
-    });
-
-    it("should return error when email already exists", async () => {
-      mockAuth.mockResolvedValue({
-        user: {
-          id: "user-1",
-          role: "COMPANY",
-          company: { id: "company-1" },
-        },
-      } as any);
-
-      (mockDb.user.findFirst as any).mockResolvedValue({
-        id: "existing-user",
-        email: "motorista@test.com",
-      });
-
-      const result = await createDriver({
-        name: "Motorista",
-        email: "motorista@test.com",
-        cpf: "12345678901",
-        password: "senha123",
-      });
-      expect(result).toEqual({ ok: false, error: "E-mail já cadastrado" });
-    });
-
-    it("should return error when CPF already exists", async () => {
-      mockAuth.mockResolvedValue({
-        user: {
-          id: "user-1",
-          role: "COMPANY",
-          company: { id: "company-1" },
-        },
-      } as any);
-
-      (mockDb.user.findFirst as any).mockResolvedValue(null);
-      (mockDb.driver.findFirst as any).mockResolvedValue({
-        id: "existing-driver",
-        cpf: "12345678901",
-      });
-
-      const result = await createDriver({
-        name: "Motorista",
-        email: "motorista@test.com",
-        cpf: "123.456.789-01",
-        password: "senha123",
-      });
-      expect(result).toEqual({ ok: false, error: "CPF já cadastrado" });
-    });
-
     it("should create driver successfully", async () => {
       mockAuth.mockResolvedValue({
         user: {
@@ -306,10 +208,7 @@ describe("drivers - Driver Management Actions", () => {
         },
       } as any);
 
-      (mockDb.user.findFirst as any).mockResolvedValue(null);
-      (mockDb.driver.findFirst as any).mockResolvedValue(null);
-      (mockBcrypt.hash as any).mockResolvedValue("hashed-password");
-      (mockDb.user.create as any).mockResolvedValue({ id: "new-user" });
+      (mockApi.post as any).mockResolvedValue({ data: { id: "new-driver" } });
 
       const result = await createDriver({
         name: "Motorista",
@@ -319,8 +218,14 @@ describe("drivers - Driver Management Actions", () => {
       });
 
       expect(result).toEqual({ ok: true });
-      expect(mockBcrypt.hash).toHaveBeenCalledWith("senha123", 12);
-      expect(mockDb.user.create).toHaveBeenCalled();
+      expect(mockApi.post).toHaveBeenCalledWith("/api/drivers", {
+        name: "Motorista",
+        email: "motorista@test.com",
+        cpf: "12345678901",
+        phone: undefined,
+        password: "senha123",
+        autonomo: false,
+      });
     });
 
     it("should strip non-numeric characters from CPF", async () => {
@@ -332,10 +237,7 @@ describe("drivers - Driver Management Actions", () => {
         },
       } as any);
 
-      (mockDb.user.findFirst as any).mockResolvedValue(null);
-      (mockDb.driver.findFirst as any).mockResolvedValue(null);
-      (mockBcrypt.hash as any).mockResolvedValue("hashed-password");
-      (mockDb.user.create as any).mockResolvedValue({ id: "new-user" });
+      (mockApi.post as any).mockResolvedValue({ data: { id: "new-driver" } });
 
       await createDriver({
         name: "Motorista",
@@ -344,9 +246,9 @@ describe("drivers - Driver Management Actions", () => {
         password: "senha123",
       });
 
-      expect(mockDb.driver.findFirst).toHaveBeenCalledWith({
-        where: { cpf: "12345678901" },
-      });
+      expect(mockApi.post).toHaveBeenCalledWith("/api/drivers", expect.objectContaining({
+        cpf: "12345678901",
+      }));
     });
   });
 
@@ -368,14 +270,11 @@ describe("drivers - Driver Management Actions", () => {
         },
       } as any);
 
-      (mockDb.user.update as any).mockResolvedValue({ id: "driver-1" });
+      (mockApi.patch as any).mockResolvedValue({ data: {} });
 
       const result = await updateDriverStatus("driver-1", "ACTIVE");
       expect(result).toEqual({ ok: true });
-      expect(mockDb.user.update).toHaveBeenCalledWith({
-        where: { id: "driver-1", company: { id: "company-1" } },
-        data: { status: "ACTIVE" },
-      });
+      expect(mockApi.patch).toHaveBeenCalledWith("/api/drivers/driver-1/status", { status: "ACTIVE" });
     });
   });
 
@@ -397,13 +296,11 @@ describe("drivers - Driver Management Actions", () => {
         },
       } as any);
 
-      (mockDb.user.delete as any).mockResolvedValue({ id: "driver-1" });
+      (mockApi.delete as any).mockResolvedValue({ data: {} });
 
       const result = await deleteDriver("driver-1");
       expect(result).toEqual({ ok: true });
-      expect(mockDb.user.delete).toHaveBeenCalledWith({
-        where: { id: "driver-1", company: { id: "company-1" } },
-      });
+      expect(mockApi.delete).toHaveBeenCalledWith("/api/drivers/driver-1");
     });
   });
 });

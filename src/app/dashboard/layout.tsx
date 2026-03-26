@@ -9,9 +9,9 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   const session = await auth();
-  if (!session) redirect("/");
+  if (!session?.user) redirect("/");
 
-  const name     = session.user.name ?? session.user.email ?? "?";
+  const name     = session.user.name ?? session.user.email ?? "Usuário";
   const initials = name.split(" ").map((w: string) => w[0]).slice(0, 2).join("").toUpperCase();
 
   return (

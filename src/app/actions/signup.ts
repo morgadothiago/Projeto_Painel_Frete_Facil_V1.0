@@ -2,6 +2,8 @@
 
 import { redirect } from "next/navigation";
 import { rateLimit, isValidEmail } from "@/lib/rate-limit";
+import { publicApi, getErrorMessage } from "@/lib/api";
+import axios from "axios";
 
 const API_BASE_URL = process.env.API_BASE_URL || "http://localhost:3001";
 
@@ -49,50 +51,38 @@ export async function signupAction(
   // ── Cria empresa via API ──────────────────────────────────────────────────
   try {
     // 1. Login como admin para obter token
-    const loginRes = await fetch(`${API_BASE_URL}/api/auth/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        email: process.env.ADMIN_API_EMAIL || "admin@fretefacil.com",
-        password: process.env.ADMIN_API_PASSWORD || "admin123",
-      }),
+    const { data: loginData } = await publicApi.post("/api/auth/login", {
+      email: process.env.ADMIN_API_EMAIL || "admin@fretefacil.com",
+      password: process.env.ADMIN_API_PASSWORD || "admin123",
     });
 
-    if (!loginRes.ok) {
-      console.error("[signup] Admin login failed:", await loginRes.text());
-      return { error: "Erro ao processar cadastro. Tente novamente." };
-    }
+    const { access_token } = loginData;
 
-    const { access_token } = await loginRes.json();
-
-    // 2. Cria empresa via API (já cria notificação para admins internamente)
-    const createRes = await fetch(`${API_BASE_URL}/api/companies`, {
-      method: "POST",
+    // 2. Cria empresa via API
+    const authApi = axios.create({
+      baseURL: API_BASE_URL,
+      timeout: 15000,
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${access_token}`,
       },
-      body: JSON.stringify({
-        name: fullName,
-        email,
-        password,
-        phone: phone || undefined,
-        tradeName: companyName,
-        cnpj,
-      }),
     });
 
-    if (!createRes.ok) {
-      const err = await createRes.json().catch(() => null);
-      const msg = Array.isArray(err?.message) ? err.message[0] : err?.message;
-      if (msg?.includes("E-mail já cadastrado")) return { error: "Este e-mail já está cadastrado." };
-      if (msg?.includes("CNPJ já cadastrado")) return { error: "Este CNPJ já está cadastrado." };
-      console.error("[signup] Create company failed:", err);
-      return { error: msg ?? "Erro ao cadastrar empresa." };
-    }
+    await authApi.post("/api/companies", {
+      name: fullName,
+      email,
+      password,
+      phone: phone || undefined,
+      tradeName: companyName,
+      cnpj,
+    });
   } catch (err) {
-    console.error("[signup] API error:", err);
-    return { error: "Erro ao conectar com o servidor. Tente novamente." };
+    const message = getErrorMessage(err);
+
+    if (message.includes("E-mail já cadastrado")) return { error: "Este e-mail já está cadastrado." };
+    if (message.includes("CNPJ já cadastrado")) return { error: "Este CNPJ já está cadastrado." };
+
+    return { error: message };
   }
 
   redirect("/?cadastro=sucesso");

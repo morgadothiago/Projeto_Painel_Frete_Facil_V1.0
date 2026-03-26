@@ -3,8 +3,21 @@
 import { auth } from "@/auth"
 import { revalidatePath } from "next/cache"
 import { sendAccountPendingEmail, sendAccountBlockedEmail, sendAccountActivatedEmail } from "@/lib/mailer"
+import axios, { AxiosError } from "axios"
 
 const API_BASE_URL = process.env.API_BASE_URL || "http://localhost:3001"
+
+// Helper: instância axios com token para server actions
+function createAuthApi(token: string) {
+  return axios.create({
+    baseURL: API_BASE_URL,
+    timeout: 15000,
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  })
+}
 
 export type CompanyRow = {
   id: string
@@ -24,16 +37,11 @@ export async function getCompanies(): Promise<CompanyRow[]> {
     throw new Error("Sem permissão")
   }
 
-  const token = (session as any).accessToken
+  const api = createAuthApi((session as any).accessToken)
 
   try {
-    const response = await fetch(`${API_BASE_URL}/api/companies`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
+    const { data: result } = await api.get("/api/companies")
 
-    if (!response.ok) throw new Error("Erro ao buscar empresas")
-
-    const result = await response.json()
     return result.data.map((c: any) => ({
       id: c.id,
       userId: c.user.id,
@@ -60,36 +68,22 @@ export async function updateCompanyStatus(
     return { ok: false, error: "Sem permissão" }
   }
 
-  const token = (session as any).accessToken
+  const api = createAuthApi((session as any).accessToken)
 
   try {
     // Buscar dados da empresa antes de atualizar
-    const companyRes = await fetch(`${API_BASE_URL}/api/companies/${companyId}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-
     let companyEmail = ""
     let companyName = ""
 
-    if (companyRes.ok) {
-      const companyData = await companyRes.json()
-      companyEmail = companyData.data?.user?.email ?? ""
-      companyName = companyData.data?.user?.name ?? companyData.data?.tradeName ?? ""
+    try {
+      const { data: companyData } = await api.get(`/api/companies/${companyId}`)
+      companyEmail = companyData?.user?.email ?? ""
+      companyName = companyData?.user?.name ?? companyData?.tradeName ?? ""
+    } catch {
+      // Continua mesmo se não conseguir buscar dados da empresa
     }
 
-    const response = await fetch(`${API_BASE_URL}/api/companies/${companyId}/status`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ status }),
-    })
-
-    if (!response.ok) {
-      const err = await response.json().catch(() => null)
-      return { ok: false, error: err?.message ?? "Erro ao atualizar status" }
-    }
+    await api.patch(`/api/companies/${companyId}/status`, { status })
 
     // Enviar email baseado no novo status
     if (companyEmail) {
@@ -106,8 +100,8 @@ export async function updateCompanyStatus(
       }
     }
   } catch (err) {
-    console.error("[updateCompanyStatus]", err)
-    return { ok: false, error: "Erro ao conectar com o servidor" }
+    const axiosErr = err as AxiosError<{ message?: string }>
+    return { ok: false, error: axiosErr.response?.data?.message ?? "Erro ao atualizar status" }
   }
 
   revalidatePath("/dashboard/empresas")
@@ -128,25 +122,13 @@ export async function createCompanyAction(data: {
     return { ok: false, error: "Sem permissão" }
   }
 
-  const token = (session as any).accessToken
+  const api = createAuthApi((session as any).accessToken)
 
   try {
-    const response = await fetch(`${API_BASE_URL}/api/companies`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(data),
-    })
-
-    if (!response.ok) {
-      const err = await response.json().catch(() => null)
-      return { ok: false, error: err?.message ?? "Erro ao criar empresa" }
-    }
+    await api.post("/api/companies", data)
   } catch (err) {
-    console.error("[createCompanyAction]", err)
-    return { ok: false, error: "Erro ao criar empresa" }
+    const axiosErr = err as AxiosError<{ message?: string }>
+    return { ok: false, error: axiosErr.response?.data?.message ?? "Erro ao criar empresa" }
   }
 
   revalidatePath("/dashboard/empresas")
@@ -182,25 +164,20 @@ export async function getCompanyDetails(companyId: string): Promise<CompanyDetai
   const session = await auth()
   if (!session) return null
 
-  const token = (session as any).accessToken
+  const api = createAuthApi((session as any).accessToken)
   const role = session.user.role
 
   try {
-    let url: string
-    if (role === "ADMIN") {
-      url = `${API_BASE_URL}/api/companies/${companyId}`
-    } else if (role === "COMPANY") {
-      url = `${API_BASE_URL}/api/companies/me`
-    } else {
-      return null
-    }
+    const url = role === "ADMIN"
+      ? `/api/companies/${companyId}`
+      : role === "COMPANY"
+        ? `/api/companies/me`
+        : null
 
-    const response = await fetch(url, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
+    if (!url) return null
 
-    if (!response.ok) return null
-    return await response.json()
+    const { data } = await api.get(url)
+    return data
   } catch {
     return null
   }
@@ -212,21 +189,12 @@ export async function isCompanyProfileComplete(): Promise<boolean> {
   const session = await auth()
   if (!session || session.user.role !== "COMPANY") return true
 
-  const token = (session as any).accessToken
+  const api = createAuthApi((session as any).accessToken)
 
   try {
-    const res = await fetch(`${API_BASE_URL}/api/companies/me`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-    if (!res.ok) {
-      console.log("[onboarding] /api/companies/me returned", res.status)
-      return true
-    }
-    const company = await res.json()
-    console.log("[onboarding] addresses count:", company.addresses?.length ?? 0)
+    const { data: company } = await api.get("/api/companies/me")
     return company.addresses?.length > 0
-  } catch (err) {
-    console.log("[onboarding] error:", err)
+  } catch {
     return true
   }
 }
@@ -245,27 +213,15 @@ export async function completeCompanyProfile(data: {
     return { ok: false, error: "Sem permissão" }
   }
 
-  const token = (session as any).accessToken
+  const api = createAuthApi((session as any).accessToken)
   const companyId = (session.user as any).company?.id
   if (!companyId) return { ok: false, error: "Empresa não encontrada" }
 
   try {
-    const res = await fetch(`${API_BASE_URL}/api/companies/${companyId}/addresses`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(data),
-    })
-
-    if (!res.ok) {
-      const err = await res.json().catch(() => null)
-      return { ok: false, error: err?.message ?? "Erro ao salvar endereço" }
-    }
+    await api.post(`/api/companies/${companyId}/addresses`, data)
   } catch (err) {
-    console.error("[completeCompanyProfile]", err)
-    return { ok: false, error: "Erro ao conectar com o servidor" }
+    const axiosErr = err as AxiosError<{ message?: string }>
+    return { ok: false, error: axiosErr.response?.data?.message ?? "Erro ao salvar endereço" }
   }
 
   revalidatePath("/dashboard")
@@ -297,14 +253,11 @@ export async function getCompanyPayments(companyId: string): Promise<Payment[]> 
   const session = await auth()
   if (!session) return []
 
-  const token = (session as any).accessToken
+  const api = createAuthApi((session as any).accessToken)
 
   try {
-    const res = await fetch(`${API_BASE_URL}/api/payments/company/${companyId}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-    if (!res.ok) return []
-    return await res.json()
+    const { data } = await api.get(`/api/payments/company/${companyId}`)
+    return data
   } catch {
     return []
   }
@@ -314,14 +267,11 @@ export async function getPaymentStats(companyId: string): Promise<PaymentStats |
   const session = await auth()
   if (!session) return null
 
-  const token = (session as any).accessToken
+  const api = createAuthApi((session as any).accessToken)
 
   try {
-    const res = await fetch(`${API_BASE_URL}/api/payments/company/${companyId}/stats`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-    if (!res.ok) return null
-    return await res.json()
+    const { data } = await api.get(`/api/payments/company/${companyId}/stats`)
+    return data
   } catch {
     return null
   }
@@ -336,25 +286,13 @@ export async function createPayment(data: {
   const session = await auth()
   if (!session || session.user.role !== "ADMIN") return { ok: false, error: "Sem permissão" }
 
-  const token = (session as any).accessToken
+  const api = createAuthApi((session as any).accessToken)
 
   try {
-    const res = await fetch(`${API_BASE_URL}/api/payments`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(data),
-    })
-
-    if (!res.ok) {
-      const err = await res.json().catch(() => null)
-      return { ok: false, error: err?.message ?? "Erro ao criar pagamento" }
-    }
+    await api.post("/api/payments", data)
   } catch (err) {
-    console.error("[createPayment]", err)
-    return { ok: false, error: "Erro ao conectar com o servidor" }
+    const axiosErr = err as AxiosError<{ message?: string }>
+    return { ok: false, error: axiosErr.response?.data?.message ?? "Erro ao criar pagamento" }
   }
 
   return { ok: true }
@@ -364,44 +302,26 @@ export async function markPaymentAsPaid(paymentId: string, companyId: string): P
   const session = await auth()
   if (!session || session.user.role !== "ADMIN") return { ok: false, error: "Sem permissão" }
 
-  const token = (session as any).accessToken
+  const api = createAuthApi((session as any).accessToken)
 
   try {
     // Buscar dados da empresa antes de atualizar
-    const companyRes = await fetch(`${API_BASE_URL}/api/companies/${companyId}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-
     let companyEmail = ""
     let companyName = ""
 
-    if (companyRes.ok) {
-      const companyData = await companyRes.json()
-      companyEmail = companyData.data?.user?.email ?? ""
-      companyName = companyData.data?.user?.name ?? companyData.data?.tradeName ?? ""
+    try {
+      const { data: companyData } = await api.get(`/api/companies/${companyId}`)
+      companyEmail = companyData?.user?.email ?? ""
+      companyName = companyData?.user?.name ?? companyData?.tradeName ?? ""
+    } catch {
+      // Continua mesmo se não conseguir buscar dados da empresa
     }
 
     // 1. Marca pagamento como PAGO
-    const res = await fetch(`${API_BASE_URL}/api/payments/${paymentId}/status`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ status: "PAGO" }),
-    })
-
-    if (!res.ok) return { ok: false, error: "Erro ao atualizar pagamento" }
+    await api.patch(`/api/payments/${paymentId}/status`, { status: "PAGO" })
 
     // 2. Reativa a empresa (se estava inativa por atraso)
-    await fetch(`${API_BASE_URL}/api/companies/${companyId}/status`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ status: "ACTIVE" }),
-    })
+    await api.patch(`/api/companies/${companyId}/status`, { status: "ACTIVE" })
 
     // 3. Enviar email de confirmação de pagamento
     if (companyEmail) {
@@ -411,8 +331,9 @@ export async function markPaymentAsPaid(paymentId: string, companyId: string): P
         console.error("[markPaymentAsPaid] Erro ao enviar email:", emailErr)
       }
     }
-  } catch {
-    return { ok: false, error: "Erro ao conectar com o servidor" }
+  } catch (err) {
+    const axiosErr = err as AxiosError<{ message?: string }>
+    return { ok: false, error: axiosErr.response?.data?.message ?? "Erro ao atualizar pagamento" }
   }
 
   revalidatePath("/dashboard/empresas")

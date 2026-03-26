@@ -2,6 +2,7 @@
 
 import { db }   from "@/lib/db";
 import { auth } from "@/auth";
+import { api }  from "@/lib/api";
 
 type MonthlyPoint = { mes: string; novas: number; total: number };
 type StatusPoint  = { label: string; qtd: number };
@@ -186,4 +187,102 @@ export async function getDashboardStats(): Promise<DashboardStats | null> {
       },
     },
   };
+}
+
+// ─── Company Dashboard Stats (via API) ────────────────────────────────
+
+export type CompanyDashboardStats = {
+  overview: {
+    totalDeliveries: number;
+    pending: number;
+    accepted: number;
+    inProgress: number;
+    completed: number;
+    cancelled: number;
+  };
+  financial: {
+    totalSpent: number;
+    avgPrice: number;
+    avgRating: number;
+  };
+  recentDeliveries: Array<{
+    id: string;
+    publicId: string;
+    status: string;
+    estimatedPrice: number;
+    finalPrice: number | null;
+    originAddress: string;
+    destAddress: string;
+    rating: number | null;
+    createdAt: string;
+    driver: { user: { name: string } } | null;
+    vehicleType: { name: string; icon: string };
+  }>;
+  deliveriesLast30Days: Array<{
+    date: string;
+    count: number;
+  }>;
+};
+
+export async function getCompanyDashboardStats(): Promise<CompanyDashboardStats | null> {
+  const session = await auth();
+  if (!session) return null;
+  const role = (session.user as any).role;
+  if (role !== 'COMPANY') return null;
+
+  try {
+    const { data } = await api.get('/api/dashboard/company');
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+// ─── Driver Dashboard Stats (via API) ─────────────────────────────────
+
+export type DriverDashboardStats = {
+  overview: {
+    rating: number;
+    totalDeliveries: number;
+    balance: number;
+    isOnline: boolean;
+    completed: number;
+    cancelled: number;
+    inProgress: number;
+  };
+  earnings: {
+    totalPaid: number;
+    totalGross: number;
+    avgPerDelivery: number;
+  };
+  recentDeliveries: Array<{
+    id: string;
+    publicId: string;
+    status: string;
+    finalPrice: number | null;
+    originAddress: string;
+    destAddress: string;
+    rating: number | null;
+    createdAt: string;
+    company: { tradeName: string };
+    vehicleType: { name: string; icon: string };
+  }>;
+  earningsLast30Days: Array<{
+    date: string;
+    total: number;
+  }>;
+};
+
+export async function getDriverDashboardStats(): Promise<DriverDashboardStats | null> {
+  const session = await auth();
+  if (!session) return null;
+  const role = (session.user as any).role;
+  if (role !== 'DRIVER') return null;
+
+  try {
+    const { data } = await api.get('/api/dashboard/driver');
+    return data;
+  } catch {
+    return null;
+  }
 }

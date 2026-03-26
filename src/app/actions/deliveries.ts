@@ -308,57 +308,30 @@ export async function getFretesHistorico(
   const base = await baseEndpoint();
   if (!base) return empty;
 
-  const limit = params?.limit ?? 10;
-  const page  = params?.page  ?? 1;
+  const limit     = params?.limit ?? 10;
+  const page      = params?.page  ?? 1;
+  const status    = params?.status ?? "COMPLETED";
+  const searchQ   = params?.q;
 
   try {
-    // API aceita apenas 1 status por vez
-    const statuses = params?.status && params.status !== "ALL"
-      ? [params.status]
-      : ["COMPLETED", "CANCELLED"];
+    // 1 requisição apenas — a API aceita 1 status por vez
+    const qs = new URLSearchParams({
+      page:   String(page),
+      limit:  String(limit),
+      status,
+    });
 
-    // Busca grande para ter dados suficientes para filtrar e paginar
-    const fetchLimit = Math.max(limit * 5, 50);
+    const { data } = await api.get(`${base}?${qs}`);
+    let items: Delivery[] = (data.data as unknown[]).map(mapDelivery);
+    const total: number   = data.total ?? items.length;
 
-    const fetchByStatus = async (status: string) => {
-      const qs = new URLSearchParams({ page: "1", limit: String(fetchLimit), status });
-      const { data } = await api.get(`${base}?${qs}`);
-      const raw: unknown[] = data.data ?? [];
-      return {
-        items: raw.map(mapDelivery),
-        total: data.total as number,
-      };
-    };
-
-    const results = await Promise.all(statuses.map(fetchByStatus));
-
-    // Junta e remove duplicatas
-    const seen = new Set<string>();
-    let all: Delivery[] = [];
-    for (const r of results) {
-      for (const d of r.items) {
-        if (!seen.has(d.id)) {
-          seen.add(d.id);
-          all.push(d);
-        }
-      }
+    // Filtro por texto client-side
+    if (searchQ) {
+      items = items.filter(d => matchesFilters(d, params));
     }
-
-    // Ordena por data decrescente
-    all.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-
-    // Filtro por texto (client-side, já que a API não suporta q=)
-    if (params?.q) {
-      all = all.filter(d => matchesFilters(d, params));
-    }
-
-    // Paginação client-side
-    const total = all.length;
-    const start = (page - 1) * limit;
-    const data  = all.slice(start, start + limit);
 
     return {
-      data,
+      data: items,
       total,
       page,
       limit,

@@ -1,0 +1,10 @@
+{
+  "framework": "nextjs",
+  "regions": ["gru1"],
+  "buildCommand": "npm run build",
+  "outputDirectory": ".next",
+  "installCommand": "npm ci",
+  "env": {
+    "NODE_ENV": "production"
+  }
+}

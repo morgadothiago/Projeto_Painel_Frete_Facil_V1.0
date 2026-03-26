@@ -12,10 +12,11 @@ import { QuickAction } from "../_components/QuickAction";
 import { CompanyChart } from "../_components/CompanyChart";
 import { tenantConfig } from "@/config/tenant";
 import type { PendingPayment } from "@/app/actions/billing";
+import type { CompanyDashboardStats } from "@/app/actions/dashboard";
 
 const { theme: t } = tenantConfig;
 
-type Props = { userName: string; pendingPayment?: PendingPayment | null };
+type Props = { userName: string; pendingPayment?: PendingPayment | null; stats?: CompanyDashboardStats | null };
 
 function TruckIllustration() {
   return (
@@ -35,8 +36,11 @@ function TruckIllustration() {
   );
 }
 
-export function CompanyDashboard({ userName, pendingPayment }: Props) {
+export function CompanyDashboard({ userName, pendingPayment, stats }: Props) {
   const isMobile = useIsMobile();
+
+  const overview = stats?.overview;
+  const financial = stats?.financial;
 
   const dueDateStr = pendingPayment
     ? new Date(pendingPayment.dueDate).toLocaleDateString("pt-BR", { day: "2-digit", month: "long" })
@@ -89,7 +93,7 @@ export function CompanyDashboard({ userName, pendingPayment }: Props) {
         <StatCard
           icon={<Truck />}
           label="Fretes Ativos"
-          value="0"
+          value={String((overview?.accepted ?? 0) + (overview?.inProgress ?? 0))}
           sub="em andamento"
           accent={t.primary}
           trend={null}
@@ -97,7 +101,7 @@ export function CompanyDashboard({ userName, pendingPayment }: Props) {
         <StatCard
           icon={<CheckCircle2 />}
           label="Concluídos"
-          value="0"
+          value={String(overview?.completed ?? 0)}
           sub="este mês"
           accent={t.success}
           trend={null}
@@ -105,16 +109,16 @@ export function CompanyDashboard({ userName, pendingPayment }: Props) {
         <StatCard
           icon={<Clock />}
           label="Aguardando"
-          value="0"
+          value={String(overview?.pending ?? 0)}
           sub="pendentes"
           accent={t.warning}
           trend={null}
         />
         <StatCard
           icon={<Wallet />}
-          label="Saldo"
-          value="R$ 0"
-          sub="disponível"
+          label="Gasto Total"
+          value={`R$ ${Number(financial?.totalSpent ?? 0).toLocaleString("pt-BR", { minimumFractionDigits: 0 })}`}
+          sub={`${overview?.totalDeliveries ?? 0} entregas`}
           accent="#6366F1"
           trend={null}
         />
@@ -131,7 +135,7 @@ export function CompanyDashboard({ userName, pendingPayment }: Props) {
         {/* Gráfico */}
         {!isMobile && (
           <div style={{ display: "flex", flexDirection: "column", minHeight: 0, overflow: "hidden" }}>
-            <CompanyChart />
+            <CompanyChart stats={stats} />
           </div>
         )}
 

@@ -1,8 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-
-const API_BASE_URL = process.env.API_BASE_URL || "http://localhost:3001";
+import { publicApi, getErrorMessage } from "@/lib/api";
 
 // ── Step 1: solicitar código ──────────────────────────────────────────────────
 
@@ -16,27 +15,17 @@ export async function requestPasswordReset(
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { error: "E-mail inválido." };
 
   try {
-    const res = await fetch(`${API_BASE_URL}/api/auth/forgot-password`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email }),
-    });
-
-    const data = await res.json().catch(() => null);
+    const { data } = await publicApi.post("/api/auth/forgot-password", { email });
 
     // Conta inativa — API retorna 200 com error no body
     if (data?.error === "INACTIVE_ACCOUNT") {
       return { error: data.message };
     }
 
-    if (!res.ok) {
-      return { error: data?.message ?? "Erro ao enviar código. Tente novamente." };
-    }
-  } catch {
-    return { error: "Erro ao conectar com o servidor." };
+    return { sent: true };
+  } catch (err) {
+    return { error: getErrorMessage(err) };
   }
-
-  return { sent: true };
 }
 
 // ── Step 2: verificar código ──────────────────────────────────────────────────
@@ -51,18 +40,9 @@ export async function verifyResetCode(
   if (!email || !code) return { error: "Dados inválidos." };
 
   try {
-    const res = await fetch(`${API_BASE_URL}/api/auth/verify-reset-code`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, code }),
-    });
-
-    if (!res.ok) {
-      const err = await res.json().catch(() => null);
-      return { error: err?.message ?? "Código inválido ou expirado." };
-    }
-  } catch {
-    return { error: "Erro ao conectar com o servidor." };
+    await publicApi.post("/api/auth/verify-reset-code", { email, code });
+  } catch (err) {
+    return { error: getErrorMessage(err) };
   }
 
   redirect(`/forgot-password/reset?email=${encodeURIComponent(email)}&code=${encodeURIComponent(code)}`);
@@ -84,18 +64,9 @@ export async function resetPassword(
   if (password.length < 6) return { error: "A senha deve ter ao menos 6 caracteres." };
 
   try {
-    const res = await fetch(`${API_BASE_URL}/api/auth/reset-password`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, code, newPassword: password }),
-    });
-
-    if (!res.ok) {
-      const err = await res.json().catch(() => null);
-      return { error: err?.message ?? "Erro ao redefinir senha." };
-    }
-  } catch {
-    return { error: "Erro ao conectar com o servidor." };
+    await publicApi.post("/api/auth/reset-password", { email, code, newPassword: password });
+  } catch (err) {
+    return { error: getErrorMessage(err) };
   }
 
   redirect("/?cadastro=senha-redefinida");

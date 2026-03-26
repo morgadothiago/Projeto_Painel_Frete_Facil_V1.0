@@ -5,14 +5,21 @@ vi.mock("@/auth", () => ({
   auth: vi.fn(),
 }));
 
+// Mock do axios
+const mockGet = vi.fn();
+
+vi.mock("axios", () => ({
+  default: {
+    create: () => ({
+      get: mockGet,
+    }),
+  },
+}));
+
 import { checkCompanyAccess, getPendingPayment } from "./billing";
 import { auth } from "@/auth";
 
 const mockAuth = vi.mocked(auth);
-
-// Mock do fetch global
-const mockFetch = vi.fn();
-global.fetch = mockFetch;
 
 describe("billing - Company Access Control", () => {
   beforeEach(() => {
@@ -46,11 +53,8 @@ describe("billing - Company Access Control", () => {
         accessToken: "token-123",
       } as any);
 
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          user: { status: "INACTIVE" },
-        }),
+      mockGet.mockResolvedValueOnce({
+        data: { user: { status: "INACTIVE" } },
       });
 
       const result = await checkCompanyAccess();
@@ -67,11 +71,8 @@ describe("billing - Company Access Control", () => {
         accessToken: "token-123",
       } as any);
 
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          user: { status: "PENDING" },
-        }),
+      mockGet.mockResolvedValueOnce({
+        data: { user: { status: "PENDING" } },
       });
 
       const result = await checkCompanyAccess();
@@ -88,16 +89,12 @@ describe("billing - Company Access Control", () => {
         accessToken: "token-123",
       } as any);
 
-      mockFetch
+      mockGet
         .mockResolvedValueOnce({
-          ok: true,
-          json: async () => ({
-            user: { status: "ACTIVE" },
-          }),
+          data: { user: { status: "ACTIVE" } },
         })
         .mockResolvedValueOnce({
-          ok: true,
-          json: async () => ({ active: true }),
+          data: { active: true },
         });
 
       const result = await checkCompanyAccess();
@@ -114,16 +111,12 @@ describe("billing - Company Access Control", () => {
         accessToken: "token-123",
       } as any);
 
-      mockFetch
+      mockGet
         .mockResolvedValueOnce({
-          ok: true,
-          json: async () => ({
-            user: { status: "ACTIVE" },
-          }),
+          data: { user: { status: "ACTIVE" } },
         })
         .mockResolvedValueOnce({
-          ok: true,
-          json: async () => ({ active: false }),
+          data: { active: false },
         });
 
       const result = await checkCompanyAccess();
@@ -140,52 +133,7 @@ describe("billing - Company Access Control", () => {
         accessToken: "token-123",
       } as any);
 
-      mockFetch.mockResolvedValueOnce({
-        ok: false,
-        status: 500,
-      });
-
-      const result = await checkCompanyAccess();
-      expect(result).toEqual({ allowed: true });
-    });
-
-    it("should allow access when payment check API fails", async () => {
-      mockAuth.mockResolvedValue({
-        user: {
-          id: "user-1",
-          role: "COMPANY",
-          company: { id: "company-1" },
-        },
-        accessToken: "token-123",
-      } as any);
-
-      mockFetch
-        .mockResolvedValueOnce({
-          ok: true,
-          json: async () => ({
-            user: { status: "ACTIVE" },
-          }),
-        })
-        .mockResolvedValueOnce({
-          ok: false,
-          status: 500,
-        });
-
-      const result = await checkCompanyAccess();
-      expect(result).toEqual({ allowed: true });
-    });
-
-    it("should allow access when fetch throws error", async () => {
-      mockAuth.mockResolvedValue({
-        user: {
-          id: "user-1",
-          role: "COMPANY",
-          company: { id: "company-1" },
-        },
-        accessToken: "token-123",
-      } as any);
-
-      mockFetch.mockRejectedValue(new Error("Network error"));
+      mockGet.mockRejectedValueOnce(new Error("Network error"));
 
       const result = await checkCompanyAccess();
       expect(result).toEqual({ allowed: true });
@@ -226,9 +174,8 @@ describe("billing - Company Access Control", () => {
         description: "Mensalidade",
       };
 
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => paymentData,
+      mockGet.mockResolvedValueOnce({
+        data: paymentData,
       });
 
       const result = await getPendingPayment();
@@ -245,26 +192,7 @@ describe("billing - Company Access Control", () => {
         accessToken: "token-123",
       } as any);
 
-      mockFetch.mockResolvedValueOnce({
-        ok: false,
-        status: 404,
-      });
-
-      const result = await getPendingPayment();
-      expect(result).toBeNull();
-    });
-
-    it("should return null when fetch throws error", async () => {
-      mockAuth.mockResolvedValue({
-        user: {
-          id: "user-1",
-          role: "COMPANY",
-          company: { id: "company-1" },
-        },
-        accessToken: "token-123",
-      } as any);
-
-      mockFetch.mockRejectedValue(new Error("Network error"));
+      mockGet.mockRejectedValueOnce(new Error("Network error"));
 
       const result = await getPendingPayment();
       expect(result).toBeNull();

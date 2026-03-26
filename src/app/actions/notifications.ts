@@ -2,8 +2,20 @@
 
 import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
+import axios, { AxiosError } from "axios";
 
 const API_BASE_URL = process.env.API_BASE_URL || "http://localhost:3001";
+
+function createAuthApi(token: string) {
+  return axios.create({
+    baseURL: API_BASE_URL,
+    timeout: 15000,
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
+}
 
 export type AppNotification = {
   id: string;
@@ -20,17 +32,10 @@ export async function getNotifications(): Promise<AppNotification[]> {
     const session = await auth();
     if (!session?.user?.id) return [];
 
-    const token = (session as any).accessToken;
-    if (!token) return [];
+    const api = createAuthApi((session as any).accessToken);
 
-    const res = await fetch(`${API_BASE_URL}/api/notifications`, {
-      headers: { Authorization: `Bearer ${token}` },
-      cache: "no-store",
-    });
+    const { data: result } = await api.get("/api/notifications");
 
-    if (!res.ok) return [];
-
-    const result = await res.json();
     return (result.data ?? []).map((n: any) => ({
       ...n,
       createdAt: new Date(n.createdAt),
@@ -46,13 +51,8 @@ export async function markAllAsRead(): Promise<void> {
     const session = await auth();
     if (!session?.user?.id) return;
 
-    const token = (session as any).accessToken;
-    if (!token) return;
-
-    await fetch(`${API_BASE_URL}/api/notifications/read-all`, {
-      method: "PATCH",
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const api = createAuthApi((session as any).accessToken);
+    await api.patch("/api/notifications/read-all");
   } catch (err) {
     console.error("[notifications] markAllAsRead error:", err);
   }
@@ -67,32 +67,20 @@ export async function activateCompany(
     return { ok: false, error: "Sem permissão" };
   }
 
-  const token = (session as any).accessToken;
+  const api = createAuthApi((session as any).accessToken);
 
   try {
     // Ativa o usuário via API
-    const res = await fetch(`${API_BASE_URL}/api/users/${companyUserId}/status`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ status: "ACTIVE" }),
-    });
-
-    if (!res.ok) return { ok: false, error: "Erro ao ativar empresa" };
+    await api.patch(`/api/users/${companyUserId}/status`, { status: "ACTIVE" });
 
     // Marca notificação como lida
-    await fetch(`${API_BASE_URL}/api/notifications/read-all`, {
-      method: "PATCH",
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    await api.patch("/api/notifications/read-all");
 
     revalidatePath("/dashboard");
     return { ok: true };
   } catch (err) {
-    console.error("[notifications] activateCompany error:", err);
-    return { ok: false, error: "Erro ao conectar com o servidor" };
+    const axiosErr = err as AxiosError<{ message?: string }>
+    return { ok: false, error: axiosErr.response?.data?.message ?? "Erro ao ativar empresa" };
   }
 }
 
@@ -101,14 +89,8 @@ export async function clearAllNotifications(): Promise<void> {
     const session = await auth();
     if (!session?.user?.id) return;
 
-    const token = (session as any).accessToken;
-    if (!token) return;
-
-    // API não tem endpoint de deletar todas, então marca como lidas
-    await fetch(`${API_BASE_URL}/api/notifications/read-all`, {
-      method: "PATCH",
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const api = createAuthApi((session as any).accessToken);
+    await api.delete("/api/notifications/clear-all");
   } catch (err) {
     console.error("[notifications] clearAllNotifications error:", err);
   }

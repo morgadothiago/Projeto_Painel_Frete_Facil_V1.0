@@ -21,10 +21,10 @@ describe("StatCard Component", () => {
     expect(screen.getByText("+12%")).toBeInTheDocument();
   });
 
-  it("renders label in uppercase", () => {
+  it("renders label with correct font weight", () => {
     render(<StatCard {...defaultProps} label="test label" />);
     const label = screen.getByText("test label");
-    expect(label).toHaveStyle({ textTransform: "uppercase" });
+    expect(label).toHaveStyle({ fontWeight: "600" });
   });
 
   it("renders with zero value", () => {
@@ -41,5 +41,25 @@ describe("StatCard Component", () => {
     render(<StatCard {...defaultProps} accent="#FF0000" />);
     const subBadge = screen.getByText("+12%");
     expect(subBadge).toBeInTheDocument();
+  });
+
+  it("renders trend indicator when provided", () => {
+    render(
+      <StatCard 
+        {...defaultProps} 
+        trend={{ value: 15, isPositive: true }} 
+      />
+    );
+    expect(screen.getByText("15%")).toBeInTheDocument();
+  });
+
+  it("renders negative trend indicator", () => {
+    render(
+      <StatCard 
+        {...defaultProps} 
+        trend={{ value: 8, isPositive: false }} 
+      />
+    );
+    expect(screen.getByText("8%")).toBeInTheDocument();
   });
 });

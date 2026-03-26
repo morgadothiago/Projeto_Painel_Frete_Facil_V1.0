@@ -1,9 +1,13 @@
 import type { NextAuthConfig } from "next-auth";
 
+const isDev = process.env.NODE_ENV !== "production";
+
 // Config edge-compatible (sem Node.js APIs) — usada pelo proxy.ts
 // O CredentialsProvider fica apenas no auth.ts completo
 export const authConfig: NextAuthConfig = {
-  trustHost: true,
+  // Em dev: sempre confia no host (localhost)
+  // Em produção: NEXTAUTH_URL deve ser definido
+  trustHost: isDev || !process.env.NEXTAUTH_URL,
   pages: {
     signIn: "/",
     error:  "/",

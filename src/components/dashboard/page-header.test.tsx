@@ -44,13 +44,9 @@ describe("PageHeader Component", () => {
     expect(screen.queryByRole("link")).not.toBeInTheDocument();
   });
 
-  it("renders current date", () => {
-    render(<PageHeader title="Page" />);
-    const dateElement = screen.getByText(new Date().toLocaleDateString("pt-BR", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-    }));
-    expect(dateElement).toBeInTheDocument();
+  it("replaces Olá with time-based greeting", () => {
+    render(<PageHeader title="Olá, Admin" />);
+    const heading = screen.getByRole("heading");
+    expect(heading).not.toHaveTextContent("Olá");
   });
 });

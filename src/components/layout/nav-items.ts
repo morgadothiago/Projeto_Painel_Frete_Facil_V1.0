@@ -38,6 +38,7 @@ export const NAV_BY_ROLE: Record<string, NavGroup[]> = {
       label: "Operacoes",
       items: [
         { title: "Fretes",           href: "/dashboard/fretes",       icon: Truck },
+        { title: "Simular Frete",    href: "/dashboard/simular",      icon: MapPin },
         { title: "Motoristas",        href: "/dashboard/motoristas",   icon: UserCircle },
         { title: "Empresas",          href: "/dashboard/empresas",     icon: Building2 },
         { title: "Mapa",              href: "/dashboard/mapa",        icon: Map },
